@@ -1,13 +1,17 @@
-const { PrismaClient } = require("@prisma/client");
+const { PrismaClient } = require('@prisma/client');
+const { PrismaPg } = require('@prisma/adapter-pg');
+const { Pool } = require('pg');
 
-const prisma = new PrismaClient();
+const connectionString = process.env.DATABASE_URL;
+const pool = new Pool({ connectionString });
+
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({ adapter });
 
 exports.getDashboard = async (req, res) => {
     try {
-
-        // ==========================
-        // TOP METRICS
-        // ==========================
+        
 
         const pendingApprovals = await prisma.tenant.count({
             where: {
