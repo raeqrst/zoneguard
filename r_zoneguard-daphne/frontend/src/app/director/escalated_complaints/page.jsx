@@ -92,7 +92,6 @@ export default function EscalatedComplaintsPage() {
     fetchComplaints();
   }, []);
 
-  // Compute dynamic counts based on live fetched data
   const pendingList = complaintsData.filter(item => normalize(item.status) === 'escalated');
   const resolvedList = complaintsData.filter(item => normalize(item.status) === 'resolved');
 
@@ -121,10 +120,9 @@ export default function EscalatedComplaintsPage() {
     if (val.includes('public') || val.includes('pr')) return 'cat-pr';
     if (val.includes('grievance')) return 'cat-grievance';
     if (val.includes('sport')) return 'cat-sport';
-    return 'cat-infrastructure'; // default fallback
+    return 'cat-infrastructure'; 
   };
 
-  // Filtering logic matching search queries and active pills
   const filteredData = complaintsData.filter((item) => {
     const statusVal = normalize(item.status);
     const categoryVal = (item.categoryRaw || item.category || '').toUpperCase();
@@ -164,7 +162,6 @@ export default function EscalatedComplaintsPage() {
 
       if (!response.ok) throw new Error('Failed to update status');
 
-      // Refresh records live
       await fetchComplaints();
       if (selectedComplaint && (selectedComplaint.ticket === ticketId || selectedComplaint.id === dbId)) {
         setSelectedComplaint(null);
@@ -176,9 +173,54 @@ export default function EscalatedComplaintsPage() {
     }
   };
 
+  // ==========================================
+  // DYNAMIC CSV DOWNLOAD LOGIC
+  // ==========================================
+  const downloadCSV = (type) => {
+    // Determine which dataset to export based on the button clicked
+    const dataToExport = type === 'pending' ? pendingList : resolvedList;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert(`There are no ${type} complaints to export.`);
+      return;
+    }
+
+    const headers = ["Ticket ID", "Resident Name", "Address", "Category", "Status", "Complaint Subject", "Date Filed", "Escalation Reason"];
+    const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
+    const csvRows = dataToExport.map(item => {
+      const dateFiled = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : (item.dateFiled || 'N/A');
+      return [
+        escapeCSV(item.ticket),
+        escapeCSV(item.name),
+        escapeCSV(item.address),
+        escapeCSV(item.categoryRaw || item.category),
+        escapeCSV(item.status),
+        escapeCSV(item.subject),
+        escapeCSV(dateFiled),
+        escapeCSV(item.escalationReason || item.escalationRemarks || 'Standard administrative review.')
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = type === 'pending' 
+      ? `Pending_Escalated_Complaints_${currentDate}.csv` 
+      : `Resolved_Complaints_History_${currentDate}.csv`;
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div className="main-content">
-      {/* Top Header */}
       <header className="top-header">
         <div className="search-bar">
           <span className="search-icon">{Icons.search}</span>
@@ -199,7 +241,6 @@ export default function EscalatedComplaintsPage() {
         </div>
       </header>
 
-      {/* Page Title Header */}
       <div className="page-header">
         <div>
           <h1>Escalated Complaints Triage</h1>
@@ -207,12 +248,26 @@ export default function EscalatedComplaintsPage() {
             Executive oversight for unresolved community grievances requiring Director-level finality.
           </p>
         </div>
-        <button className="export-btn" onClick={() => alert('Exporting dataset view to CSV...')}>
-          {Icons.export} Export CSV
-        </button>
+        
+        {/* REPLACED SINGLE EXPORT BUTTON WITH DUAL EXPORT OPTIONS */}
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            className="export-btn" 
+            onClick={() => downloadCSV('pending')}
+            style={{ backgroundColor: '#ca8a04', color: '#fff' }}
+          >
+            {Icons.export} Export Pending
+          </button>
+          <button 
+            className="export-btn" 
+            onClick={() => downloadCSV('resolved')}
+            style={{ backgroundColor: '#064e3b', color: '#fff' }}
+          >
+            {Icons.export} Export Resolved
+          </button>
+        </div>
       </div>
 
-      {/* Category Filters + Protocols Grid */}
       <div className="top-section-grid">
         <div className="filters-container">
           <div className="pill-group">
@@ -251,7 +306,6 @@ export default function EscalatedComplaintsPage() {
         </div>
       </div>
 
-      {/* Complaints Table */}
       <div className="table-card">
         <table className="complaints-table">
           <thead>
@@ -293,7 +347,8 @@ export default function EscalatedComplaintsPage() {
                     </div>
                   </td>
                   <td>
-                    <span className={`cat-badge ${getCategoryBadgeClass(row.category)}`}>{row.category}</span>                  </td>
+                    <span className={`cat-badge ${getCategoryBadgeClass(row.category)}`}>{row.category}</span>
+                  </td>
                   <td>
                     <span className={`status-dot dot-${normalize(row.status)}`}></span>
                     <span className="status-text">{row.status}</span>
@@ -327,7 +382,6 @@ export default function EscalatedComplaintsPage() {
           </tbody>
         </table>
 
-        {/* Table Footer */}
         <div className="table-footer">
           <span className="footer-info">Showing {filteredData.length} active database records</span>
           <div className="pagination">
@@ -338,7 +392,6 @@ export default function EscalatedComplaintsPage() {
         </div>
       </div>
 
-      {/* Modal Popup for Details */}
       {selectedComplaint && (
         <div className="modal-overlay" onClick={() => setSelectedComplaint(null)}>
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
