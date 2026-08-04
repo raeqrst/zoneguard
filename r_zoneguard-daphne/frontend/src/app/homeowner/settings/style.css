@@ -1,0 +1,43 @@
+/* Align topbar to right side when no tabs are present */
+.topbar-right-only {
+  justify-content: flex-end;
+}
+
+/* Position header title and switch buttons to match second reference photo */
+.settings-header {
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+  gap: 36px;
+  margin-bottom: 28px;
+}
+
+.settings-title {
+  color: #064e3b;
+  font-size: 2.25rem;
+  font-weight: 800;
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.tab-pill-group {
+  display: flex;
+  gap: 12px;
+}
+
+.tab-btn {
+  padding: 8px 20px;
+  border-radius: 20px;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 0.85rem;
+  background-color: #bbf7d0;
+  color: #064e3b;
+  transition: all 0.2s ease;
+}
+
+.tab-btn.active-tab {
+  background-color: #064e3b;
+  color: #ffffff;
+}

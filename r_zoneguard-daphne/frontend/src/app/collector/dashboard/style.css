@@ -1,0 +1,469 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+/* ==========================================
+   FORCE BREAKOUT & SPACING FIXES
+   ========================================== */
+html, 
+body, 
+#root, 
+#__next, 
+main,
+[class*="layout"],
+[class*="wrapper"],
+[class*="container"] {
+  background-color: #ffffff !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: none !important;
+  box-shadow: none !important;
+  border-radius: 0 !important;
+  width: 100% !important;
+  max-width: 100% !important;
+  box-sizing: border-box !important;
+}
+
+/* Main Content Area - Optimized Padding & Margins */
+.main-content {
+  flex: 1;
+  width: 100% !important;
+  min-height: 100vh;
+  padding: 24px 32px !important;
+  background-color: #ffffff !important;
+  border: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  box-sizing: border-box !important;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+/* Topbar */
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  box-sizing: border-box;
+  margin-bottom: 4px;
+}
+
+.breadcrumb-section {
+  display: flex;
+  align-items: center;
+}
+
+.breadcrumb {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.user-profile {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.notification-btn {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 50%;
+  width: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #475569;
+  transition: background 0.2s;
+}
+
+.notification-btn:hover {
+  background: #f8fafc;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.user-name {
+  font-weight: 700;
+  color: #0f172a;
+  font-size: 0.9rem;
+}
+
+.user-role {
+  font-size: 0.65rem;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  font-weight: 700;
+}
+
+.user-avatar {
+  background-color: #0f172a;
+  color: #ffffff;
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+/* Page Title Header */
+.page-title-section {
+  width: 100%;
+}
+
+.flex-title {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.page-title-section h1 {
+  font-size: 2.2rem;
+  color: #064e3b;
+  margin: 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.zone-tag {
+  background-color: #e5e7eb;
+  color: #4b5563;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+/* Top Metric Cards Row */
+.collector-metrics-grid {
+  display: grid;
+  grid-template-columns: 1.2fr 1.2fr 1fr;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.metric-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  gap: 12px;
+  align-items: flex-start;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+}
+
+.metric-icon-wrap {
+  width: 40px;
+  height: 40px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.metric-icon-wrap.light-green { background-color: #ecfdf5; color: #065f46; }
+.metric-icon-wrap.light-pink { background-color: #fef2f2; color: #dc2626; }
+
+.metric-info {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+}
+
+.metric-label {
+  font-size: 0.75rem;
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.metric-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #111827;
+  margin-top: 2px;
+  line-height: 1.2;
+}
+
+/* Sub-stats inside card */
+.card-sub-stats {
+  display: flex;
+  gap: 16px;
+  border-top: 1px solid #f3f4f6;
+  padding-top: 8px;
+  margin-top: 10px;
+}
+
+.sub-stat-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.75rem;
+}
+
+.sub-label { color: #4b5563; }
+
+/* Incentive elements */
+.incentive-progress-wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 10px;
+  width: 100%;
+}
+
+.incentive-tag {
+  font-size: 0.65rem;
+  color: #4b5563;
+  background: #f3f4f6;
+  padding: 2px 6px;
+  border-radius: 4px;
+  align-self: flex-start;
+  font-weight: 600;
+}
+
+/* Pending Task Specific Card */
+.compact-pending-card {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.pending-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.pending-header h3 {
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #111827;
+  margin: 0;
+}
+
+.task-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 0;
+  margin: 0;
+}
+
+.task-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+  color: #4b5563;
+  font-weight: 500;
+}
+
+.badge {
+  background-color: #065f46;
+  color: #ffffff;
+  padding: 1px 6px;
+  border-radius: 99px;
+  font-size: 0.65rem;
+  font-weight: 700;
+}
+
+/* Dashboard Middle Grid */
+.collector-middle-grid {
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 20px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dash-card {
+  background: #ffffff;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 20px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.dash-card-header h2 {
+  font-size: 1.05rem;
+  color: #111827;
+  margin: 0;
+  font-weight: 700;
+}
+
+.dash-card-header p {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin: 4px 0 0 0;
+}
+
+/* Goal card elements */
+.goal-numbers {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-top: 14px;
+  margin-bottom: 6px;
+}
+
+.goal-main-stat {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.big-number {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.gray-sub {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.percentage-text {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #111827;
+}
+
+.metric-progress-bar {
+  width: 100%;
+  height: 6px;
+  background-color: #e5e7eb;
+  border-radius: 99px;
+  overflow: hidden;
+}
+
+.metric-progress-bar.bg-gray {
+  background-color: #f3f4f6;
+}
+
+.progress-fill {
+  height: 100%;
+}
+
+.progress-fill.mid-green { background-color: #10b981; }
+.progress-fill.pink-fill { background-color: #ef4444; }
+.progress-fill.blue-fill { background-color: #3b82f6; }
+.progress-fill.light-blue-fill { background-color: #60a5fa; }
+
+.goal-footer-legend {
+  display: flex;
+  gap: 20px;
+  font-size: 0.75rem;
+  color: #6b7280;
+  margin-top: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Billing Info Card Stack */
+.billing-info-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.billing-block {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.billing-title {
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: #6b7280;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.billing-value {
+  font-size: 1.05rem;
+}
+
+.green-text-bold {
+  color: #065f46;
+  font-weight: 700;
+}
+
+/* Task Distribution Section */
+.distribution-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.distribution-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.dist-label-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+}
+
+.dist-title {
+  font-weight: 600;
+  color: #374151;
+}
+
+.dist-percent {
+  font-weight: 700;
+  color: #111827;
+}
+
+/* Dots helper */
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+}
+.cash-dot { background-color: #f59e0b; }
+.digital-dot { background-color: #10b981; }
+.gray-dot { background-color: #cbd5e1; }
+
+/* Responsive adjustments */
+@media (max-width: 1200px) {
+  .collector-metrics-grid {
+    grid-template-columns: 1fr;
+  }
+  .collector-middle-grid {
+    grid-template-columns: 1fr;
+  }
+}

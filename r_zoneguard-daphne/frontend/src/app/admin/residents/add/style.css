@@ -1,0 +1,732 @@
+.ar-shell {
+  width: min(1600px, 100% - 24px);
+  margin: 12px auto;
+  min-height: calc(100vh - 24px);
+  display: grid;
+  grid-template-columns: 220px 1fr;
+  background: rgba(255, 255, 255, 0.8);
+  border: 1px solid #dfe7e2;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.ar-sidebar {
+  background: linear-gradient(180deg, #fafcfa 0%, #eef4f0 100%);
+  border-right: 1px solid var(--line);
+  padding: 20px 14px;
+  display: flex;
+  flex-direction: column;
+}
+
+.ar-hero-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  align-items: center;
+  margin-top: -18px; 
+}
+
+.ar-hero-row h1 {
+  margin: 0;
+  font: 700 2.2rem/1.1 var(--font-display);
+  color: #134c39;
+}
+
+.ar-hero-row p {
+  margin: 6px 0 0;
+  color: #6a7c75;
+  font-size: 0.9rem;
+}
+
+.ar-search {
+  width: 100%;
+}
+
+.ar-search {
+  width: min(480px, 100%);
+  background: #fff;
+  border: 1px solid #dfe5e1;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(35, 58, 47, 0.08);
+  padding: 7px 12px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.ar-search span {
+  color: #7f9088;
+}
+
+.ar-search input {
+  border: 0;
+  outline: none;
+  width: 100%;
+  font: inherit;
+  color: #325043;
+}
+
+.ar-search input::placeholder {
+  color: #99a8a2;
+}
+
+.ar-user {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  /* This tells the element to push itself as far right as possible */
+  margin-left: auto; 
+}
+
+.ar-user strong {
+  display: block;
+  text-align: right;
+  font-size: 0.86rem;
+}
+
+.ar-user p {
+  margin: 0;
+  text-align: right;
+  color: #7a8a83;
+  font-size: 0.66rem;
+  letter-spacing: 0.08em;
+}
+
+.ar-user span {
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1e1d68, #3126a0);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+
+.ar-brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 22px;
+}
+
+.ar-brand-mark {
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(145deg, #0e704f, #124f3b);
+  color: #fff;
+  font: 800 0.82rem/1 var(--font-display);
+}
+
+.ar-brand strong {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.ar-brand p {
+  margin: 2px 0 0;
+  font-size: 0.64rem;
+  color: var(--text-soft);
+  letter-spacing: 0.09em;
+}
+
+.ar-nav {
+  display: grid;
+  gap: 8px;
+}
+
+.ar-nav-item {
+  width: 100%;
+  display: block;
+  border: 0;
+  background: transparent;
+  padding: 10px 12px;
+  border-radius: 10px;
+  text-align: left;
+  text-decoration: none;
+  color: #30463d;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ar-nav-item.is-active {
+  background: #e3f1e9;
+  box-shadow: inset -3px 0 0 #0f7050;
+}
+
+.ar-nav-item:hover {
+  background: #edf5f1;
+}
+
+.ar-sidebar-footer {
+  margin-top: auto;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  display: grid;
+  gap: 8px;
+}
+
+.ar-main {
+  padding: 30px;
+  display: grid;
+  gap: 16px;
+  position: relative;
+}
+
+.ar-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 20px;
+}
+
+.ar-topbar h1 {
+  margin: 0;
+  font: 700 1.9rem/1.1 var(--font-display);
+  color: #124b39;
+}
+
+.ar-subtitle {
+  margin: 6px 0 0;
+  color: #6b8078;
+  font-size: 0.85rem;
+}
+
+.ar-topbar-right {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 4px;
+}
+
+.ar-role {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #124b39;
+}
+
+.ar-title {
+  font-size: 0.65rem;
+  color: #8a9a94;
+  letter-spacing: 0.08em;
+}
+
+.ar-avatar-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(145deg, #1e1d68, #3126a0);
+  color: #fff;
+  display: grid;
+  place-items: center;
+  font-size: 0.75rem;
+  font-weight: 800;
+  margin-top: 6px;
+}
+
+.ar-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.ar-stat-card {
+  background: var(--surface, #fff);
+  border: 1px solid var(--line, #dfe7e2);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(37, 61, 50, 0.04);
+  padding: 20px;
+  display: flex;
+  gap: 16px;
+  align-items: center; /* Centers the icon block with the text vertically */
+}
+
+.ar-stat-icon {
+  width: 58px;
+  height: 58px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+}
+
+/* Light theme for Total Tenants */
+.tone-light .ar-stat-icon {
+  background: #a9e8c8;
+  color: #0c533a;
+}
+
+/* Dark theme for Total Homeowners */
+.tone-dark .ar-stat-icon {
+  background: #0f7050;
+  color: #ffffff;
+}
+
+.ar-stat-card p {
+  margin: 0;
+  color: #4b5a66;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.ar-stat-card strong {
+  display: block;
+  font: 800 2rem/1.2 var(--font-display, sans-serif);
+  color: #0c533a;
+  margin: 2px 0;
+}
+
+.ar-year-label {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: #94a3b8;
+  font-weight: 500;
+}
+
+.ar-yellow-dot {
+  display: inline-block;
+  width: 10px;
+  height: 10px;
+  background-color: #fbbf24;
+  border-radius: 50%;
+}
+
+
+.ar-stat-card span {
+  display: block;
+  font-size: 0.72rem;
+  color: #8a9a94;
+}
+
+.ar-controls {
+  display: grid;
+  gap: 14px;
+}
+
+.ar-controls-row {
+  display: flex;
+  justify-content: space-between; /* Pushes zones to the left, actions to the right */
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap; /* Keeps it responsive on smaller screens */
+}
+
+.ar-filter-tabs {
+  display: flex;
+  gap: 10px;
+}
+
+.ar-tab {
+  border: 0;
+  background: transparent;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #6b8078;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ar-tab.active {
+  background: #0f7050;
+  color: #fff;
+}
+
+.ar-zone-filter {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.ar-zone-btn {
+  border: 1px solid #d6dfda;
+  background: #fff;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: #5a7068;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.ar-zone-btn:hover {
+  background: #eef4f1;
+  border-color: #0f7050;
+}
+
+.ar-actions {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.ar-add-btn {
+  border: 0;
+  background: #0f7050;
+  color: #fff;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.ar-add-btn:hover {
+  background: #0c5a40;
+}
+
+.ar-table-wrapper {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  box-shadow: 0 6px 18px rgba(37, 61, 50, 0.08);
+  overflow-x: auto;
+}
+
+.ar-residents-table {
+  width: 100%;
+  border-collapse: collapse;
+  min-width: 1000px;
+}
+
+.ar-residents-table thead {
+  background: #f8fbf9;
+  border-bottom: 1px solid #edf1ee;
+}
+
+.ar-residents-table th {
+  padding: 14px 16px;
+  text-align: left;
+  color: #61736c;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.ar-residents-table tbody tr {
+  border-bottom: 1px solid #edf1ee;
+  transition: background 0.1s;
+}
+
+.ar-residents-table tbody tr:last-child {
+  border-bottom: 0;
+}
+
+.ar-residents-table tbody tr:hover {
+  background: #fafcfb;
+}
+
+.ar-residents-table td {
+  padding: 14px 16px;
+  font-size: 0.9rem;
+  color: #364d43;
+}
+
+.ar-resident-cell {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+}
+
+.ar-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: grid;
+  place-items: center;
+  color: #fff;
+  font-weight: 700;
+  font-size: 0.75rem;
+  flex-shrink: 0;
+}
+
+.ar-resident-cell strong {
+  display: block;
+  color: #203d32;
+  font-weight: 600;
+}
+
+.ar-zone {
+  display: block;
+  font-size: 0.8rem;
+  color: #7f9088;
+  margin-top: 2px;
+}
+
+.ar-badge {
+  display: inline-block;
+  font-size: 0.85rem; /* Slightly larger since there is no box */
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ar-badge.eligible {
+  color: #16714e;
+}
+
+.ar-badge.ineligible {
+  color: #c84a3f;
+}
+
+.ar-badge.neutral {
+  color: #6b8078;
+}
+
+.ar-risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  border-radius: 6px;
+  background: #fae1de;
+  color: #c84a3f;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ar-risk-badge::before {
+  content: '⚠';
+  font-size: 0.8rem;
+}
+
+.ar-view-details {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #0f7050;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.ar-eye-icon {
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity 0.2s;
+}
+
+.ar-eye-icon:hover {
+  opacity: 1;
+}
+
+.ar-type-badge {
+  display: inline-block;
+  padding: 6px 12px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.ar-type-badge.type-tenant {
+  background: #d1f1d4;
+  color: #16714e;
+}
+
+.ar-type-badge.type-homeowner {
+  background: #0f7050;
+  color: #fff;
+}
+
+.ar-pagination {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+}
+
+.ar-pagination button {
+  width: 32px;
+  height: 32px;
+  border: 1px solid #dfe7e2;
+  background: #fff;
+  border-radius: 6px;
+  font-weight: 600;
+  color: #6b8078;
+  cursor: pointer;
+}
+
+.ar-pagination button.active {
+  background: #0f7050;
+  color: #fff;
+  border-color: #0f7050;
+}
+
+.ar-pagination button:hover {
+  border-color: #0f7050;
+  color: #0f7050;
+}
+
+@media (max-width: 760px) {
+  .ar-shell {
+    grid-template-columns: 1fr;
+  }
+
+  .ar-sidebar {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .ar-stats-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .ar-topbar {
+    flex-direction: column;
+  }
+
+  .ar-actions {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .ar-add-btn{
+    width: 100%;
+  }
+
+  .ar-zone-filter {
+    justify-content: flex-start;
+  }
+}
+
+/* =========================================
+   RESIDENT PROFILE MODAL
+   ========================================= */
+
+.ar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(188, 200, 195, 0.75);
+  backdrop-filter: blur(2px);
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.ar-modal-box {
+  background: #ffffff;
+  width: min(90%, 500px);
+  border-radius: 12px;
+  padding: 32px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+  animation: modalFadeIn 0.2s ease-out;
+}
+
+@keyframes modalFadeIn {
+  from { opacity: 0; transform: translateY(15px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.ar-modal-title {
+  text-align: center;
+  color: #0c533a;
+  font-size: 1.15rem;
+  font-weight: 800;
+  margin: 0 0 24px 0;
+  line-height: 1.4;
+}
+
+.ar-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.ar-modal-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ar-modal-field span {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #41594f;
+  letter-spacing: 0.03em;
+}
+
+.ar-modal-field input {
+  border: 1px solid #d6dfda;
+  border-radius: 6px;
+  padding: 10px 12px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #111827;
+  outline: none;
+  background: #fff;
+  width: 100%; 
+  box-sizing: border-box; 
+}
+
+.ar-phone-wrap {
+  display: flex;
+  align-items: center;
+  border: 1px solid #d6dfda;
+  border-radius: 6px;
+  overflow: hidden;
+  background: #fff;
+}
+
+.ar-phone-code {
+  padding: 10px 12px;
+  color: #9ca3af;
+  font-weight: 500;
+  font-size: 0.95rem;
+  border-right: 1px solid #d6dfda;
+  background: #f9fafb;
+}
+
+.ar-phone-wrap input {
+  border: none;
+  border-radius: 0;
+  flex: 1;
+}
+
+.ar-modal-section-title {
+  font-size: 1rem;
+  font-weight: 800;
+  color: #0c533a;
+  margin: 12px 0 0 0;
+}
+
+.ar-modal-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 12px;
+}
+
+.ar-modal-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr 2fr;
+  gap: 12px;
+}
+
+.ar-modal-close {
+  margin-top: 16px;
+  background: #0f7050;
+  color: #fff;
+  border: none;
+  width: 100%;
+  padding: 12px;
+  border-radius: 8px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.ar-modal-close:hover {
+  background: #083c2a;
+}
