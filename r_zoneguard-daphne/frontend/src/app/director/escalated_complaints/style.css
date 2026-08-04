@@ -304,10 +304,10 @@
 
 .badge-financial { background-color: #fef08a; color: #854d0e; }
 .badge-infra { background-color: #bbf7d0; color: #166534; }
-.badge-beautification { background-color: #fbcfe8; color: #9d174d; }
-.badge-pr { background-color: #dbeafe; color: #1e40af; }
+.badge-beautification { background-color: #e9d5ff; color: #6b21a8; }
+.badge-pr { background-color: #bae6fd; color: #075985; }
 .badge-grievance { background-color: #fecdd3; color: #9f1239; }
-.badge-sport { background-color: #cffafe; color: #0e7490; }
+.badge-sport { background-color: #f9b0d8; color: #643643; }
 
 /* STATUS */
 .status-dot {
@@ -648,3 +648,10 @@
 .actions-cell .icon-btn {
   display: none !important;
 }
+
+.cat-financial { background-color: #fef08a; color: #854d0e; }
+.cat-infrastructure { background-color: #bbf7d0; color: #166534; }
+.cat-beautification { background-color: #e9d5ff; color: #6b21a8; }
+.cat-pr { background-color: #bae6fd; color: #075985; }
+.cat-grievance { background-color: #fecdd3; color: #9f1239; }
+.cat-sport { background-color: #fbcfe8; color: #9d174d; } /* Pink for sports */

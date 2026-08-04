@@ -12,7 +12,7 @@ const Icons = {
   complaints: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>,
   residents: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>,
   tenant: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>,
-  settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
+  settings: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l-.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06-.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>,
   logout: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
 };
 
@@ -37,6 +37,17 @@ const formatLabel = (value) => (value || '')
   .toLowerCase()
   .replace(/\b\w/g, (letter) => letter.toUpperCase());
 
+const getCategoryBadgeClass = (category) => {
+  const val = normalize(category);
+  if (val.includes('financial')) return 'cat-financial';
+  if (val.includes('infra')) return 'cat-infrastructure';
+  if (val.includes('beautification')) return 'cat-beautification';
+  if (val.includes('public') || val.includes('pr')) return 'cat-pr';
+  if (val.includes('griev')) return 'cat-grievance';
+  if (val.includes('sport')) return 'cat-sport';
+  return 'cat-infrastructure';
+};
+
 export default function AdminComplaintsPage() {
   const [complaintsData, setComplaintsData] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -60,22 +71,22 @@ export default function AdminComplaintsPage() {
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
   const pageSize = 8;
 
+  const fetchComplaints = async () => {
+    setIsLoading(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/complaints`);
+      const data = await response.json();
+      setComplaintsData(data.complaints || []);
+    } catch (error) {
+      console.error('Failed to load complaints:', error);
+      setComplaintsData([]);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   useEffect(() => {
-    const fetchComplaints = async () => {
-      setIsLoading(true);
-
-      try {
-        const response = await fetch(`${API_BASE}/complaints`);
-        const data = await response.json();
-        setComplaintsData(data.complaints || []);
-      } catch (error) {
-        console.error('Failed to load complaints:', error);
-        setComplaintsData([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     fetchComplaints();
   }, []);
 
@@ -90,8 +101,30 @@ export default function AdminComplaintsPage() {
       return;
     }
 
-    setIsEscalateModalOpen(false);
-    setIsEscalationSuccessOpen(true);
+    try {
+      const response = await fetch(`${API_BASE}/complaints/${activeModalComplaint.id}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          status: 'ESCALATED',
+          description: escalationReason,
+          assigned_director_id: selectedDirector || 'DIR-2026-0001'
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(errorData.error || 'Failed to escalate complaint.');
+      }
+
+      await fetchComplaints();
+
+      setIsEscalateModalOpen(false);
+      setIsEscalationSuccessOpen(true);
+    } catch (error) {
+      console.error('Failed to escalate complaint:', error);
+      alert(error.message || 'Failed to escalate complaint on the server.');
+    }
   };
 
   const handleOpenEscalationModal = () => {
@@ -135,9 +168,7 @@ export default function AdminComplaintsPage() {
         throw new Error(errorData.error || 'Failed to update complaint status.');
       }
 
-      const refreshed = await fetch(`${API_BASE}/complaints`);
-      const refreshedData = await refreshed.json();
-      setComplaintsData(refreshedData.complaints || []);
+      await fetchComplaints();
 
       setIsUpdateStatusOpen(false);
       setIsUpdateStatusSuccessOpen(true);
@@ -177,9 +208,7 @@ export default function AdminComplaintsPage() {
         throw new Error(errorData.error || 'Failed to resolve complaint.');
       }
 
-      const refreshed = await fetch(`${API_BASE}/complaints`);
-      const refreshedData = await refreshed.json();
-      setComplaintsData(refreshedData.complaints || []);
+      await fetchComplaints();
 
       setIsResolveModalOpen(false);
       setIsResolveSuccessOpen(true);
@@ -189,28 +218,48 @@ export default function AdminComplaintsPage() {
     }
   };
 
+  // Separate active pending vs resolved items for filter chips
+  const activePendingList = complaintsData.filter(item => normalize(item.status) !== 'resolved');
+  const resolvedList = complaintsData.filter(item => normalize(item.status) === 'resolved');
+
+  const categoryCounts = activePendingList.reduce((accumulator, complaint) => {
+    const categoryKey = complaint.categoryRaw || complaint.category || 'GENERAL';
+    accumulator[categoryKey] = (accumulator[categoryKey] || 0) + 1;
+    return accumulator;
+  }, {});
+
   const categoryFilters = [
     {
       key: 'ALL',
-      label: 'All Complaints',
-      count: complaintsData.length
+      label: `All Complaints (${activePendingList.length})`
     },
-    ...Object.entries(
-      complaintsData.reduce((accumulator, complaint) => {
-        const categoryKey = complaint.categoryRaw || complaint.category;
-        accumulator[categoryKey] = (accumulator[categoryKey] || 0) + 1;
-        return accumulator;
-      }, {})
-    ).map(([key, count]) => ({
+    ...Object.entries(categoryCounts).map(([key, count]) => ({
       key,
       label: `${formatLabel(key)} (${count})`
-    }))
+    })),
+    {
+      key: 'RESOLVED_HISTORY',
+      label: `Resolved History (${resolvedList.length})`
+    }
   ];
 
   const filteredComplaints = complaintsData.filter((complaint) => {
     const searchValue = normalize(searchQuery);
     const complaintZone = normalize(complaint.zone);
     const complaintCategory = normalize(complaint.categoryRaw || complaint.category);
+    const statusVal = normalize(complaint.status);
+
+    if (selectedCategory === 'RESOLVED_HISTORY') {
+      const matchesResolvedStatus = statusVal === 'resolved';
+      const matchesSearch = !searchValue || [
+        complaint.ticket, complaint.name, complaint.address, complaint.subject, complaint.status, complaint.category
+      ].filter(Boolean).join(' ').toLowerCase().includes(searchValue);
+      const matchesZone = selectedZone === 'ALL' || complaintZone.includes(normalize(selectedZone));
+      return matchesResolvedStatus && matchesSearch && matchesZone;
+    }
+
+    if (statusVal === 'resolved') return false;
+
     const complaintText = [
       complaint.ticket,
       complaint.name,
@@ -377,7 +426,7 @@ export default function AdminComplaintsPage() {
                         </div>
                       </td>
                       <td>
-                        <span className={`cat-pill cat-${row.catTone}`}>{row.category}</span>
+                        <span className={`cat-pill ${getCategoryBadgeClass(row.category)}`}>{row.category}</span>
                       </td>
                       <td>
                         <span className={`status-pill stat-${row.statusTone}`}>{row.status}</span>
@@ -450,7 +499,6 @@ export default function AdminComplaintsPage() {
           <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close" onClick={() => { setIsDetailsModalOpen(false); setActiveModalComplaint(null); }}>×</button>
             <div className="modal-content-grid">
-              {/* Left Column: Subject, Description & Evidence */}
               <div className="modal-left-pane">
                 <div className="modal-field-block">
                   <span className="modal-field-label">SUBJECT</span>
@@ -482,7 +530,6 @@ export default function AdminComplaintsPage() {
                 </div>
               </div>
 
-              {/* Right Column: Ticket info, Resident, Meta & Actions */}
               <div className="modal-right-pane">
                 <div className="modal-ticket-header">
                   <h2>TICKET # {activeModalComplaint.ticket}</h2>
@@ -531,7 +578,7 @@ export default function AdminComplaintsPage() {
         </div>
       )}
 
-      {/* Escalation Sub-Modal (Matching image_cbd91f.png) */}
+      {/* Escalation Sub-Modal */}
       {isEscalateModalOpen && activeModalComplaint && (
         <div className="modal-backdrop" style={{ zIndex: 1100 }}>
           <div className="escalate-modal-card" onClick={(e) => e.stopPropagation()}>
