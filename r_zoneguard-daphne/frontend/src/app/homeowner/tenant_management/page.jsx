@@ -1,8 +1,9 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import './style.css';
 
-// SVGs matched precisely to the dashboard design system
 const Icons = {
   tenant: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -11,7 +12,7 @@ const Icons = {
     </svg>
   ),
   upload: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#064e3b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#044e3a" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
       <polyline points="17 8 12 3 7 8" />
       <line x1="12" y1="3" x2="12" y2="15" />
@@ -19,150 +20,368 @@ const Icons = {
   ),
 };
 
-const linkedTenantsData = [
-  { id: 1, name: 'Charlie Balagtas', avatarBg: '#78350f', initials: 'CB', status: 'PENDING' },
-  { id: 2, name: 'John Christian Abella', avatarBg: '#1e3a8a', initials: 'JA', status: 'ACTIVE' }
-];
+function TenantManagementContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
 
-export default function TenantManagementPage() {
+  const [properties, setProperties] = useState([]);
+  const [selectedPropertyId, setSelectedPropertyId] = useState('');
   const [allowDues, setAllowDues] = useState(true);
+  const [loading, setLoading] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [activeTenants, setActiveTenants] = useState([]);
+
+  // Form State
+  // Add birthDate to your initial form state
+  const [formData, setFormData] = useState({
+    firstName: '',
+    lastName: '',
+    middleName: '',
+    email: '',
+    birthDate: '', // Added birthDate
+  });
+  const [permitFile, setPermitFile] = useState(null);
+
+  // Fetch live properties and linked tenants from the database
+  useEffect(() => {
+    async function fetchInitialData() {
+      setLoading(true);
+      try {
+        const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+        const res = await fetch(`http://localhost:5000/api/homeowner/properties?userId=${loggedInUserId}`);
+        const data = await res.json();
+
+        if (res.ok && data.properties) {
+          setProperties(data.properties);
+
+          const propIdFromUrl = searchParams.get('propertyId');
+          const storedId = localStorage.getItem('active_property_id');
+
+          let targetId = data.properties[0]?.id;
+          if (propIdFromUrl) {
+            targetId = propIdFromUrl;
+          } else if (storedId) {
+            targetId = storedId;
+          }
+
+          setSelectedPropertyId(targetId);
+          if (targetId) {
+            fetchTenantsForProperty(targetId, loggedInUserId);
+          }
+        }
+      } catch (err) {
+        console.error('Failed to load properties:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    fetchInitialData();
+  }, [searchParams]);
+
+  const fetchTenantsForProperty = async (propId, userId) => {
+    try {
+      const url = new URL('http://localhost:5000/api/homeowner/tenants');
+      if (propId) url.searchParams.append('propertyId', propId);
+      if (userId) url.searchParams.append('userId', userId);
+
+      const res = await fetch(url.toString());
+      const data = await res.json();
+      if (res.ok && data.tenants) {
+        const formatted = data.tenants.map((t, idx) => {
+          const fName = t.user?.firstName || 'Tenant';
+          const lName = t.user?.lastName || '';
+          const initials = `${fName[0] || ''}${lName[0] || ''}`.toUpperCase();
+          const colors = ['#044e3a', '#0284c7', '#d97706', '#7c3aed'];
+          return {
+            id: t.id,
+            name: `${fName} ${lName}`,
+            initials: initials || 'T',
+            avatarBg: colors[idx % colors.length],
+            status: 'ACTIVE'
+          };
+        });
+        setActiveTenants(formatted);
+      }
+    } catch (err) {
+      console.error('Failed to load tenants:', err);
+      setActiveTenants([]);
+    }
+  };
+
+  const handleSelectProperty = (e) => {
+    const newId = e.target.value;
+    setSelectedPropertyId(newId);
+    localStorage.setItem('active_property_id', newId);
+    window.dispatchEvent(new Event('propertyChanged'));
+
+    const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+    fetchTenantsForProperty(newId, loggedInUserId);
+
+    // Check if the newly selected property is a primary residence
+    const selectedProp = properties.find((p) => String(p.id) === String(newId));
+    const isPrimary = selectedProp ? selectedProp.name.toLowerCase().includes('primary') : false;
+
+    if (isPrimary) {
+      router.push('/homeowner/dashboard');
+    } else {
+      router.push(`/homeowner/tenant_management?propertyId=${newId}`);
+    }
+  };
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit.');
+        return;
+      }
+      setPermitFile(file);
+    }
+  };
+
+  const handleInviteTenant = async (e) => {
+    e.preventDefault();
+    if (!formData.firstName.trim() || !formData.lastName.trim() || !formData.email.trim()) {
+      alert('Please fill out all required tenant details.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      const res = await fetch('http://localhost:5000/api/homeowner/tenants', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId: selectedPropertyId,
+          userId: loggedInUserId,
+          firstName: formData.firstName.trim(),
+          middleName: formData.middleName.trim(),
+          lastName: formData.lastName.trim(),
+          email: formData.email.trim(),
+          birthDate: formData.birthDate || null, // Sent to backend
+          rentalPermit: permitFile ? permitFile.name : null,
+          permissions: {
+            allowDuesPayment: allowDues,
+            allowComplaints: true
+          }
+        })
+      });
+
+      const data = await res.json();
+      if (res.ok) {
+        alert('Tenant account created and linked successfully!');
+        setFormData({ firstName: '', lastName: '', middleName: '', email: '' });
+        setPermitFile(null);
+        fetchTenantsForProperty(selectedPropertyId, loggedInUserId);
+      } else {
+        alert('Failed to create tenant: ' + (data.message || 'Unknown error'));
+      }
+    } catch (err) {
+      console.error('Tenant submission error:', err);
+      alert('Network error while registering tenant.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <div style={{ padding: '40px', color: '#6b7280' }}>Loading property details...</div>;
+  }
 
   return (
-    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
-      
-      {/* PAGE HEADER */}
-      <div style={{ marginBottom: '28px' }}>
-        <h1 style={{ fontSize: '1.75rem', fontWeight: '900', color: '#0f172a', margin: '0 0 6px 0' }}>Tenant Management</h1>
-        <p style={{ fontSize: '0.9rem', color: '#64748b', margin: 0 }}>Manage property occupancy and authorize resident permissions.</p>
+    <div className="tm-container">
+      <div className="page-title-section" style={{ marginBottom: '24px' }}>
+        <h1 style={{
+          fontSize: '2.2rem',
+          fontWeight: '700',
+          color: '#064e3b',
+          margin: '0 0 8px 0',
+          letterSpacing: '-0.02em'
+        }}>
+          Tenant Management
+        </h1>
+        <p style={{ fontSize: '0.95rem', color: '#6b7280', margin: 0 }}>
+          Manage property occupancy and authorize resident permissions.
+        </p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '32px', alignItems: 'start' }}>
-        
-        {/* LEFT COLUMN: FORM & PERMISSIONS */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          {/* NEW TENANT CARD */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
-              <div style={{ width: '36px', height: '36px', borderRadius: '8px', backgroundColor: '#ecfdf5', color: '#065f46', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                {Icons.tenant}
+      {/* GRID CONTAINER */}
+      <div className="tm-grid">
+        {/* LEFT COLUMN */}
+        <div className="tm-left-col">
+          <form onSubmit={handleInviteTenant}>
+            {/* NEW TENANT CARD */}
+            <div className="tm-card">
+              <div className="tm-card-title">
+                <div className="tm-icon-box">{Icons.tenant}</div>
+                <h3>New Tenant Account</h3>
               </div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: '900', color: '#0f172a', margin: 0 }}>New Tenant Account</h3>
-            </div>
 
-            <div style={{ marginBottom: '20px' }}>
-              <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '8px', letterSpacing: '0.5px' }}>SELECT PROPERTY</label>
-              <select style={{ width: '100%', padding: '12px 16px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', cursor: 'pointer', fontWeight: '600', color: '#0f172a', boxSizing: 'border-box' }}>
-                <option>B1 L3 4B Pantabangan Street, Zone 5</option>
-              </select>
-            </div>
+              <div className="tm-form-group">
+                <label className="tm-label">SELECT PROPERTY</label>
+                <select
+                  value={selectedPropertyId}
+                  onChange={handleSelectProperty}
+                  className="tm-select"
+                >
+                  {properties.map((prop) => (
+                    <option key={prop.id} value={prop.id}>{prop.name}</option>
+                  ))}
+                </select>
+              </div>
 
-            <div style={{ borderTop: '1px solid #f1f5f9', paddingTop: '20px', marginTop: '20px' }}>
-              <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '16px', letterSpacing: '0.5px' }}>TENANT INFORMATION</span>
-              
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px' }}>FIRST NAME</label>
-                    <input type="text" placeholder="Enter first name" style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px' }}>LAST NAME</label>
-                    <input type="text" placeholder="Enter last name" style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                  </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px' }}>MIDDLE NAME</label>
-                    <input type="text" placeholder="Enter middle name" style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                  </div>
-                </div>
+              <div className="tm-section-divider">
+                <span className="tm-label">TENANT INFORMATION</span>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px' }}>EMAIL ADDRESS</label>
-                    <input type="email" placeholder="tenant@example.com" style={{ width: '100%', padding: '12px 16px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
+                <div className="tm-form-grid">
+                  <div className="tm-form-col">
+                    <div>
+                      <label className="tm-sublabel">FIRST NAME</label>
+                      <input
+                        type="text"
+                        name="firstName"
+                        placeholder="Enter first name"
+                        className="tm-input"
+                        value={formData.firstName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="tm-sublabel">LAST NAME</label>
+                      <input
+                        type="text"
+                        name="lastName"
+                        placeholder="Enter last name"
+                        className="tm-input"
+                        value={formData.lastName}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="tm-sublabel">MIDDLE NAME</label>
+                      <input
+                        type="text"
+                        name="middleName"
+                        placeholder="Enter middle name"
+                        className="tm-input"
+                        value={formData.middleName}
+                        onChange={handleInputChange}
+                      />
+                    </div>
+                    <div>
+                      <label className="tm-sublabel">BIRTHDATE</label>
+                      <input
+                        type="date"
+                        name="birthDate"
+                        className="tm-input"
+                        value={formData.birthDate}
+                        onChange={handleInputChange}
+                      />
+                    </div>
                   </div>
-                  <div>
-                    <label style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px' }}>RENTAL PERMIT</label>
-                    <div style={{ border: '2px dashed #cbd5e1', borderRadius: '10px', padding: '16px', textAlign: 'center', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '105px', boxSizing: 'border-box', cursor: 'pointer' }}>
-                      <div style={{ marginBottom: '6px' }}>{Icons.upload}</div>
-                      <strong style={{ fontSize: '0.78rem', color: '#0f172a', fontWeight: '700', display: 'block' }}>Upload Permit</strong>
-                      <span style={{ fontSize: '0.65rem', color: '#64748b' }}>JPG, PNG (Max 5MB)</span>
+
+                  <div className="tm-form-col">
+                    <div>
+                      <label className="tm-sublabel">EMAIL ADDRESS</label>
+                      <input
+                        type="email"
+                        name="email"
+                        placeholder="tenant@example.com"
+                        className="tm-input"
+                        value={formData.email}
+                        onChange={handleInputChange}
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label className="tm-sublabel">RENTAL PERMIT</label>
+                      <label className="tm-upload-box" style={{ cursor: 'pointer' }}>
+                        <input type="file" accept="image/png, image/jpeg" onChange={handleFileChange} style={{ display: 'none' }} />
+                        <div className="upload-icon">{Icons.upload}</div>
+                        <strong>{permitFile ? permitFile.name : 'Upload Permit'}</strong>
+                        <span>JPG, PNG (Max 5MB)</span>
+                      </label>
                     </div>
                   </div>
                 </div>
               </div>
             </div>
-          </div>
 
-          {/* PERMISSION & ACCESS CARD */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '28px 32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <span style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '16px', letterSpacing: '0.5px' }}>PERMISSION AND ACCESS</span>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div>
-                <h4 style={{ margin: '0 0 4px 0', fontSize: '1rem', fontWeight: '800', color: '#0f172a' }}>Allow Dues Payment</h4>
-                <p style={{ margin: 0, color: '#64748b', fontSize: '0.85rem' }}>Can this tenant view and pay HOA dues?</p>
+            {/* PERMISSIONS CARD */}
+            <div className="tm-card" style={{ marginTop: '24px' }}>
+              <span className="tm-label">PERMISSION AND ACCESS</span>
+              <div className="tm-permission-row">
+                <div>
+                  <h4>Allow Dues Payment</h4>
+                  <p>Can this tenant view and pay HOA dues?</p>
+                </div>
+                <label className="tm-switch">
+                  <input
+                    type="checkbox"
+                    checked={allowDues}
+                    onChange={() => setAllowDues(!allowDues)}
+                  />
+                  <span className="tm-slider"></span>
+                </label>
               </div>
-              <label style={{ position: 'relative', display: 'inline-block', width: '48px', height: '26px', cursor: 'pointer' }}>
-                <input 
-                  type="checkbox" 
-                  checked={allowDues} 
-                  onChange={() => setAllowDues(!allowDues)} 
-                  style={{ opacity: 0, width: 0, height: 0 }} 
-                />
-                <span style={{ 
-                  position: 'absolute', cursor: 'pointer', top: 0, left: 0, right: 0, bottom: 0, 
-                  backgroundColor: allowDues ? '#064e3b' : '#cbd5e1', 
-                  transition: '.3s', borderRadius: '26px' 
-                }}>
-                  <span style={{ 
-                    position: 'absolute', content: '""', height: '20px', width: '20px', left: allowDues ? '24px' : '3px', bottom: '3px', 
-                    backgroundColor: 'white', transition: '.3s', borderRadius: '50%' 
-                  }}></span>
-                </span>
-              </label>
             </div>
-          </div>
 
-          <div style={{ display: 'flex', justifyContent: 'flex-end' }}>
-            <button style={{ backgroundColor: '#064e3b', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 32px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', boxShadow: '0 4px 10px rgba(6, 78, 59, 0.2)' }}>
-              Confirm and Invite
-            </button>
-          </div>
-
+            <div className="tm-action-row" style={{ marginTop: '24px' }}>
+              <button type="submit" className="tm-btn-primary" disabled={isSubmitting}>
+                {isSubmitting ? 'Processing...' : 'Confirm and Invite'}
+              </button>
+            </div>
+          </form>
         </div>
 
-        {/* RIGHT COLUMN: LINKED TENANTS LIST */}
-        <div>
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px 28px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', paddingBottom: '16px', borderBottom: '1px solid #f1f5f9' }}>
-              <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: 0 }}>Linked Tenants</h3>
-              <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' }}>2 Total</span>
+        {/* RIGHT COLUMN */}
+        <div className="tm-right-col">
+          <div className="tm-card">
+            <div className="tm-linked-header">
+              <h3>Linked Tenants</h3>
+              <span className="tm-badge-count">{activeTenants.length} Total</span>
             </div>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              {linkedTenantsData.map((tenant) => (
-                <div key={tenant.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 14px', borderRadius: '10px', backgroundColor: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', backgroundColor: tenant.avatarBg, color: '#ffffff', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: '800', flexShrink: 0 }}>
-                      {tenant.initials}
+            <div className="tm-tenant-list">
+              {activeTenants.length > 0 ? (
+                activeTenants.map((tenant) => (
+                  <div key={tenant.id} className="tm-tenant-item">
+                    <div className="tm-tenant-info">
+                      <div className="tm-avatar" style={{ backgroundColor: tenant.avatarBg }}>
+                        {tenant.initials}
+                      </div>
+                      <span className="tm-tenant-name">{tenant.name}</span>
                     </div>
-                    <span style={{ fontSize: '0.88rem', fontWeight: '800', color: '#0f172a' }}>{tenant.name}</span>
+                    <span className={`tm-status-pill ${tenant.status === 'ACTIVE' ? 'active' : 'pending'}`}>
+                      {tenant.status}
+                    </span>
                   </div>
-                  <span style={{ 
-                    backgroundColor: tenant.status === 'ACTIVE' ? '#d1fae5' : '#fef3c7', 
-                    color: tenant.status === 'ACTIVE' ? '#065f46' : '#92400e', 
-                    padding: '3px 8px', borderRadius: '8px', fontSize: '0.65rem', fontWeight: '800' 
-                  }}>
-                    {tenant.status}
-                  </span>
-                </div>
-              ))}
+                ))
+              ) : (
+                <div className="tm-empty-state">No tenants linked to this property yet.</div>
+              )}
             </div>
           </div>
         </div>
 
       </div>
-
     </div>
+  );
+}
+
+export default function TenantManagementPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', color: '#6b7280' }}>Loading tenant management...</div>}>
+      <TenantManagementContent />
+    </Suspense>
   );
 }

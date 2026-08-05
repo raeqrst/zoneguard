@@ -21,20 +21,18 @@ const Icons = {
       <rect x="3" y="14" width="7" height="7"></rect>
     </svg>
   ),
-  escalatedComplaints: (
+  payments: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="2" y="6" width="20" height="12" rx="2"></rect>
+      <circle cx="12" cy="12" r="2"></circle>
+      <path d="M6 12h.01M18 12h.01"></path>
+    </svg>
+  ),
+  complaints: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
       <line x1="12" y1="9" x2="12" y2="13"></line>
       <line x1="12" y1="17" x2="12.01" y2="17"></line>
-    </svg>
-  ),
-  executiveReports: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-      <polyline points="14 2 14 8 20 8"></polyline>
-      <line x1="16" y1="13" x2="8" y2="13"></line>
-      <line x1="16" y1="17" x2="8" y2="17"></line>
-      <polyline points="10 9 9 9 8 9"></polyline>
     </svg>
   ),
   settings: (
@@ -54,13 +52,13 @@ const Icons = {
 
 
 const menuItems = [
-  { label: 'Dashboard', href: '/director/dashboard', icon: Icons.dashboard },
-  { label: 'Escalated Complaints', href: '/director/escalated_complaints', icon: Icons.escalatedComplaints },
-  { label: 'Executive Reports', href: '/director/executive_reports', icon: Icons.executiveReports },
+  { label: 'Dashboard', href: '/tenant/dashboard', icon: Icons.dashboard },
+  { label: 'Payments', href: '/tenant/payments', icon: Icons.payments },
+  { label: 'Complaints', href: '/tenant/complaints', icon: Icons.complaints },
 ];
 
 
-export default function DirectorLayout({ children }) {
+export default function TenantLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
@@ -71,13 +69,14 @@ export default function DirectorLayout({ children }) {
 
 
   const handleSettings = () => {
-    router.push('/director/settings');
+    router.push('/tenant/settings');
   };
 
 
   return (
     <div className="layout-wrapper">
       <div className="main-container">
+        {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="brand-header">
             <div className="brand-logo">
@@ -112,7 +111,7 @@ export default function DirectorLayout({ children }) {
             <button
               type="button"
               onClick={handleSettings}
-              className={`nav-link ${pathname === '/director/settings' ? 'active' : ''}`}
+              className={`nav-link ${pathname === '/tenant/settings' ? 'active' : ''}`}
             >
               <span className="nav-icon">{Icons.settings}</span>
               <span>Account Settings</span>
@@ -125,6 +124,7 @@ export default function DirectorLayout({ children }) {
         </aside>
 
 
+        {/* CONTENT AREA */}
         <main className="content-area">
           {children}
         </main>

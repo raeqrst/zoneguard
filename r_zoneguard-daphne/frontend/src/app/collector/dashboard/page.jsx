@@ -1,41 +1,28 @@
+'use client';
+
 import React from 'react';
 import { 
   Wallet, 
   Percent, 
-  CheckSquare, 
-  Bell 
+  CheckSquare 
 } from 'lucide-react';
 import './style.css';
 
-const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {} }) => {
+export default function CollectorDashboard() {
   return (
-    <main className="main-content">
-      {/* Top Header */}
-      <header className="topbar">
-        <div className="breadcrumb-section">
-          <span className="breadcrumb">COLLECTOR - DASHBOARD</span>
-        </div>
-        <div className="user-profile">
-          <button className="notification-btn" aria-label="Notifications">
-            <Bell size={18} />
-          </button>
-          <div className="user-info">
-            <span className="user-name">Marilou Del Rosario</span>
-            <span className="user-role">COLLECTOR</span>
-          </div>
-          <div className="user-avatar">CO</div>
-        </div>
-      </header>
+    <>
+      <div className="breadcrumb-section" style={{ marginBottom: '16px' }}>
+        <span className="breadcrumb">COLLECTOR - DASHBOARD</span>
+      </div>
 
-      {/* Title */}
-      <div className="page-title-section flex-title">
+      {/* Title Section */}
+      <div className="page-title-section flex-title" style={{ marginBottom: '24px' }}>
         <h1>Collector Command Center</h1>
         <span className="zone-tag">ZONE 3</span>
       </div>
 
       {/* Dashboard Grid Cards Row 1 */}
       <div className="metrics-grid collector-metrics-grid">
-        {/* Total Collected */}
         <div className="metric-card">
           <div className="metric-icon-wrap light-green">
             <Wallet size={22} />
@@ -56,7 +43,6 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
           </div>
         </div>
 
-        {/* Incentive */}
         <div className="metric-card">
           <div className="metric-icon-wrap light-pink">
             <Percent size={22} />
@@ -73,7 +59,6 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
           </div>
         </div>
 
-        {/* Pending Task */}
         <div className="dash-card compact-pending-card">
           <div className="pending-header">
             <CheckSquare size={18} className="green-text" />
@@ -97,8 +82,7 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
       </div>
 
       {/* Dashboard Row 2: Monthly Goal & Billing Info */}
-      <div className="dashboard-grid collector-middle-grid">
-        {/* Monthly Collection Goal */}
+      <div className="dashboard-grid collector-middle-grid" style={{ marginTop: '20px' }}>
         <div className="dash-card">
           <div className="dash-card-header">
             <h2>Monthly Collection Goal</h2>
@@ -120,7 +104,6 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
           </div>
         </div>
 
-        {/* Billing Cycle Info Box */}
         <div className="dash-card billing-info-stack">
           <div className="billing-block">
             <span className="billing-title">BILLING CYCLE</span>
@@ -138,7 +121,7 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
       </div>
 
       {/* Dashboard Row 3: Task Distribution */}
-      <div className="dash-card">
+      <div className="dash-card" style={{ marginTop: '20px' }}>
         <div className="dash-card-header" style={{ marginBottom: '16px' }}>
           <h2>Task Distribution and Status</h2>
           <p>Operational progress across Zone 3 Categories</p>
@@ -166,8 +149,6 @@ const CollectorDashboard = ({ activeItem = 'Dashboard', setActiveItem = () => {}
           </div>
         </div>
       </div>
-    </main>
+    </>
   );
-};
-
-export default CollectorDashboard;
+}

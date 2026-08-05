@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import './style.css';
 
 const Icons = {
@@ -11,144 +10,132 @@ const Icons = {
     </svg>
   ),
   userOutline: (
-    <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
       <circle cx="12" cy="7" r="4" />
     </svg>
   )
 };
 
-export default function DirectorSettingsPage() {
+export default function CollectorSettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
 
   return (
-    <div className="settings-outer-wrapper">
-      {/* SCROLLABLE MAIN CONTENT */}
-      <main className="settings-main">
-        
-        {/* TOPBAR */}
-        <header className="settings-topbar">
-          <div className="settings-user-wrapper">
-            <div className="settings-user-info">
-              <span className="settings-user-name">Marilou Del Rosario</span>
-              <span className="settings-user-role">ZONE 3 DIRECTOR</span>
-            </div>
-            <div className="settings-avatar-badge">DR</div>
-          </div>
-        </header>
+    <div className="settings-page">
+      {/* PAGE TITLE & TABS */}
+      <div className="settings-header">
+        <h1 className="settings-title">Account Settings</h1>
 
-        {/* PAGE HEADER & TABS */}
-        <div className="settings-header">
-          <h1 className="settings-title">Account Settings</h1>
-          
-          <div className="tab-pill-group">
-            <button
-              onClick={() => setActiveTab('profile')}
-              className={`tab-btn ${activeTab === 'profile' ? 'active-tab' : ''}`}
-            >
-              Profile Settings
-            </button>
-            <button
-              onClick={() => setActiveTab('privacy')}
-              className={`tab-btn ${activeTab === 'privacy' ? 'active-tab' : ''}`}
-            >
-              Privacy Settings
-            </button>
-          </div>
+        <div className="tab-pill-group">
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`tab-btn ${activeTab === 'profile' ? 'active-tab' : 'light-tab'}`}
+          >
+            Profile Settings
+          </button>
+          <button
+            onClick={() => setActiveTab('privacy')}
+            className={`tab-btn ${activeTab === 'privacy' ? 'active-tab' : 'light-tab'}`}
+          >
+            Privacy Settings
+          </button>
         </div>
+      </div>
 
-        {/* CONTENT GRID */}
-        <div className="settings-grid">
-          
-          {/* FORM CARD */}
-          <div className="settings-form-card">
-            {activeTab === 'profile' ? (
-              <div>
-                {/* SECTION 1 */}
-                <h3 className="settings-section-heading">Personal Information</h3>
-                <div className="settings-form-grid-2">
-                  <div>
-                    <label className="settings-label">FIRST NAME</label>
-                    <input type="text" defaultValue="Marilou" readOnly className="settings-input" />
-                  </div>
-                  <div>
-                    <label className="settings-label">MIDDLE INITIAL</label>
-                    <input type="text" defaultValue="A." readOnly className="settings-input" />
-                  </div>
-                  <div className="span-2">
-                    <label className="settings-label">LAST NAME</label>
-                    <input type="text" defaultValue="Del Rosario" readOnly className="settings-input" />
+      {/* TWO-COLUMN GRID CONTENT */}
+      <div className="settings-grid">
+        {/* MAIN FORM CARD */}
+        <div className="settings-form-card">
+          {activeTab === 'profile' ? (
+            <div>
+              {/* PERSONAL & CONTACT INFORMATION SIDE-BY-SIDE */}
+              <div className="form-sections-row">
+                <div className="section-column">
+                  <h3 className="settings-section-heading">PERSONAL INFORMATION</h3>
+                  <div className="settings-fields-group">
+                    <div>
+                      <label className="settings-label">FIRST NAME</label>
+                      <input type="text" defaultValue="Marilou" readOnly className="settings-input" />
+                    </div>
+                    <div>
+                      <label className="settings-label">MIDDLE INITIAL</label>
+                      <input type="text" defaultValue="A." readOnly className="settings-input" />
+                    </div>
+                    <div>
+                      <label className="settings-label">LAST NAME</label>
+                      <input type="text" defaultValue="Del Rosario" readOnly className="settings-input" />
+                    </div>
                   </div>
                 </div>
 
-                {/* SECTION 2 */}
-                <h3 className="settings-section-heading">Contact Information</h3>
-                <div className="settings-form-grid-2">
-                  <div>
-                    <label className="settings-label">CONTACT NUMBER</label>
-                    <div className="phone-input-wrapper">
-                      <span className="phone-prefix">+63</span>
-                      <input type="text" defaultValue="917 412 9988" readOnly className="settings-input flex-1" />
-                    </div>
-                  </div>
-                  <div>
-                    <label className="settings-label">EMAIL ADDRESS</label>
-                    <input type="text" defaultValue="delrosario.zone3@zoneguard.ph" readOnly className="settings-input" />
-                  </div>
-                </div>
-
-                {/* SECTION 3 */}
-                <div className="settings-sub-section">
-                  <h3 className="settings-section-heading">Administrative Assignment</h3>
-                  <div className="settings-form-grid-2">
+                <div className="section-column">
+                  <h3 className="settings-section-heading">CONTACT INFORMATION</h3>
+                  <div className="settings-fields-group">
                     <div>
-                      <label className="settings-label">ASSIGNED ZONE</label>
-                      <input defaultValue="Zone 3" readOnly className="settings-input" />
+                      <label className="settings-label">CONTACT NUMBER</label>
+                      <div className="phone-input-wrapper">
+                        <span className="phone-prefix">+63</span>
+                        <input type="text" defaultValue="917 412 9988" readOnly className="settings-input flex-1" />
+                      </div>
                     </div>
                     <div>
-                      <label className="settings-label">ROLE LEVEL</label>
-                      <input defaultValue="Executive Director" readOnly className="settings-input" />
+                      <label className="settings-label">EMAIL ADDRESS</label>
+                      <input type="text" defaultValue="delrosario.zone3@zoneguard.ph" readOnly className="settings-input" />
                     </div>
                   </div>
                 </div>
               </div>
-            ) : (
-              <div className="privacy-container">
-                <h3 className="settings-section-heading text-center">Change Password</h3>
-                <div className="settings-fields-group">
+
+              {/* ADMINISTRATIVE ASSIGNMENT SECTION */}
+              <div className="settings-sub-section">
+                <h3 className="settings-section-heading">ADMINISTRATIVE ASSIGNMENT</h3>
+                <div className="assignment-grid">
                   <div>
-                    <label className="settings-label">Current Password</label>
-                    <input type="password" className="settings-input" />
+                    <label className="settings-label">ASSIGNED ZONE</label>
+                    <input type="text" defaultValue="Zone 3" readOnly className="settings-input" />
                   </div>
                   <div>
-                    <label className="settings-label">New Password</label>
-                    <input type="password" className="settings-input" />
+                    <label className="settings-label">ROLE LEVEL</label>
+                    <input type="text" defaultValue="Executive Director" readOnly className="settings-input" />
                   </div>
-                  <div>
-                    <label className="settings-label">Confirm New Password</label>
-                    <input type="password" className="settings-input" />
-                  </div>
-                  <button className="change-password-btn">Update Password</button>
                 </div>
               </div>
-            )}
-          </div>
-
-          {/* PROFILE SUMMARY CARD */}
-          <div className="profile-display-card settings-form-card">
-            <div className="profile-avatar-circle">
-              {Icons.userOutline}
             </div>
-            <h2 className="profile-display-name">Marilou Del Rosario</h2>
-            <p className="profile-display-role">ZONE 3 DIRECTOR</p>
-            
-            <button className="edit-profile-btn">
-              Edit Profile {Icons.pencil}
-            </button>
-          </div>
-
+          ) : (
+            <div className="privacy-container">
+              <h3 className="settings-section-heading text-center">CHANGE PASSWORD</h3>
+              <div className="settings-fields-group">
+                <div>
+                  <label className="settings-label">CURRENT PASSWORD</label>
+                  <input type="password" placeholder="Enter current password" className="settings-input" />
+                </div>
+                <div>
+                  <label className="settings-label">NEW PASSWORD</label>
+                  <input type="password" placeholder="Enter new password" className="settings-input" />
+                </div>
+                <div>
+                  <label className="settings-label">CONFIRM NEW PASSWORD</label>
+                  <input type="password" placeholder="Confirm new password" className="settings-input" />
+                </div>
+                <button className="change-password-btn">Update Password</button>
+              </div>
+            </div>
+          )}
         </div>
-      </main>
+
+        {/* PROFILE DISPLAY SIDE CARD */}
+        <div className="profile-display-card">
+          <div className="profile-avatar-circle">
+            {Icons.userOutline}
+          </div>
+          <h2 className="profile-display-name">Marilou Del Rosario</h2>
+          <p className="profile-display-role">ZONE 3 DIRECTOR</p>
+          
+          <button className="edit-profile-btn">
+            edit profile {Icons.pencil}
+          </button>
+        </div>
+      </div>
     </div>
   );
 }

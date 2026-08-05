@@ -1,25 +1,30 @@
 'use client';
 
+
 import React, { useState } from 'react';
 import './style.css';
+
 
 const Icons = {
   pencil: (
     <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 3a2.828 2.828 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5L17 3z" /></svg>
   ),
   userOutline: (
-    <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
+    <svg width="84" height="84" viewBox="0 0 24 24" fill="none" stroke="#059669" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>
   )
 };
 
-export default function AdminSettingsPage() {
+
+export default function TenantSettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
+
 
   return (
     <div className="settings-page">
       {/* PAGE TITLE & TABS */}
       <div className="settings-header">
         <h1 className="settings-title">Account Settings</h1>
+
 
         <div className="tab-pill-group">
           <button
@@ -37,6 +42,7 @@ export default function AdminSettingsPage() {
         </div>
       </div>
 
+
       {/* TWO-COLUMN GRID CONTENT */}
       <div className="settings-grid">
         {/* MAIN FORM CARD */}
@@ -50,18 +56,19 @@ export default function AdminSettingsPage() {
                   <div className="settings-fields-group">
                     <div>
                       <label className="settings-label">FIRST NAME</label>
-                      <input type="text" defaultValue="Darth" readOnly className="settings-input" />
+                      <input type="text" defaultValue="Brian" readOnly className="settings-input" />
                     </div>
                     <div>
                       <label className="settings-label">MIDDLE INITIAL</label>
-                      <input type="text" defaultValue="C." readOnly className="settings-input" />
+                      <input type="text" defaultValue="S." readOnly className="settings-input" />
                     </div>
                     <div>
                       <label className="settings-label">LAST NAME</label>
-                      <input type="text" defaultValue="Vader" readOnly className="settings-input" />
+                      <input type="text" defaultValue="Smith" readOnly className="settings-input" />
                     </div>
                   </div>
                 </div>
+
 
                 <div className="section-column">
                   <h3 className="settings-section-heading">CONTACT INFORMATION</h3>
@@ -75,11 +82,12 @@ export default function AdminSettingsPage() {
                     </div>
                     <div>
                       <label className="settings-label">EMAIL ADDRESS</label>
-                      <input type="text" defaultValue="IAmYourFather@gmail.com" readOnly className="settings-input" />
+                      <input type="text" defaultValue="brian.smith@gmail.com" readOnly className="settings-input" />
                     </div>
                   </div>
                 </div>
               </div>
+
 
               {/* PROPERTY ADDRESS SECTION */}
               <div className="settings-sub-section">
@@ -98,6 +106,7 @@ export default function AdminSettingsPage() {
                     <input type="text" defaultValue="LOT 61" readOnly className="settings-input" />
                   </div>
                 </div>
+
 
                 <div className="address-grid-bottom">
                   <div className="zone-col">
@@ -133,13 +142,14 @@ export default function AdminSettingsPage() {
           )}
         </div>
 
+
         {/* PROFILE DISPLAY SIDE CARD */}
         <div className="profile-display-card">
           <div className="profile-avatar-circle">
             {Icons.userOutline}
           </div>
-          <p className="profile-display-email">IAmYourFather@gmail.com</p>
-          
+          <p className="profile-display-email">brian.smith@gmail.com</p>
+         
           <button className="edit-profile-btn">
             edit profile {Icons.pencil}
           </button>
@@ -148,3 +158,4 @@ export default function AdminSettingsPage() {
     </div>
   );
 }
+

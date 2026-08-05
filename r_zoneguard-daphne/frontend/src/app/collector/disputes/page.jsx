@@ -1,137 +1,197 @@
 'use client';
 
-import React, { useState } from 'react';
-import { Search, ChevronRight, X, Bell } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Search, ChevronRight, X, Loader2 } from 'lucide-react';
 import './style.css';
-
-const initialDisputesData = [
-  { id: 1, name: 'Charlie D. Balagtas', address: 'Zone 3, 25 Camiling St.', initials: 'CB', txId: 'ARD-2026-0015', amount: '₱ 200', period: 'June 2026', category: 'Monthly Dues', color: 'bg-amber', reason: '“I already paid via Gcash last June 30 but the system still shows as unpaid. I have attached the screenshot of the transaction receipt below for verification”' },
-  { id: 2, name: 'Daisy C. Perez', address: 'Zone 3, 5 Jalaur St.', initials: 'DP', txId: 'ARD-2026-0004', amount: '₱ 200', period: 'Jan 2026', category: 'Monthly Dues', color: 'bg-yellow', reason: '“Payment was made over-the-counter via the collector, but status is still reflecting unpaid in my portal.”' },
-  { id: 3, name: 'Mark Jason G. Garcia', address: 'Zone 3, 9 Jalaur St.', initials: 'MG', txId: 'ARV-2026-0001', amount: '₱ 500', period: 'May 2026', category: 'Vehicle Sticker', color: 'bg-red', reason: '“Incorrect amount deducted for vehicle registration sticker validation.”' },
-  { id: 4, name: 'Donna K. Kamias', address: 'Zone 3, 21 Pantabangan St.', initials: 'DK', txId: 'ARD-2026-0125', amount: '₱ 200', period: 'March 2026', category: 'Monthly Dues', color: 'bg-teal', reason: '“Transaction went through twice on my online banking account for March dues.”' },
-  { id: 5, name: 'Mark Karl R. Cruz', address: 'Zone 3, 23 Pantabangan St.', initials: 'MC', txId: 'ARD-2026-0642', amount: '₱ 200', period: 'Dec 2025', category: 'Monthly Dues', color: 'bg-slate', reason: '“Already settled this payment prior to the system migration.”' },
-  { id: 6, name: 'Donna K. Kamias', address: 'Zone 3, 21 Pantabangan St.', initials: 'DK', txId: 'ARD-2026-0827', amount: '₱ 200', period: 'March 2026', category: 'Monthly Dues', color: 'bg-teal', reason: '“Disputing late penalty fee charge as payment was submitted on time.”' },
-  { id: 7, name: 'Mark Karl R. Cruz', address: 'Zone 3, 23 Pantabangan St.', initials: 'MC', txId: 'ARD-2026-0164', amount: '₱ 200', period: 'Dec 2025', category: 'Monthly Dues', color: 'bg-slate', reason: '“Incorrect recording of reference number for digital remittance.”' },
-];
 
 export default function DisputesPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [disputes, setDisputes] = useState(initialDisputesData);
+  const [disputes, setDisputes] = useState([]);
   const [selectedDispute, setSelectedDispute] = useState(null);
+  
+  const [loading, setLoading] = useState(true);
+  const [actionLoading, setActionLoading] = useState(false);
+  const [error, setError] = useState(null);
 
-  // Filter disputes based on search input
-  const filteredDisputes = disputes.filter((item) =>
-    item.name.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  useEffect(() => {
+    fetchDisputes();
+  }, []);
 
-  // Handle dispute resolution (Approve/Deny)
-  const handleResolveDispute = (id) => {
-    setDisputes((prev) => prev.filter((item) => item.id !== id));
-    setSelectedDispute(null);
+  const fetchDisputes = async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await fetch('/api/disputes');
+      if (!res.ok) throw new Error('Failed to fetch payment dispute records.');
+      const data = await res.json();
+      setDisputes(data);
+    } catch (err) {
+      console.error('Error loading disputes:', err);
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResolveDispute = async (disputeId, newStatus) => {
+    setActionLoading(true);
+    try {
+      const res = await fetch(`/api/disputes/${disputeId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ dispute_status: newStatus }),
+      });
+
+      if (!res.ok) throw new Error(`Failed to update dispute status to ${newStatus}.`);
+
+      setDisputes((prev) => prev.filter((item) => item.dispute_id !== disputeId));
+      setSelectedDispute(null);
+    } catch (err) {
+      console.error('Error resolving dispute:', err);
+      alert(err.message);
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const filteredDisputes = disputes.filter((item) => {
+    const homeownerName = item.homeowner 
+      ? `${item.homeowner.firstName} ${item.homeowner.lastName}` 
+      : item.homeowner_id;
+    return (
+      homeownerName.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.billing_id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      item.dispute_id.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  });
+
+  const getStatusClass = (status) => {
+    switch (status?.toUpperCase()) {
+      case 'RESOLVED': return 'stat-resolved';
+      case 'REJECTED': return 'stat-active';
+      default: return 'stat-investigating';
+    }
   };
 
   return (
-    <div className="disputes-container">
-      {/* Top Header Section matching Payments Layout */}
-      <div className="disputes-header-row">
+    <div className="disputes-page">
+      {/* Title & Right-Aligned Search Toolbar */}
+      <div className="page-title-section">
         <div>
-          <h1 className="disputes-title">Disputes Management</h1>
-          <p className="disputes-subtitle">Manage Residents Dispute</p>
+          <h1>Disputes Management</h1>
+          <p>Manage Residents Payment Disputes</p>
         </div>
-        
-        <div className="payments-profile-right">
-          <button className="notification-btn" aria-label="Notifications">
-            <Bell size={18} />
-          </button>
 
-          <div className="user-profile-badge">
-            <div className="user-text-info">
-              <span className="user-name">Marilou Del Rosario</span>
-              <span className="user-role">COLLECTOR</span>
-            </div>
-            <div className="user-avatar-circle">CO</div>
-          </div>
-        </div>
-      </div>
-
-      {/* Toolbar Row matching Payments Layout (Search on the right) */}
-      <div className="payments-toolbar-row">
-        <div className="search-box">
+        <div className="disputes-search-box">
           <Search size={16} className="search-icon" />
           <input 
             type="text" 
-            placeholder="Type a name here.." 
+            placeholder="Search by ID or name..." 
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
           />
         </div>
       </div>
 
-      {/* Main Table Card */}
-      <div className="disputes-table-card">
-        <table className="disputes-table">
+      {/* Main Table Container */}
+      <div className="table-container">
+        <table>
           <thead>
             <tr>
-              <th>RESIDENT</th>
-              <th>TRANSACTION ID</th>
-              <th>AMOUNT</th>
+              <th>HOMEOWNER ID</th>
+              <th>BILLING ID</th>
+              <th>CLAIM</th>
               <th>PERIOD</th>
-              <th>CATEGORY</th>
-              <th className="text-right"></th>
+              <th>STATUS</th>
+              <th>ACTIONS</th>
             </tr>
           </thead>
           <tbody>
-            {filteredDisputes.length > 0 ? (
-              filteredDisputes.map((item) => (
-                <tr key={item.id} onClick={() => setSelectedDispute(item)} className="clickable-row">
-                  <td>
-                    <div className="resident-cell">
-                      <div className={`avatar-badge ${item.color}`}>{item.initials}</div>
-                      <div>
-                        <div className="resident-name">{item.name}</div>
-                        <div className="resident-address">{item.address}</div>
+            {loading ? (
+              <tr>
+                <td colSpan="6" style={{ padding: '24px', color: '#6b7280' }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', alignItems: 'center' }}>
+                    <Loader2 size={18} className="animate-spin" /> Loading disputes...
+                  </div>
+                </td>
+              </tr>
+            ) : error ? (
+              <tr>
+                <td colSpan="6" style={{ padding: '24px', color: '#dc2626' }}>
+                  {error}
+                </td>
+              </tr>
+            ) : filteredDisputes.length > 0 ? (
+              filteredDisputes.map((item) => {
+                const displayName = item.homeowner 
+                  ? `${item.homeowner.firstName} ${item.homeowner.lastName}` 
+                  : item.homeowner_id;
+                const address = item.homeowner?.address || 'NIA Subdivision';
+                const initials = item.homeowner 
+                  ? `${item.homeowner.firstName[0]}${item.homeowner.lastName[0]}` 
+                  : 'HO';
+
+                return (
+                  <tr key={item.dispute_id}>
+                    <td>
+                      <div className="resident-cell">
+                        <div className="resident-avatar">{initials}</div>
+                        <div className="resident-info">
+                          <strong>{displayName}</strong>
+                          <span>{address}</span>
+                        </div>
                       </div>
-                    </div>
-                  </td>
-                  <td className="tx-id-cell">{item.txId}</td>
-                  <td className="amount-cell">{item.amount}</td>
-                  <td className="period-cell">{item.period}</td>
-                  <td className="category-cell">{item.category}</td>
-                  <td className="arrow-cell">
-                    <button className="arrow-btn" onClick={(e) => { e.stopPropagation(); setSelectedDispute(item); }}>
-                      <ChevronRight size={18} />
-                    </button>
-                  </td>
-                </tr>
-              ))
+                    </td>
+                    <td>{item.billing_id}</td>
+                    <td>{item.homeowner_claim}</td>
+                    <td>{item.reference_month}</td>
+                    <td>
+                      <span className={`status-pill ${getStatusClass(item.dispute_status)}`}>
+                        {item.dispute_status}
+                      </span>
+                    </td>
+                    <td>
+                      <div className="actions-cell">
+                        <button className="btn-resolve" onClick={() => setSelectedDispute(item)}>
+                          Resolve
+                        </button>
+                        <button className="btn-map" onClick={() => setSelectedDispute(item)}>
+                          <ChevronRight size={16} />
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                );
+              })
             ) : (
               <tr>
-                <td colSpan="6" className="no-records">No matching dispute records found.</td>
+                <td colSpan="6" style={{ padding: '24px', color: '#6b7280' }}>
+                  No matching dispute records found.
+                </td>
               </tr>
             )}
           </tbody>
         </table>
 
-        {/* Table Pagination Footer */}
+        {/* Footer & Pagination */}
         <div className="table-footer">
-          <span>Showing 1 to {filteredDisputes.length} of {disputes.length} pending escalated complaints</span>
-          <div className="pagination-controls">
+          <span>Showing {filteredDisputes.length} of {disputes.length} records</span>
+          <div className="pagination">
             <button className="page-btn">&lt;</button>
             <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
             <button className="page-btn">&gt;</button>
           </div>
         </div>
       </div>
 
-      {/* REVIEW PAYMENT DISPUTE POP-UP MODAL */}
+      {/* REVIEW MODAL */}
       {selectedDispute && (
         <div className="modal-backdrop">
           <div className="dispute-modal-card">
             <div className="modal-header">
               <div>
-                <h3>Review Payment Dispute</h3>
-                <p className="modal-subtitle-top">Review resident contesting record for transaction ID: {selectedDispute.txId}</p>
+                <h3>Review Payment Dispute ({selectedDispute.dispute_id})</h3>
+                <p className="modal-subtitle-top">Billing ID: {selectedDispute.billing_id}</p>
               </div>
               <button className="close-btn" onClick={() => setSelectedDispute(null)}>
                 <X size={20} />
@@ -140,75 +200,58 @@ export default function DisputesPage() {
 
             <div className="dispute-modal-body">
               <div className="dispute-grid-container">
-                {/* Left Column: Resident Info & Reason */}
-                <div className="dispute-left-col">
-                  <div className="section-label">RESIDENT INFORMATION</div>
+                <div>
+                  <div className="section-label">HOMEOWNER DETAILS</div>
                   <div className="resident-info-box">
-                    <div className="resident-info-header">
-                      <div className={`avatar-badge ${selectedDispute.color}`}>{selectedDispute.initials}</div>
-                      <div>
-                        <div className="resident-name">{selectedDispute.name}</div>
-                        <span className="in-dispute-tag">IN DISPUTE</span>
-                      </div>
+                    <strong>{selectedDispute.homeowner_id}</strong>
+                    <div style={{ fontSize: '0.75rem', color: '#6b7280', marginTop: '4px' }}>
+                      Assigned Collector: {selectedDispute.collector_id}
                     </div>
-                    <div className="resident-address-label">ADDRESS</div>
-                    <div className="resident-address-text">{selectedDispute.address}</div>
                   </div>
 
-                  <div className="section-label" style={{ marginTop: '16px' }}>REASON FOR DISPUTE</div>
+                  <div className="section-label mt-16">HOMEOWNER CLAIM</div>
                   <div className="reason-box">
-                    <p>{selectedDispute.reason}</p>
+                    <p style={{ margin: 0, fontStyle: 'italic', fontSize: '0.85rem' }}>
+                      “{selectedDispute.homeowner_claim}”
+                    </p>
                   </div>
                 </div>
 
-                {/* Right Column: Dispute Details & Evidence */}
-                <div className="dispute-right-col">
+                <div>
                   <div className="section-label">DISPUTE DETAILS</div>
-                  <div className="details-grid-card">
-                    <div className="detail-item">
-                      <span className="detail-title">STATEMENT MONTH</span>
-                      <span className="detail-value">{selectedDispute.period}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-title">TRANSACTION ID</span>
-                      <span className="detail-value">{selectedDispute.txId}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-title">CATEGORY</span>
-                      <span className="detail-value">{selectedDispute.category}</span>
-                    </div>
-                    <div className="detail-item">
-                      <span className="detail-title">TOTAL AMOUNT</span>
-                      <span className="detail-value amount-green">{selectedDispute.amount}</span>
-                    </div>
+                  <div className="details-grid-card" style={{ fontSize: '0.8rem', lineHeight: '1.6' }}>
+                    <div><strong>Month:</strong> {selectedDispute.reference_month}</div>
+                    <div><strong>Billing ID:</strong> {selectedDispute.billing_id}</div>
+                    <div><strong>Submitted:</strong> {new Date(selectedDispute.created_at).toLocaleDateString()}</div>
                   </div>
 
-                  <div className="section-label" style={{ marginTop: '16px' }}>UPLOADED EVIDENCE</div>
+                  <div className="section-label mt-16">EVIDENCE</div>
                   <div className="evidence-preview-box">
-                    <div className="mini-receipt-screen">
-                      <div className="mini-receipt-top">✓ Successfully Sent</div>
-                      <div className="mini-receipt-body">
-                        <span>Amount</span>
-                        <div className="line-placeholder"></div>
-                      </div>
-                    </div>
+                    {selectedDispute.evidence_url ? (
+                      <a href={`/${selectedDispute.evidence_url}`} target="_blank" rel="noreferrer" style={{ color: '#065f46', fontSize: '0.8rem', fontWeight: 600 }}>
+                        View Attachment
+                      </a>
+                    ) : (
+                      <span style={{ fontSize: '0.8rem', color: '#9ca3af' }}>No evidence attached</span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Modal Action Footer */}
               <div className="dispute-modal-footer">
                 <button 
                   className="approve-dispute-btn" 
-                  onClick={() => handleResolveDispute(selectedDispute.id)}
+                  disabled={actionLoading}
+                  onClick={() => handleResolveDispute(selectedDispute.dispute_id, 'RESOLVED')}
                 >
-                  APPROVE DISPUTE
+                  {actionLoading ? 'PROCESSING...' : 'APPROVE & RESOLVE'}
                 </button>
                 <button 
                   className="deny-dispute-btn" 
-                  onClick={() => handleResolveDispute(selectedDispute.id)}
+                  disabled={actionLoading}
+                  onClick={() => handleResolveDispute(selectedDispute.dispute_id, 'REJECTED')}
                 >
-                  DENY DISPUTE
+                  {actionLoading ? 'PROCESSING...' : 'REJECT DISPUTE'}
                 </button>
               </div>
             </div>

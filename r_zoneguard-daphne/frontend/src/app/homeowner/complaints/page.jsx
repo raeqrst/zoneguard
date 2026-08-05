@@ -1,272 +1,297 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
+import { useSearchParams } from 'next/navigation';
+import './style.css';
 
-// SVGs matched precisely to the dashboard design system
-const Icons = {
-  check: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  ),
-  upload: (
-    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#064e3b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-      <polyline points="17 8 12 3 7 8" />
-      <line x1="12" y1="3" x2="12" y2="15" />
-    </svg>
-  ),
-  list: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#064e3b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="8" y1="6" x2="21" y2="6" />
-      <line x1="8" y1="12" x2="21" y2="12" />
-      <line x1="8" y1="18" x2="21" y2="18" />
-      <line x1="3" y1="6" x2="3.01" y2="6" />
-      <line x1="3" y1="12" x2="3.01" y2="12" />
-      <line x1="3" y1="18" x2="3.01" y2="18" />
-    </svg>
-  ),
-  arrowLeft: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="19" y1="12" x2="5" y2="12" />
-      <polyline points="12 19 5 12 12 5" />
-    </svg>
-  )
-};
+function ComplaintsContent() {
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get('propertyId') || '';
 
-const mockComplaints = [
-  {
-    id: '#G3-0002',
-    date: 'May 04, 2026',
-    subject: 'Not paying credit to person A',
-    category: 'FINANCIAL',
-    status: 'Active',
-    description: 'Concerns regarding outstanding community financial obligations.',
-    timeline: [
-      { status: 'Submitted', time: 'May 04, 2026 • 10:00 AM', desc: 'Ticket logged successfully.' }
-    ]
-  },
-  {
-    id: '#G3-0001',
-    date: 'February 01, 2026',
-    subject: 'Unauthorized parking in A Street',
-    category: 'GRIEVANCE',
-    status: 'Investigating',
-    description: 'May nagparking sa harap ng garahe ko. Nde ko malabas motor ko. plz help. We tried negotiating pero mukhang siya pa may ganang magalit kahit na sabihin naming bawal magparking sa driveway.',
-    timeline: [
-      { status: 'Submitted', time: 'Feb 01, 2026 • 09:14 AM', desc: 'Ticket successfully received and logged into the maintenance queue.' },
-      { status: 'Investigating', time: 'Feb 01, 2026 • 02:00 PM', desc: 'Worker is on-site investigating.' }
-    ]
-  },
-  {
-    id: '#G3-0000',
-    date: 'Mar 2026',
-    subject: 'Flickering lights',
-    category: 'INFRASTRUCTURE',
-    status: 'Resolved',
-    description: 'Streetlight near Lot 4 is flickering intermittently.',
-    timeline: [
-      { status: 'Submitted', time: 'Mar 10, 2026 • 08:30 AM', desc: 'Issue logged.' },
-      { status: 'Resolved', time: 'Mar 11, 2026 • 01:15 PM', desc: 'Bulb replaced by maintenance.' }
-    ]
+  const [isDelinquent, setIsDelinquent] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // Form states
+  const [subject, setSubject] = useState('');
+  const [category, setCategory] = useState('Public Relations');
+  const [details, setDetails] = useState('');
+  const [evidenceFile, setEvidenceFile] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
+  // Data states
+  const [complaints, setComplaints] = useState([]);
+
+  const fetchData = async () => {
+    setLoading(true);
+    try {
+      const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+      const dashboardUrl = new URL('http://localhost:5000/api/homeowner/dashboard');
+      if (propertyId) dashboardUrl.searchParams.append('propertyId', propertyId);
+      if (loggedInUserId) dashboardUrl.searchParams.append('userId', loggedInUserId);
+
+      const dashboardRes = await fetch(dashboardUrl.toString());
+      const dashboardData = await dashboardRes.json();
+
+      if (dashboardRes.ok && dashboardData.dues) {
+        setIsDelinquent(dashboardData.dues.isDelinquent);
+      }
+
+      const complaintsUrl = new URL('http://localhost:5000/api/homeowner/complaints');
+      if (propertyId) complaintsUrl.searchParams.append('propertyId', propertyId);
+      if (loggedInUserId) complaintsUrl.searchParams.append('userId', loggedInUserId);
+
+      const complaintsRes = await fetch(complaintsUrl.toString());
+      const complaintsData = await complaintsRes.json();
+
+      if (complaintsRes.ok) {
+        setComplaints(complaintsData.complaints || []);
+      }
+    } catch (err) {
+      console.error('Failed to load complaints data:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, [propertyId]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 5 * 1024 * 1024) {
+        alert('File size exceeds 5MB limit.');
+        return;
+      }
+      setEvidenceFile(file);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!subject.trim() || !details.trim()) {
+      alert('Please fill out all required fields.');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      const response = await fetch('http://localhost:5000/api/homeowner/complaints', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          propertyId,
+          userId: loggedInUserId,
+          subject: subject.trim(),
+          category,
+          details: details.trim(),
+          evidenceUrl: evidenceFile ? evidenceFile.name : null
+        })
+      });
+
+      const data = await response.json();
+      if (response.ok) {
+        alert('Complaint submitted successfully!');
+        setSubject('');
+        setDetails('');
+        setEvidenceFile(null);
+        fetchData();
+      } else {
+        alert('Failed to submit complaint: ' + (data.message || 'Unknown error'));
+      }
+    } catch (error) {
+      console.error('Complaint submission error:', error);
+      alert('Network error while submitting complaint.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  if (loading) {
+    return <div style={{ padding: '40px', color: '#6b7280' }}>Loading complaints data...</div>;
   }
-];
-
-export default function HomeownerComplaintsPage() {
-  const [selectedComplaint, setSelectedComplaint] = useState(null);
 
   return (
-    <div>
-      {selectedComplaint ? (
-        /* DETAILED VIEW */
-        <div style={{ maxWidth: '900px', margin: '0 auto' }}>
-          <button 
-            onClick={() => setSelectedComplaint(null)} 
-            style={{ display: 'flex', alignItems: 'center', gap: '8px', background: 'none', border: 'none', color: '#064e3b', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', marginBottom: '24px', padding: 0 }}
-          >
-            {Icons.arrowLeft} Back to My Complaints
-          </button>
+    <div className="cmp-container">
+      {/* 1. Page Title Header */}
+      <div className="page-title-section" style={{ marginBottom: '24px' }}>
+        <h1>Complaints &amp; Feedback</h1>
+        <p>Submit official homeowner concerns and track resolution status in real-time.</p>
+      </div>
 
-          <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '12px' }}>
-            <span style={{ backgroundColor: '#e2e8f0', color: '#334155', padding: '4px 10px', borderRadius: '8px', fontSize: '0.75rem', fontWeight: '800' }}>{selectedComplaint.id}</span>
-            <span style={{ 
-              backgroundColor: selectedComplaint.status === 'Active' ? '#fef3c7' : selectedComplaint.status === 'Investigating' ? '#e0f2fe' : '#d1fae5',
-              color: selectedComplaint.status === 'Active' ? '#92400e' : selectedComplaint.status === 'Investigating' ? '#0369a1' : '#065f46',
-              padding: '4px 12px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '800' 
-            }}>
-              {selectedComplaint.status}
-            </span>
-          </div>
-
-          <h1 style={{ fontSize: '2rem', fontWeight: '900', color: '#0f172a', marginBottom: '24px', marginTop: 0 }}>{selectedComplaint.subject}</h1>
-
-          {/* PROGRESSION TICKET CARD */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '28px 32px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#0f172a', margin: '0 0 20px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>⏱</span> Complaint Progression
-            </h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              {selectedComplaint.timeline.map((item, index) => (
-                <div key={index} style={{ display: 'flex', gap: '16px', alignItems: 'flex-start' }}>
-                  <div style={{ width: '32px', height: '32px', borderRadius: '50%', backgroundColor: '#d1fae5', color: '#065f46', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    {Icons.check}
-                  </div>
-                  <div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '4px' }}>
-                      <strong style={{ fontSize: '0.9rem', color: '#0f172a', fontWeight: '800' }}>{item.status}</strong>
-                      <span style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '600' }}>{item.time}</span>
-                    </div>
-                    <p style={{ fontSize: '0.85rem', color: '#475569', margin: 0, lineHeight: '1.4' }}>{item.desc}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* SUBMISSION DETAILS CARD */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '28px 32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <h3 style={{ fontSize: '1.05rem', fontWeight: '800', color: '#064e3b', margin: '0 0 20px 0' }}>Original Submission Details</h3>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px', letterSpacing: '0.5px' }}>SUBJECT</span>
-                <p style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>{selectedComplaint.subject}</p>
-              </div>
-              <div>
-                <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px', letterSpacing: '0.5px' }}>CATEGORY</span>
-                <p style={{ fontSize: '0.9rem', fontWeight: '700', color: '#0f172a', margin: 0 }}>{selectedComplaint.category}</p>
-              </div>
-            </div>
-
-            <div style={{ marginBottom: '24px' }}>
-              <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '6px', letterSpacing: '0.5px' }}>DESCRIPTION</span>
-              <p style={{ fontSize: '0.9rem', color: '#334155', margin: 0, lineHeight: '1.5' }}>{selectedComplaint.description}</p>
-            </div>
-
+      {isDelinquent ? (
+        /* RESTRICTED VIEW (Arrears) */
+        <>
+          {/* Member Standing Warning Banner */}
+          <div className="cmp-banner cmp-banner-warning">
+            <div className="cmp-banner-icon cmp-banner-icon-warning">!</div>
             <div>
-              <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: '800', color: '#94a3b8', marginBottom: '12px', letterSpacing: '0.5px' }}>PHOTO EVIDENCE (2)</span>
-              <div style={{ display: 'flex', gap: '12px' }}>
-                <div style={{ width: '100px', height: '100px', backgroundColor: '#f1f5f9', borderRadius: '8px', border: '1px solid #e2e8f0' }}></div>
-                <div style={{ width: '100px', height: '100px', backgroundColor: '#f1f5f9', borderRadius: '8px', border: '1px solid #e2e8f0' }}></div>
-              </div>
+              <strong>Member Standing:</strong> Your account has outstanding balances. Submission of new formal concerns is restricted.
             </div>
           </div>
-        </div>
+
+          {/* Locked Restricted Card matching the visual style */}
+          <div className="cmp-card cmp-locked-card">
+            <div className="cmp-locked-icon">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+              </svg>
+            </div>
+            <h2>Submission Restricted: Account with Arrears</h2>
+            <p>Your account has outstanding balances. Please settle your remaining dues to regain access to the formal complaint system.</p>
+          </div>
+        </>
       ) : (
-        /* MAIN COMPLAINTS LIST VIEW */
-        <div style={{ maxWidth: '1000px', margin: '0 auto' }}>
-          
-          {/* MEMBER STANDING BANNER */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '14px', backgroundColor: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '14px', padding: '18px 24px', marginBottom: '28px', color: '#065f46', fontSize: '0.9rem' }}>
-            <div style={{ width: '28px', height: '28px', borderRadius: '50%', backgroundColor: '#d1fae5', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-              {Icons.check}
-            </div>
+        /* ACTIVE VIEW (Good Standing) */
+        <>
+          {/* 2. Member Standing Banner */}
+          <div className="cmp-banner">
+            <div className="cmp-banner-icon">✓</div>
             <div>
-              <strong style={{ fontWeight: '800' }}>Member Standing:</strong>
-              <span> Your account is in green status. You are permitted to submit new formal concerns.</span>
+              <strong>Member Standing:</strong> Your account is in green status. You are permitted to submit new formal concerns.
             </div>
           </div>
 
-          {/* SUBMIT COMPLAINT FORM CARD */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '32px', marginBottom: '32px', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            <div style={{ marginBottom: '24px' }}>
-              <h2 style={{ fontSize: '1.25rem', fontWeight: '900', color: '#0f172a', margin: '0 0 6px 0' }}>Submit a New Complaint</h2>
-              <p style={{ fontSize: '0.88rem', color: '#64748b', margin: 0 }}>Please provide details and any supporting evidence for your concern.</p>
-            </div>
+          {/* 3. Two-Column Grid Layout */}
+          <div className="cmp-grid">
+            {/* Left Column (Main Form & Table) */}
+            <div className="cmp-left-col">
+              {/* Submit Card */}
+              <div className="cmp-card">
+                <div className="cmp-card-title">
+                  <div className="cmp-icon-box">✍️</div>
+                  <h3>Submit a New Complaint</h3>
+                </div>
+                <p style={{ fontSize: '0.85rem', color: '#6b7280', marginTop: '-12px', marginBottom: '20px' }}>
+                  Please provide details and any supporting evidence for your concern.
+                </p>
 
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '8px', letterSpacing: '0.5px' }}>SUBJECT</label>
-                  <input type="text" placeholder="e.g. Broken perimeter fence" style={{ width: '100%', padding: '12px 16px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box' }} />
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '8px', letterSpacing: '0.5px' }}>CATEGORY</label>
-                  <select style={{ width: '100%', padding: '12px 16px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box', cursor: 'pointer' }}>
-                    <option>Public Relations</option>
-                    <option>Grievance</option>
-                    <option>Financial</option>
-                    <option>Infrastructure</option>
-                  </select>
-                </div>
-              </div>
-
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '8px', letterSpacing: '0.5px' }}>DETAILS</label>
-                  <textarea placeholder="Provide a brief summary of the issue..." style={{ width: '100%', height: '120px', padding: '12px 16px', backgroundColor: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}></textarea>
-                </div>
-                <div>
-                  <label style={{ display: 'block', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', marginBottom: '8px', letterSpacing: '0.5px' }}>UPLOAD PHOTOS OR EVIDENCE</label>
-                  <div style={{ border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '24px', textAlign: 'center', backgroundColor: '#f8fafc', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '120px', boxSizing: 'border-box', cursor: 'pointer' }}>
-                    <div style={{ marginBottom: '8px' }}>{Icons.upload}</div>
-                    <strong style={{ fontSize: '0.8rem', color: '#0f172a', fontWeight: '700', display: 'block' }}>Upload or drag and drop images</strong>
-                    <span style={{ fontSize: '0.7rem', color: '#64748b' }}>JPG, PNG (Max 5MB)</span>
+                <form onSubmit={handleSubmit}>
+                  <div className="cmp-form-grid">
+                    <div className="cmp-form-group">
+                      <label className="cmp-label">SUBJECT</label>
+                      <input
+                        type="text"
+                        className="cmp-input"
+                        placeholder="e.g. Broken perimeter fence"
+                        value={subject}
+                        onChange={(e) => setSubject(e.target.value)}
+                        required
+                      />
+                    </div>
+                    <div className="cmp-form-group">
+                      <label className="cmp-label">CATEGORY</label>
+                      <select className="cmp-select" value={category} onChange={(e) => setCategory(e.target.value)}>
+                        <option value="Public Relations">Public Relations</option>
+                        <option value="Maintenance">Maintenance</option>
+                        <option value="Security">Security</option>
+                        <option value="Infrastructure">Infrastructure</option>
+                        <option value="Financial">Financial</option>
+                        <option value="General">General</option>
+                      </select>
+                    </div>
                   </div>
+
+                  <div className="cmp-form-grid">
+                    <div className="cmp-form-group">
+                      <label className="cmp-label">DETAILS</label>
+                      <textarea
+                        className="cmp-textarea"
+                        placeholder="Provide a brief summary of the issue..."
+                        value={details}
+                        onChange={(e) => setDetails(e.target.value)}
+                        required
+                      ></textarea>
+                    </div>
+                    <div className="cmp-form-group">
+                      <label className="cmp-label">UPLOAD PHOTOS OR EVIDENCE</label>
+                      <label className="cmp-upload-box" style={{ cursor: 'pointer' }}>
+                        <input type="file" accept="image/png, image/jpeg" onChange={handleFileChange} style={{ display: 'none' }} />
+                        <span style={{ fontSize: '1.2rem', color: '#044e3a' }}>↑</span>
+                        <strong>{evidenceFile ? evidenceFile.name : 'Upload or drag and drop images'}</strong>
+                        <span>JPG, PNG (Max 5MB)</span>
+                      </label>
+                    </div>
+                  </div>
+
+                  <div className="cmp-action-row">
+                    <button type="submit" className="cmp-btn-primary" disabled={isSubmitting}>
+                      {isSubmitting ? 'SUBMITTING...' : 'FILE FORMAL COMPLAINT'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+
+              {/* Active Complaints Card */}
+              <div className="cmp-card">
+                <div className="cmp-linked-header">
+                  <h3>Active Complaints</h3>
+                  <span className="cmp-badge-count">Total: {complaints.length}</span>
+                </div>
+
+                <div className="cmp-table-wrapper">
+                  <table className="cmp-table">
+                    <thead>
+                      <tr>
+                        <th>DATE</th>
+                        <th>SUBJECT</th>
+                        <th>CATEGORY</th>
+                        <th>STATUS</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {complaints.length > 0 ? (
+                        complaints.map((c, idx) => (
+                          <tr key={idx}>
+                            <td>{new Date(c.createdAt).toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' })}</td>
+                            <td><strong>#{c.ticketId}</strong> - {c.complaintSubject}</td>
+                            <td>{c.complaintCategory}</td>
+                            <td>
+                              <span className={`cmp-status-badge-${(c.status || 'PENDING').toLowerCase()}`}>
+                                {c.status || 'PENDING'}
+                              </span>
+                            </td>
+                          </tr>
+                        ))
+                      ) : (
+                        <tr>
+                          <td colSpan="4" className="cmp-empty-state">No complaints filed yet.</td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
                 </div>
               </div>
-
-              <button style={{ backgroundColor: '#064e3b', color: '#ffffff', border: 'none', borderRadius: '8px', padding: '14px 24px', fontWeight: '800', fontSize: '0.9rem', cursor: 'pointer', alignSelf: 'flex-start', marginTop: '8px' }}>
-                FILE FORMAT COMPLAINT
-              </button>
             </div>
-          </div>
 
-          {/* ACTIVE COMPLAINTS SECTION */}
-          <div style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden', boxShadow: '0 4px 12px rgba(0,0,0,0.02)' }}>
-            
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '24px 32px', borderBottom: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                {Icons.list}
-                <h3 style={{ fontSize: '1.15rem', fontWeight: '800', color: '#064e3b', margin: 0 }}>Active Complaints</h3>
+            {/* Right Column (Sidebar Guidelines) */}
+            <div className="cmp-right-col">
+              <div className="cmp-card">
+                <div className="cmp-linked-header">
+                  <h3>Complaint Guidelines</h3>
+                </div>
+                <ul className="cmp-guidelines-list">
+                  <li>Urgent security matters should be reported directly to the HOA gate officer.</li>
+                  <li>Allow 24–48 hours for director review and escalation updates.</li>
+                  <li>Photos attached will be encrypted and visible only to assigned directors.</li>
+                </ul>
               </div>
-              <span style={{ fontSize: '0.85rem', fontWeight: '700', color: '#64748b' }}>Total: {mockComplaints.length}</span>
             </div>
-
-            <div style={{ width: '100%', overflowX: 'auto' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                    <th style={{ padding: '14px 32px', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', letterSpacing: '0.5px' }}>DATE</th>
-                    <th style={{ padding: '14px 20px', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', letterSpacing: '0.5px' }}>SUBJECT</th>
-                    <th style={{ padding: '14px 20px', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', letterSpacing: '0.5px' }}>CATEGORY</th>
-                    <th style={{ padding: '14px 20px', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', letterSpacing: '0.5px' }}>STATUS</th>
-                    <th style={{ padding: '14px 32px', fontSize: '0.7rem', fontWeight: '800', color: '#64748b', letterSpacing: '0.5px', textAlign: 'right' }}></th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {mockComplaints.map((item, index) => (
-                    <tr 
-                      key={item.id} 
-                      onClick={() => setSelectedComplaint(item)} 
-                      style={{ borderBottom: index !== mockComplaints.length - 1 ? '1px solid #f1f5f9' : 'none', cursor: 'pointer' }}
-                    >
-                      <td style={{ padding: '20px 32px', fontSize: '0.85rem', fontWeight: '600', color: '#334155' }}>{item.date}</td>
-                      <td style={{ padding: '20px 20px', fontSize: '0.9rem', fontWeight: '800', color: '#0f172a' }}>{item.subject}</td>
-                      <td style={{ padding: '20px 20px' }}>
-                        <span style={{ backgroundColor: '#f1f5f9', color: '#334155', padding: '4px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '800', display: 'inline-block' }}>
-                          {item.category}
-                        </span>
-                      </td>
-                      <td style={{ padding: '20px 20px' }}>
-                        <span style={{ 
-                          backgroundColor: item.status === 'Active' ? '#fef3c7' : item.status === 'Investigating' ? '#e0f2fe' : '#d1fae5',
-                          color: item.status === 'Active' ? '#92400e' : item.status === 'Investigating' ? '#0369a1' : '#065f46',
-                          padding: '4px 10px', borderRadius: '12px', fontSize: '0.7rem', fontWeight: '800', display: 'inline-block' 
-                        }}>
-                          {item.status}
-                        </span>
-                      </td>
-                      <td style={{ padding: '20px 32px', textAlign: 'right', color: '#94a3b8', fontWeight: '700' }}>&gt;</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-
           </div>
-
-        </div>
+        </>
       )}
     </div>
+  );
+}
+
+export default function ComplaintsPage() {
+  return (
+    <Suspense fallback={<div style={{ padding: '40px', color: '#6b7280' }}>Loading complaints...</div>}>
+      <ComplaintsContent />
+    </Suspense>
   );
 }

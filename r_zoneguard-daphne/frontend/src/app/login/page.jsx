@@ -25,13 +25,13 @@ export default function UnifiedLoginPage() {
         setLoading(true);
 
         try {
-            // Trim whitespace from email just in case
+            // Trim whitespace from email to prevent accidental login failures
             const cleanPayload = {
                 ...formData,
                 email: formData.email.trim(),
             };
 
-            const res = await fetch('http://localhost:5000/api/auth/login', {
+            const res = await fetch('http://127.0.0.1:5000/api/auth/login', {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -45,19 +45,30 @@ export default function UnifiedLoginPage() {
                 throw new Error(data.message || 'Login failed. Please check your credentials.');
             }
 
-            // Store Auth Credentials
+            // ✅ CLEAR OLD SESSION DATA FIRST to prevent stale names/properties
+            localStorage.clear();
+
+            // ✅ STORE DYNAMIC AUTH CREDENTIALS
+            const userData = data.user || data;
             localStorage.setItem('token', data.token);
             
-            // Kept your original user storage just in case other dashboards rely on it
-            localStorage.setItem('user', JSON.stringify(data.user || data));
+            // Extract the user ID specifically for your dashboard/payments components
+            const extractedUserId = userData.user_id || userData.userId || userData.id;
+            if (extractedUserId) {
+                localStorage.setItem('userId', extractedUserId);
+            }
             
-            // ✅ ADDED: This is the exact key the new Homeowner Dashboard needs to display the dynamic name!
-            localStorage.setItem('zoneguard_user', JSON.stringify(data.user || data));
+            // This key feeds the Homeowner Layout & Dashboard to display dynamic names (e.g., "Thelma")
+            localStorage.setItem('zoneguard_user', JSON.stringify(userData));
+            
+            // Keep generic user key for other potential dashboards
+            localStorage.setItem('user', JSON.stringify(userData));
 
-            // ✅ Bulletproof role check (handles lowercase & different property names)
-            const rawRole = data.user?.system_role || data.user?.role || data.role || '';
+            // ✅ BULLETPROOF ROLE CHECK
+            const rawRole = userData.systemRole || userData.system_role || userData.role || '';
             const userRole = String(rawRole).toUpperCase();
 
+            // Route based on dynamic role
             switch (userRole) {
                 case 'ADMIN':
                     router.push('/admin/dashboard');
@@ -75,7 +86,6 @@ export default function UnifiedLoginPage() {
                     router.push('/director/dashboard');
                     break;
                 default:
-                    // If no valid role is found, don't default to admin!
                     throw new Error('User account has no assigned role. Contact support.');
             }
         } catch (err) {
