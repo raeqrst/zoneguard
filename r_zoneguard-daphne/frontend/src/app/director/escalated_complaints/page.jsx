@@ -1,7 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import './style.css';
-
 
 const Icons = {
   search: (
@@ -65,138 +64,196 @@ const Icons = {
   )
 };
 
-
-const categoryFilters = [
-  { label: 'All Pending (10)', key: 'All Pending' },
-  { label: 'Infrastructure (3)', key: 'INFRASTRUCTURE' },
-  { label: 'Public Relations (2)', key: 'PUBLIC RELATIONS' },
-  { label: 'Grievance (2)', key: 'GRIEVANCE' },
-  { label: 'Financial (1)', key: 'FINANCIAL' },
-  { label: 'Beautification (1)', key: 'BEAUTIFICATION' },
-  { label: 'Sport (1)', key: 'SPORT' },
-  { label: 'Resolved History (6)', key: 'Resolved History' },
-];
-
-
-const complaintsData = [
-  {
-    ticket: 'F3-0015',
-    init: 'DV',
-    bgColor: '#713f12',
-    name: 'Darth C. Vader',
-    address: 'Blk 8 Lot 61 01 Palico Lane St.',
-    category: 'FINANCIAL',
-    catClass: 'badge-financial',
-    status: 'Escalated',
-    subject: 'Ledger Reversal',
-    description: 'I received two reimbursements for the project supplies instead of one. Please fix this.',
-    dateFiled: '4/5/2026',
-    escalationReason: 'Accounting error detected (duplicate transaction entry). Need authorization for ledger reversal.'
-  },
-  {
-    ticket: 'I3-0003',
-    init: 'SG',
-    bgColor: '#6b21a8',
-    name: 'Sheena D. Guzman',
-    address: 'Zone 3, 76 Pantabangan St.',
-    category: 'INFRASTRUCTURE',
-    catClass: 'badge-infra',
-    status: 'Escalated',
-    subject: 'Broken Streetlights',
-    description: 'The streetlights along Pantabangan St. have been out for over a week, creating safety issues at night.',
-    dateFiled: '4/6/2026',
-    escalationReason: 'Unresolved maintenance ticket exceeding standard SLA window.'
-  },
-  {
-    ticket: 'B3-0021',
-    init: 'ES',
-    bgColor: '#9d174d',
-    name: 'Elena P. Soriano',
-    address: 'Zone 3, 4 Camiling St.',
-    category: 'BEAUTIFICATION',
-    catClass: 'badge-beautification',
-    status: 'Escalated',
-    subject: 'Unauthorized Tree Cut',
-    description: 'A neighboring resident cut down mature trees without securing clearance from the village committee.',
-    dateFiled: '4/7/2026',
-    escalationReason: 'Violation of environmental and beautification ordinances requiring penalty enforcement.'
-  },
-  {
-    ticket: 'P3-0024',
-    init: 'JI',
-    bgColor: '#1d4ed8',
-    name: 'Jeffrey B. Ignacio',
-    address: 'Blk 8 Lot 39 15 Jalaur St.',
-    category: 'PUBLIC RELATIONS',
-    catClass: 'badge-pr',
-    status: 'Escalated',
-    subject: 'Fake Memo Alert',
-    description: 'Unverified announcements regarding fee hikes are circulating, causing confusion among residents.',
-    dateFiled: '4/8/2026',
-    escalationReason: 'Public misinformation requiring formal executive retraction memo.'
-  },
-  {
-    ticket: 'I3-0004',
-    init: 'JM',
-    bgColor: '#c2410c',
-    name: 'Joseph N. Mendoza',
-    address: 'Zone 3, 24 Camiling St.',
-    category: 'INFRASTRUCTURE',
-    catClass: 'badge-infra',
-    status: 'Escalated',
-    subject: 'Water Line Burst',
-    description: 'Main water line leak near Camiling St. causing low pressure and wastage.',
-    dateFiled: '4/9/2026',
-    escalationReason: 'Emergency infrastructure hazard requiring immediate contractor dispatch.'
-  },
-  {
-    ticket: 'G3-0017',
-    init: 'DO',
-    bgColor: '#15803d',
-    name: 'Dorothy L. Ortega',
-    address: 'Zone 3, 23 Camiling St.',
-    category: 'GRIEVANCE',
-    catClass: 'badge-grievance',
-    status: 'Escalated',
-    subject: 'Midnight Noise',
-    description: 'Persistent loud construction and gatherings past curfew hours.',
-    dateFiled: '4/10/2026',
-    escalationReason: 'Repeated noise ordinance violation despite initial warnings.'
-  }
-];
-
+const API_BASE = 'http://localhost:5000/api';
+const normalize = (val) => (val || '').toString().trim().toLowerCase();
 
 export default function EscalatedComplaintsPage() {
+  const [complaintsData, setComplaintsData] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState('All Pending');
+  const [searchQuery, setSearchQuery] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState(null);
 
+  const fetchComplaints = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(`${API_BASE}/complaints`);
+      const result = await response.json();
+      
+      const rawData = Array.isArray(result) ? result : (result.complaints || []);
+      
+      const formatted = rawData.map(item => {
+        const fullName = item.user 
+          ? `${item.user.firstName || ''} ${item.user.lastName || ''}`.trim() 
+          : (item.name || 'Anonymous Resident');
 
-  // Filter complaints based on the selected category chip
-  const filteredData = complaintsData.filter((item) => {
-    if (activeFilter === 'All Pending') {
-      return item.status === 'Escalated';
+        return {
+          id: item.id || item.ticket_id,
+          ticket: item.id || item.ticket_id,
+          name: fullName,
+          address: item.user?.zoneId ? `Zone ${item.user.zoneId}` : (item.address || 'Zone 3 NIA Village'),
+          categoryRaw: item.category || item.complaintCategory || 'GENERAL',
+          category: (item.category || item.complaintCategory || 'General').replace(/_/g, ' '),
+          status: item.status || 'ACTIVE',
+          subject: item.subject || item.complaintSubject || 'No Subject',
+          description: item.description || item.complaintDesc || 'No description provided.',
+          escalationReason: item.escalationReason || item.escalationRemarks || 'Standard administrative review.',
+          evidenceImg: item.evidenceImg || item.evidence_img || null,
+          createdAt: item.createdAt || item.created_at,
+          bgColor: item.bgColor || '#064e3b'
+        };
+      });
+
+      setComplaintsData(formatted);
+    } catch (error) {
+      console.error('Failed to load complaints from backend:', error);
+      setComplaintsData([]);
+    } finally {
+      setIsLoading(false);
     }
-    if (activeFilter === 'Resolved History') {
-      return item.status === 'Resolved';
-    }
-    return item.status === 'Escalated' && item.category === activeFilter;
-  });
-
-
-  const handleResolve = (ticketId) => {
-    alert(`Complaint ${ticketId} marked as resolved successfully.`);
   };
 
+  useEffect(() => {
+    fetchComplaints();
+  }, []);
+
+  // Strict check: Only status === 'escalated' counts as pending for Director triage
+  const pendingList = complaintsData.filter(item => normalize(item.status) === 'escalated');
+  const resolvedList = complaintsData.filter(item => normalize(item.status) === 'resolved');
+
+  const categoryCounts = complaintsData.reduce((acc, item) => {
+    if (normalize(item.status) === 'escalated') {
+      const cat = (item.categoryRaw || item.category || 'GENERAL').toUpperCase();
+      acc[cat] = (acc[cat] || 0) + 1;
+    }
+    return acc;
+  }, {});
+
+  const dynamicCategoryFilters = [
+    { label: `All Pending (${pendingList.length})`, key: 'All Pending' },
+    ...Object.entries(categoryCounts).map(([catKey, count]) => ({
+      label: `${catKey.charAt(0) + catKey.slice(1).toLowerCase().replace(/_/g, ' ')} (${count})`,
+      key: catKey
+    })),
+    { label: `Resolved History (${resolvedList.length})`, key: 'Resolved History' }
+  ];
+
+  // Matches the CSS classes defined in your style.css (.badge-financial, .badge-infra, etc.)
+  const getCategoryBadgeClass = (category) => {
+    const val = normalize(category);
+    if (val.includes('financial')) return 'badge-financial';
+    if (val.includes('infra')) return 'badge-infra';
+    if (val.includes('beautification')) return 'badge-beautification';
+    if (val.includes('public') || val.includes('pr')) return 'badge-pr';
+    if (val.includes('griev')) return 'badge-grievance';
+    if (val.includes('sport')) return 'badge-sport';
+    return 'badge-infra'; 
+  };
+
+  const filteredData = complaintsData.filter((item) => {
+    const statusVal = normalize(item.status);
+    const categoryVal = (item.categoryRaw || item.category || '').toUpperCase();
+    
+    let matchesStatus = false;
+    if (activeFilter === 'All Pending') {
+      matchesStatus = statusVal === 'escalated';
+    } else if (activeFilter === 'Resolved History') {
+      matchesStatus = statusVal === 'resolved';
+    } else {
+      // Robust comparison ignoring underscores, spacing, and casing
+      const cleanActive = activeFilter.replace(/\s+/g, '_').toUpperCase();
+      const cleanItemCat = categoryVal.replace(/\s+/g, '_').toUpperCase();
+      matchesStatus = statusVal === 'escalated' && cleanItemCat === cleanActive;
+    }
+
+    const searchStr = normalize(searchQuery);
+    const matchesSearch = !searchStr || [
+      item.ticket,
+      item.name,
+      item.address,
+      item.subject,
+      item.category
+    ].filter(Boolean).join(' ').toLowerCase().includes(searchStr);
+
+    return matchesStatus && matchesSearch;
+  });
+
+  const handleResolve = async (ticketId, dbId) => {
+    try {
+      const targetId = dbId || ticketId;
+      const response = await fetch(`${API_BASE}/complaints/${targetId}/status`, { // <-- Add /status here
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'RESOLVED' })
+      });
+
+      if (!response.ok) throw new Error('Failed to update status');
+
+      await fetchComplaints();
+      if (selectedComplaint && (selectedComplaint.ticket === ticketId || selectedComplaint.id === dbId)) {
+        setSelectedComplaint(null);
+      }
+      alert(`Complaint ${ticketId} marked as resolved successfully.`);
+    } catch (error) {
+      console.error('Error resolving complaint:', error);
+      alert('Failed to update complaint status on the server.');
+    }
+  };
+
+  const downloadCSV = (type) => {
+    const dataToExport = type === 'pending' ? pendingList : resolvedList;
+
+    if (!dataToExport || dataToExport.length === 0) {
+      alert(`There are no ${type} complaints to export.`);
+      return;
+    }
+
+    const headers = ["Ticket ID", "Resident Name", "Address", "Category", "Status", "Complaint Subject", "Date Filed", "Escalation Reason"];
+    const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
+
+    const csvRows = dataToExport.map(item => {
+      const dateFiled = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A';
+      return [
+        escapeCSV(item.ticket),
+        escapeCSV(item.name),
+        escapeCSV(item.address),
+        escapeCSV(item.categoryRaw || item.category),
+        escapeCSV(item.status),
+        escapeCSV(item.subject),
+        escapeCSV(dateFiled),
+        escapeCSV(item.escalationReason)
+      ].join(',');
+    });
+
+    const csvContent = [headers.join(','), ...csvRows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    
+    const currentDate = new Date().toISOString().split('T')[0];
+    const filename = type === 'pending' 
+      ? `Pending_Complaints_${currentDate}.csv` 
+      : `Resolved_Complaints_History_${currentDate}.csv`;
+    
+    const link = document.createElement("a");
+    link.setAttribute("href", url);
+    link.setAttribute("download", filename);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
 
   return (
     <div className="main-content">
-      {/* Top Header */}
       <header className="top-header">
         <div className="search-bar">
           <span className="search-icon">{Icons.search}</span>
-          <input type="text" placeholder="Search ticket id or residents..." />
+          <input 
+            type="text" 
+            placeholder="Search ticket id or residents..." 
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
-
 
         <div className="user-profile">
           <div className="user-info">
@@ -207,8 +264,6 @@ export default function EscalatedComplaintsPage() {
         </div>
       </header>
 
-
-      {/* Page Title Header */}
       <div className="page-header">
         <div>
           <h1>Escalated Complaints Triage</h1>
@@ -216,17 +271,29 @@ export default function EscalatedComplaintsPage() {
             Executive oversight for unresolved community grievances requiring Director-level finality.
           </p>
         </div>
-        <button className="export-btn">
-          {Icons.export} Export CSV
-        </button>
+        
+        <div style={{ display: 'flex', gap: '12px' }}>
+          <button 
+            className="export-btn" 
+            onClick={() => downloadCSV('pending')}
+            style={{ backgroundColor: '#ca8a04', color: '#fff' }}
+          >
+            {Icons.export} Export Pending
+          </button>
+          <button 
+            className="export-btn" 
+            onClick={() => downloadCSV('resolved')}
+            style={{ backgroundColor: '#064e3b', color: '#fff' }}
+          >
+            {Icons.export} Export Resolved
+          </button>
+        </div>
       </div>
 
-
-      {/* Category Filters + Protocols Grid */}
       <div className="top-section-grid">
         <div className="filters-container">
           <div className="pill-group">
-            {categoryFilters.map((cat) => {
+            {dynamicCategoryFilters.map((cat) => {
               const isActive = activeFilter === cat.key;
               return (
                 <button
@@ -243,7 +310,6 @@ export default function EscalatedComplaintsPage() {
             ⓘ All pending represents the backlog of unresolved cases currently requiring executive oversight.
           </div>
         </div>
-
 
         <div className="protocol-card">
           <div className="protocol-title">
@@ -262,8 +328,6 @@ export default function EscalatedComplaintsPage() {
         </div>
       </div>
 
-
-      {/* Complaints Table */}
       <div className="table-card">
         <table className="complaints-table">
           <thead>
@@ -277,7 +341,13 @@ export default function EscalatedComplaintsPage() {
             </tr>
           </thead>
           <tbody>
-            {filteredData.length === 0 ? (
+            {isLoading ? (
+              <tr>
+                <td colSpan="6" style={{ textAlign: 'center', padding: '40px', color: '#666' }}>
+                  Loading dynamic complaint database records...
+                </td>
+              </tr>
+            ) : filteredData.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#666' }}>
                   No complaints found for this category.
@@ -285,12 +355,12 @@ export default function EscalatedComplaintsPage() {
               </tr>
             ) : (
               filteredData.map((row) => (
-                <tr key={row.ticket}>
+                <tr key={row.id || row.ticket}>
                   <td className="ticket-cell">{row.ticket}</td>
                   <td>
                     <div className="resident-cell">
                       <div className="res-avatar" style={{ backgroundColor: row.bgColor }}>
-                        {row.init}
+                        {row.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                       </div>
                       <div>
                         <div className="res-name">{row.name}</div>
@@ -299,30 +369,31 @@ export default function EscalatedComplaintsPage() {
                     </div>
                   </td>
                   <td>
-                    <span className={`cat-badge ${row.catClass}`}>{row.category}</span>
+                    <span className={`cat-badge ${getCategoryBadgeClass(row.category)}`}>{row.category}</span>
                   </td>
                   <td>
-                    <span className="status-dot"></span>
+                    <span className={`status-dot dot-${normalize(row.status)}`}></span>
                     <span className="status-text">{row.status}</span>
                   </td>
                   <td className="subject-cell">{row.subject}</td>
                   <td>
                     <div className="actions-cell">
-                      {/* Clicking the eye icon sets the selected complaint state, opening the modal */}
-                      <button
-                        className="view-btn"
+                      <button 
+                        className="view-btn" 
                         title="View details"
                         onClick={() => setSelectedComplaint(row)}
                       >
                         {Icons.eye}
                       </button>
-                      <button
-                        className="action-btn resolve-btn"
-                        onClick={() => handleResolve(row.ticket)}
-                      >
-                        Resolve
-                      </button>
-                      <button className="action-btn icon-btn" title="View Location">
+                      {normalize(row.status) !== 'resolved' && (
+                        <button 
+                          className="action-btn resolve-btn"
+                          onClick={() => handleResolve(row.ticket, row.id)}
+                        >
+                          Resolve
+                        </button>
+                      )}
+                      <button className="action-btn icon-btn" title="View Location" onClick={() => alert(`Location: ${row.address}`)}>
                         {Icons.location}
                       </button>
                     </div>
@@ -333,24 +404,19 @@ export default function EscalatedComplaintsPage() {
           </tbody>
         </table>
 
-
-        {/* Table Footer */}
         <div className="table-footer">
-          <span className="footer-info">Showing 1 to {filteredData.length} of 10 pending escalated complaints</span>
+          <span className="footer-info">Showing {filteredData.length} active database records</span>
           <div className="pagination">
             <button className="page-nav">&lt;</button>
             <button className="page-num active">1</button>
-            <button className="page-num">2</button>
             <button className="page-nav">&gt;</button>
           </div>
         </div>
       </div>
 
-
-      {/* Modal Popup for Details */}
       {selectedComplaint && (
-        <div className="modal-overlay">
-          <div className="modal-container">
+        <div className="modal-overlay" onClick={() => setSelectedComplaint(null)}>
+          <div className="modal-container" onClick={(e) => e.stopPropagation()}>
             <button className="modal-close-btn" onClick={() => setSelectedComplaint(null)}>
               {Icons.close}
             </button>
@@ -365,14 +431,23 @@ export default function EscalatedComplaintsPage() {
                 <p>{selectedComplaint.description}</p>
               </div>
               <div className="modal-evidence-section">
-                <span className="modal-section-label">PHOTO EVIDENCE (2)</span>
-                <div className="evidence-boxes">
-                  <div className="evidence-box-placeholder"></div>
-                  <div className="evidence-box-placeholder"></div>
-                </div>
+                <span className="modal-section-label">PHOTO EVIDENCE</span>
+                {selectedComplaint.evidenceImg ? (
+                  <div style={{ marginTop: '10px' }}>
+                    <img 
+                      src={`${API_BASE.replace('/api', '')}/${selectedComplaint.evidenceImg}`} 
+                      alt="Evidence" 
+                      style={{ width: '100%', maxHeight: '180px', objectFit: 'cover', borderRadius: '8px' }}
+                      onError={(e) => { e.target.style.display = 'none'; }}
+                    />
+                  </div>
+                ) : (
+                  <div className="evidence-boxes">
+                    <div className="evidence-box-placeholder" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', color: '#888' }}>No Image</div>
+                  </div>
+                )}
               </div>
             </div>
-
 
             <div className="modal-right">
               <div className="modal-right-header">
@@ -386,15 +461,15 @@ export default function EscalatedComplaintsPage() {
                 <div className="box-val">{selectedComplaint.address}</div>
               </div>
 
-
               <div className="modal-info-tile">
                 <span className="tile-icon">{Icons.calendar}</span>
                 <div>
                   <div className="tile-title">DATE FILED</div>
-                  <div className="tile-sub">{selectedComplaint.dateFiled}</div>
+                  <div className="tile-sub">
+                    {selectedComplaint.createdAt ? new Date(selectedComplaint.createdAt).toLocaleDateString() : 'N/A'}
+                  </div>
                 </div>
               </div>
-
 
               <div className="modal-info-tile">
                 <span className="tile-icon">{Icons.trendingUp}</span>
@@ -404,30 +479,27 @@ export default function EscalatedComplaintsPage() {
                 </div>
               </div>
 
-
               <div className="modal-info-tile">
                 <span className="tile-icon">{Icons.fileText}</span>
                 <div>
                   <div className="tile-title">CATEGORY</div>
                   <div className="tile-sub" style={{ textTransform: 'capitalize' }}>
-                    {selectedComplaint.category.toLowerCase()}
+                    {selectedComplaint.category}
                   </div>
                 </div>
               </div>
 
-
-              <button className="modal-download-btn">
+              <button className="modal-download-btn" onClick={() => alert('Downloading evidence archive...')}>
                 Download Evidence
               </button>
-              <button
-                className="modal-resolve-btn"
-                onClick={() => {
-                  handleResolve(selectedComplaint.ticket);
-                  setSelectedComplaint(null);
-                }}
-              >
-                Confirm and Resolve
-              </button>
+              {normalize(selectedComplaint.status) !== 'resolved' && (
+                <button 
+                  className="modal-resolve-btn"
+                  onClick={() => handleResolve(selectedComplaint.ticket, selectedComplaint.id)}
+                >
+                  Confirm and Resolve
+                </button>
+              )}
             </div>
           </div>
         </div>
@@ -435,4 +507,3 @@ export default function EscalatedComplaintsPage() {
     </div>
   );
 }
-

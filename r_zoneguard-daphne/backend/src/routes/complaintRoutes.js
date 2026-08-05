@@ -1,18 +1,15 @@
 const express = require('express');
-const { requireAuth } = require('../middleware/authMiddleware');
+const complaintController = require('../controllers/complaintController');
 
 const router = express.Router();
 
 // GET /api/complaints
-router.get('/', requireAuth, async (req, res) => {
-  // TODO: fetch complaints scoped to req.user (resident sees own; admin/director sees all)
-  res.json({ message: 'List complaints - not yet implemented' });
-});
+router.get('/', complaintController.getAllComplaints);
 
 // POST /api/complaints
-router.post('/', requireAuth, async (req, res) => {
-  // TODO: insert new complaint record, attach requesting user as filer
-  res.status(201).json({ message: 'Create complaint - not yet implemented' });
-});
+router.post('/', complaintController.createComplaint);
+
+// PATCH /api/complaints/:id/status
+router.patch('/:id/status', complaintController.updateComplaintStatus);
 
 module.exports = router;

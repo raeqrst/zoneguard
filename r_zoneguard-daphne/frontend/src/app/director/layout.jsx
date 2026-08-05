@@ -55,8 +55,8 @@ const Icons = {
 
 const menuItems = [
   { label: 'Dashboard', href: '/director/dashboard', icon: Icons.dashboard },
-  { label: 'Escalated Complaints', href: '/director/complaints', icon: Icons.escalatedComplaints },
-  { label: 'Executive Reports', href: '/director/reports', icon: Icons.executiveReports },
+  { label: 'Escalated Complaints', href: '/director/escalated_complaints', icon: Icons.escalatedComplaints },
+  { label: 'Executive Reports', href: '/director/executive_reports', icon: Icons.executiveReports },
 ];
 
 
