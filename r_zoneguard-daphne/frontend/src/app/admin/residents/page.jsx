@@ -31,32 +31,80 @@ export default function AdminResidentsPage() {
   const [selectedType, setSelectedType] = useState('All Residents');
   const [selectedZone, setSelectedZone] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
+  const [currentPage, setCurrentPage] = useState(1);
+  const [totalPages, setTotalPages] = useState(1);
+  const [selectedResident, setSelectedResident] = useState(null);
+
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [newResidentForm, setNewResidentForm] = useState({
+    fullName: '',
+    type: 'Homeowner',
+    zone: 'ZONE 1',
+    street: '',
+    block: '',
+    lot: '',
+    houseNo: '',
+    phone: '',
+    email: ''
+  });
+
+  const fetchLiveResidents = async () => {
+    setIsLoading(true);
+    try {
+      let url = `http://localhost:5000/api/residents?page=${currentPage}&`;
+      if (selectedType) url += `type=${encodeURIComponent(selectedType)}&`;
+      if (selectedZone) url += `zone=${encodeURIComponent(selectedZone)}&`;
+      if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}`;
+
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.success) {
+        setResidents(data.residents);
+        setStats(data.stats);
+        setTotalPages(data.totalPages || 1);
+      }
+    } catch (err) {
+      console.error('Failed to connect to database API:', err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchLiveResidents = async () => {
-      setIsLoading(true);
-      try {
-      let url = `http://localhost:5000/api/residents?`;
-        if (selectedType) url += `type=${encodeURIComponent(selectedType)}&`;
-        if (selectedZone) url += `zone=${encodeURIComponent(selectedZone)}&`;
-        if (searchQuery) url += `search=${encodeURIComponent(searchQuery)}`;
-
-        const res = await fetch(url);
-        const data = await res.json();
-        if (data.success) {
-          setResidents(data.residents);
-          setStats(data.stats);
-        }
-      } catch (err) {
-        console.error('Failed to connect to database API:', err);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
     const debounceTimer = setTimeout(fetchLiveResidents, 300);
     return () => clearTimeout(debounceTimer);
-  }, [selectedType, selectedZone, searchQuery]);
+  }, [selectedType, selectedZone, searchQuery, currentPage]);
+
+  const handleCreateResident = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:5000/api/residents', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newResidentForm)
+      });
+      const data = await res.json();
+      if (data.success) {
+        setIsAddModalOpen(false);
+        setNewResidentForm({
+          fullName: '',
+          type: 'Homeowner',
+          zone: 'ZONE 1',
+          street: '',
+          block: '',
+          lot: '',
+          houseNo: '',
+          phone: '',
+          email: ''
+        });
+        fetchLiveResidents();
+      } else {
+        alert(data.message || 'Failed to save resident record.');
+      }
+    } catch (err) {
+      console.error('Error submitting new resident:', err);
+    }
+  };
 
   return (
     <div className="layout-wrapper">
@@ -102,7 +150,12 @@ export default function AdminResidentsPage() {
               <span className="search-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               </span>
-              <input type="text" placeholder="Search here..." />
+              <input 
+                type="text" 
+                placeholder="Search here..." 
+                value={searchQuery}
+                onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
+              />
             </div>
 
             <div className="user-profile">
@@ -147,7 +200,7 @@ export default function AdminResidentsPage() {
                 <button
                   key={type}
                   className={`pill ${selectedType === type ? 'active-pill' : 'light-pill'}`}
-                  onClick={() => setSelectedType(type)}
+                  onClick={() => { setSelectedType(type); setCurrentPage(1); }}
                 >
                   {type}
                 </button>
@@ -159,7 +212,7 @@ export default function AdminResidentsPage() {
                 <button
                   key={zone}
                   className={`pill ${selectedZone === zone ? 'active-pill' : 'light-pill'}`}
-                  onClick={() => setSelectedZone(selectedZone === zone ? '' : zone)}
+                  onClick={() => { setSelectedZone(selectedZone === zone ? '' : zone); setCurrentPage(1); }}
                 >
                   {zone}
                 </button>
@@ -167,13 +220,13 @@ export default function AdminResidentsPage() {
             </div>
 
             <div className="action-group">
-              <button className="btn-add">⊕ ADD AS RESIDENT</button>
+              <button className="btn-add" onClick={() => setIsAddModalOpen(true)}>⊕ ADD AS RESIDENT</button>
               <div className="table-search">
                 <input
                   type="text"
                   placeholder="Type a name here.."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={(e) => { setSearchQuery(e.target.value); setCurrentPage(1); }}
                 />
                 <span>
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
@@ -187,7 +240,6 @@ export default function AdminResidentsPage() {
               <thead>
                 <tr>
                   <th>RESIDENT</th>
-                  <th>STICKER ELIGIBLTY</th>
                   <th>ELECTION ELIGIBILITY</th>
                   <th>RISK STATUS</th>
                   <th>PERSONAL INFO</th>
@@ -197,13 +249,13 @@ export default function AdminResidentsPage() {
               <tbody>
                 {isLoading ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
                       Fetching records from database...
                     </td>
                   </tr>
                 ) : residents.length === 0 ? (
                   <tr>
-                    <td colSpan="6" style={{ textAlign: 'center', padding: '40px' }}>
+                    <td colSpan="5" style={{ textAlign: 'center', padding: '40px' }}>
                       No matching records found in the database.
                     </td>
                   </tr>
@@ -219,7 +271,6 @@ export default function AdminResidentsPage() {
                           </div>
                         </div>
                       </td>
-                      <td className={`text-${res.stickerTone}`}>{res.sticker}</td>
                       <td className={`text-${res.electionTone}`}>{res.election}</td>
                       <td>
                         {res.isAtRisk && (
@@ -230,7 +281,7 @@ export default function AdminResidentsPage() {
                         )}
                       </td>
                       <td>
-                        <button className="btn-view-details">
+                        <button className="btn-view-details" onClick={() => setSelectedResident(res)}>
                           View Details 
                           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                         </button>
@@ -245,14 +296,269 @@ export default function AdminResidentsPage() {
             </table>
 
             <div className="pagination">
-              <button className="page-btn">{'<'}</button>
-              <button className="page-btn active">1</button>
-              <button className="page-btn">2</button>
-              <button className="page-btn">{'>'}</button>
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(p => Math.max(p - 1, 1))}
+                disabled={currentPage === 1}
+              >
+                {'<'}
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((num) => (
+                <button
+                  key={num}
+                  className={`page-btn ${currentPage === num ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(num)}
+                >
+                  {num}
+                </button>
+              ))}
+
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage(p => Math.min(p + 1, totalPages))}
+                disabled={currentPage === totalPages}
+              >
+                {'>'}
+              </button>
             </div>
           </div>
         </main>
       </div>
+
+      {selectedResident && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '520px', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', fontFamily: 'inherit'
+          }}>
+            <h2 style={{ color: '#064E3B', fontSize: '18px', textAlign: 'center', marginBottom: '20px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+              PERSONAL INFORMATION PROFILE ({selectedResident.type.toUpperCase()})
+            </h2>
+
+            <div style={{ marginBottom: '15px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>FULL NAME</label>
+              <input type="text" readOnly value={selectedResident.fullNamedb} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '14px', fontWeight: '600', color: '#1F2937' }} />
+            </div>
+
+            <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+              <div style={{ flex: 1 }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>CONTACT NUMBER</label>
+                <div style={{ display: 'flex', border: '1px solid #D1D5DB', borderRadius: '6px', overflow: 'hidden', backgroundColor: '#F9FAFB' }}>
+                  <span style={{ padding: '10px', backgroundColor: '#E5E7EB', color: '#374151', fontSize: '13px', borderRight: '1px solid #D1D5DB' }}>+63</span>
+                  <input type="text" readOnly value={selectedResident.phone} style={{ width: '100%', padding: '10px', border: 'none', backgroundColor: 'transparent', fontSize: '14px', outline: 'none' }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>EMAIL ADDRESS</label>
+              <input type="text" readOnly value={selectedResident.email} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '14px', color: '#1F2937' }} />
+            </div>
+
+            <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '15px', marginBottom: '20px' }}>
+              <h3 style={{ color: '#064E3B', fontSize: '14px', fontWeight: 'bold', marginBottom: '12px' }}>PROPERTY ADDRESS</h3>
+              
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>FULL FORMATTED ADDRESS</label>
+                <input type="text" readOnly value={selectedResident.address || ''} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '14px', fontWeight: 'bold', color: '#1F2937' }} />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>HOUSE NO.</label>
+                  <input type="text" readOnly value={selectedResident.houseNo || ''} placeholder="-" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '13px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>BLOCK</label>
+                  <input type="text" readOnly value={selectedResident.block || ''} placeholder="-" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '13px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>LOT</label>
+                  <input type="text" readOnly value={selectedResident.lot || ''} placeholder="-" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '13px' }} />
+                </div>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>ZONE</label>
+                  <input type="text" readOnly value={selectedResident.zone || ''} style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '13px' }} />
+                </div>
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>STREET</label>
+                  <input type="text" readOnly value={selectedResident.street || ''} placeholder="-" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', backgroundColor: '#F9FAFB', fontSize: '13px' }} />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <button 
+                onClick={() => setSelectedResident(null)}
+                style={{
+                  width: '100%', padding: '12px', backgroundColor: '#064E3B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px'
+                }}
+              >
+                CLOSE
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {isAddModalOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000
+        }}>
+          <div style={{
+            backgroundColor: 'white', padding: '30px', borderRadius: '12px', width: '520px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 10px 25px rgba(0,0,0,0.2)', fontFamily: 'inherit'
+          }}>
+            <h2 style={{ color: '#064E3B', fontSize: '18px', textAlign: 'center', marginBottom: '20px', fontWeight: 'bold', letterSpacing: '0.5px' }}>
+              REGISTER NEW RESIDENT
+            </h2>
+
+            <form onSubmit={handleCreateResident}>
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>FULL NAME</label>
+                <input 
+                  type="text" 
+                  required 
+                  placeholder="Enter full name"
+                  value={newResidentForm.fullName}
+                  onChange={(e) => setNewResidentForm({...newResidentForm, fullName: e.target.value})}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '14px', color: '#1F2937' }} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>RESIDENT TYPE</label>
+                  <select 
+                    value={newResidentForm.type}
+                    onChange={(e) => setNewResidentForm({...newResidentForm, type: e.target.value})}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '14px', backgroundColor: 'white' }}
+                  >
+                    <option value="Homeowner">Homeowner</option>
+                    <option value="Tenant">Tenant</option>
+                  </select>
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>ZONE</label>
+                  <select 
+                    value={newResidentForm.zone}
+                    onChange={(e) => setNewResidentForm({...newResidentForm, zone: e.target.value})}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '14px', backgroundColor: 'white' }}
+                  >
+                    <option value="ZONE 1">ZONE 1</option>
+                    <option value="ZONE 2">ZONE 2</option>
+                    <option value="ZONE 3">ZONE 3</option>
+                    <option value="ZONE 4">ZONE 4</option>
+                    <option value="ZONE 5">ZONE 5</option>
+                    <option value="ZONE 6">ZONE 6</option>
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '15px', marginBottom: '15px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>CONTACT NUMBER</label>
+                  <div style={{ display: 'flex', border: '1px solid #D1D5DB', borderRadius: '6px', overflow: 'hidden' }}>
+                    <span style={{ padding: '10px', backgroundColor: '#E5E7EB', color: '#374151', fontSize: '13px', borderRight: '1px solid #D1D5DB' }}>+63</span>
+                    <input 
+                      type="text" 
+                      placeholder="9123456789"
+                      value={newResidentForm.phone}
+                      onChange={(e) => setNewResidentForm({...newResidentForm, phone: e.target.value})}
+                      style={{ width: '100%', padding: '10px', border: 'none', fontSize: '14px', outline: 'none' }} 
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div style={{ marginBottom: '15px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 'bold', color: '#4B5563', marginBottom: '5px' }}>EMAIL ADDRESS</label>
+                <input 
+                  type="email" 
+                  placeholder="resident@email.com"
+                  value={newResidentForm.email}
+                  onChange={(e) => setNewResidentForm({...newResidentForm, email: e.target.value})}
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '14px', color: '#1F2937' }} 
+                />
+              </div>
+
+              <div style={{ borderTop: '1px solid #E5E7EB', paddingTop: '15px', marginBottom: '20px' }}>
+                <h3 style={{ color: '#064E3B', fontSize: '14px', fontWeight: 'bold', marginBottom: '12px' }}>PROPERTY DETAILS</h3>
+                
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px', marginBottom: '12px' }}>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>HOUSE NO.</label>
+                    <input 
+                      type="text" 
+                      placeholder="123"
+                      value={newResidentForm.houseNo}
+                      onChange={(e) => setNewResidentForm({...newResidentForm, houseNo: e.target.value})}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '13px' }} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>BLOCK</label>
+                    <input 
+                      type="text" 
+                      placeholder="Blk 4"
+                      value={newResidentForm.block}
+                      onChange={(e) => setNewResidentForm({...newResidentForm, block: e.target.value})}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '13px' }} 
+                    />
+                  </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>LOT</label>
+                    <input 
+                      type="text" 
+                      placeholder="Lot 8"
+                      value={newResidentForm.lot}
+                      onChange={(e) => setNewResidentForm({...newResidentForm, lot: e.target.value})}
+                      style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '13px' }} 
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '10px', fontWeight: 'bold', color: '#4B5563', marginBottom: '3px' }}>STREET</label>
+                  <input 
+                    type="text" 
+                    placeholder="Rosal St."
+                    value={newResidentForm.street}
+                    onChange={(e) => setNewResidentForm({...newResidentForm, street: e.target.value})}
+                    style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #D1D5DB', fontSize: '13px' }} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button 
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  style={{
+                    flex: 1, padding: '12px', backgroundColor: '#E5E7EB', color: '#374151', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px'
+                  }}
+                >
+                  CANCEL
+                </button>
+                <button 
+                  type="submit"
+                  style={{
+                    flex: 1, padding: '12px', backgroundColor: '#064E3B', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold', fontSize: '14px'
+                  }}
+                >
+                  SAVE RESIDENT
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

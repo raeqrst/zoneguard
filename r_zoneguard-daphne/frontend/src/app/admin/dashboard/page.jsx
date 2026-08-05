@@ -4,7 +4,6 @@ import Link from 'next/link';
 import { useEffect, useState } from 'react';
 import './style.css';
 
-// Exact same icons for consistency
 const Icons = {
   dashboard: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>,
   analytics: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>,
@@ -22,8 +21,20 @@ const sidebarItems = [
   { label: 'Map', href: '#', icon: Icons.map },
   { label: 'Complaints', href: '/admin/complaints', icon: Icons.complaints },
   { label: 'Residents', href: '/admin/residents', icon: Icons.residents },
-  { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant },
+  { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant }
 ];
+
+const EXACT_CATEGORY_MAP = {
+  'SPORTS':           { label: 'Sport',            color: '#FFBAE0' },
+  'SPORT':            { label: 'Sport',            color: '#FFBAE0' },
+  'PUBLIC RELATIONS': { label: 'Public Relations', color: '#BAE3F5' },
+  'PUBLIC RELATIONS': { label: 'Public Relations', color: '#BAE3F5' },
+  'BEAUTIFICATION':   { label: 'Beautification',   color: '#B6A7C8' },
+  'FINANCIAL':        { label: 'Financial',        color: '#FBBF24' },
+  'GRIEVANCES':       { label: 'Grievance',        color: '#FFDAD6' },
+  'GRIEVANCE':        { label: 'Grievance',        color: '#FFDAD6' },
+  'INFRASTRUCTURE':   { label: 'Infrastructure',   color: '#BAF5CA' }
+};
 
 function MetricCard({ icon, label, value, detail, tone }) {
   return (
@@ -38,21 +49,44 @@ function MetricCard({ icon, label, value, detail, tone }) {
   );
 }
 
-// Added issueCategories as a prop so it receives data from the main page
 function PieChartCard({ issueCategories = [] }) {
-  // Prevent crash while data is loading
   if (!issueCategories || issueCategories.length === 0) return null;
 
-  const total = issueCategories.reduce((sum, item) => sum + item.value, 0);
-  let cumulative = 0;
+  const mappedCategories = issueCategories.map((item) => {
+    const rawKey = (item.label || item.complaintCategory || '').toUpperCase().trim();
+    const config = EXACT_CATEGORY_MAP[rawKey] || {
+      label: item.label || item.complaintCategory || 'Other',
+      color: item.color || '#cccccc'
+    };
 
-  const gradients = issueCategories
-    .map((item) => {
-      const start = cumulative;
-      cumulative += item.value;
-      return `${item.color} ${((start / total) * 100).toFixed(2)}% ${((cumulative / total) * 100).toFixed(2)}%`;
-    })
-    .join(', ');
+    return {
+      label: config.label,
+      value: item.value || 0,
+      color: config.color
+    };
+  });
+
+  const total = mappedCategories.reduce((sum, item) => sum + item.value, 0);
+  if (total === 0) return null;
+
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  let accumulatedOffset = 0;
+
+  const slices = mappedCategories.map((item) => {
+    const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
+    const proportion = total > 0 ? item.value / total : 0;
+    const dashLength = proportion * circumference;
+    const dashOffset = -accumulatedOffset;
+    accumulatedOffset += dashLength;
+
+    return {
+      ...item,
+      percentage,
+      dashArray: `${dashLength} ${circumference - dashLength}`,
+      dashOffset
+    };
+  });
 
   return (
     <article className="ad-card ad-pie-card">
@@ -61,18 +95,76 @@ function PieChartCard({ issueCategories = [] }) {
           <h2>Issue Categorization</h2>
           <p>Monthly volume of recorded complaints by category classification.</p>
         </div>
-        <Link href="/admin/analytics#issue-categorization" className="ad-engine-badge" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+        <Link 
+          href="/admin/analytics" 
+          className="ad-engine-badge" 
+          style={{ textDecoration: 'none', cursor: 'pointer' }}
+        >
           R Analytics
         </Link>
       </div>
 
-      <div className="ad-pie-layout">
-        <div className="ad-pie-chart" style={{ background: `conic-gradient(${gradients})` }} aria-label="Issue categorization pie chart" />
-        <div className="ad-pie-legend">
-          {issueCategories.map((item) => (
-            <div key={item.label} className="ad-legend-row">
-              <span className="ad-legend-swatch" style={{ backgroundColor: item.color }} />
-              <span>{item.label}</span>
+      <div className="ad-pie-layout" style={{ display: 'flex', alignItems: 'center', gap: '28px', marginTop: '16px' }}>
+        <div style={{ position: 'relative', width: '200px', height: '200px', flexShrink: 0 }}>
+          <svg width="200" height="200" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+            {slices.map((item, i) => (
+              <circle
+                key={item.label || i}
+                cx="50"
+                cy="50"
+                r={radius}
+                fill="transparent"
+                stroke={item.color}
+                strokeWidth="22"
+                strokeDasharray={item.dashArray}
+                strokeDashoffset={item.dashOffset}
+                style={{ cursor: 'pointer' }}
+              >
+                <title>{`Total ${item.label} complaints recorded this month: ${item.value} (${item.percentage}%)`}</title>
+              </circle>
+            ))}
+          </svg>
+          <div style={{
+            position: 'absolute',
+            top: '50%',
+            left: '50%',
+            transform: 'translate(-50%, -50%)',
+            textAlign: 'center',
+            pointerEvents: 'none'
+          }}>
+            <span style={{ fontSize: '0.7rem', color: '#888', display: 'block', lineHeight: '1' }}>Total</span>
+            <strong style={{ fontSize: '1.25rem', color: '#111', fontWeight: '700' }}>{total}</strong>
+          </div>
+        </div>
+
+        <div className="ad-pie-legend" style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1, minWidth: '220px' }}>
+          {slices.map((item, i) => (
+            <div 
+              key={item.label || i} 
+              className="ad-legend-row"
+              style={{ 
+                display: 'flex', 
+                alignItems: 'center', 
+                justifyContent: 'space-between',
+                gap: '12px', 
+                cursor: 'pointer',
+                padding: '4px 6px',
+                borderRadius: '4px'
+              }}
+              title={`Total ${item.label} complaints recorded this month: ${item.value} (${item.percentage}%)`}
+            >
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', overflow: 'hidden' }}>
+                <span 
+                  className="ad-legend-swatch" 
+                  style={{ backgroundColor: item.color, width: '10px', height: '10px', borderRadius: '2px', flexShrink: 0 }} 
+                />
+                <span style={{ fontSize: '0.85rem', fontWeight: '500', color: '#333', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                  {item.label}
+                </span>
+              </div>
+              <span style={{ fontSize: '0.82rem', color: '#666', flexShrink: 0, fontWeight: '600' }}>
+                {item.value} ({item.percentage}%)
+              </span>
             </div>
           ))}
         </div>
@@ -81,35 +173,43 @@ function PieChartCard({ issueCategories = [] }) {
   );
 }
 
-// Added complaintOverview as a prop
-function ComplaintsOverviewCard({ complaintOverview = [] }) {
-  // Prevent crash while data is loading
-  if (!complaintOverview || complaintOverview.length === 0) return null;
+function PaidOverviewCard({ paidOverview = [] }) {
+  if (!paidOverview || paidOverview.length === 0) return null;
 
-  const maxValue = Math.max(...complaintOverview.map((item) => item.value));
+  const maxValue = Math.max(...paidOverview.map((item) => item.value || 0));
 
   return (
     <article className="ad-card ad-overview-card">
       <div className="ad-card-header">
         <div>
-          <h2>Complaints Overview</h2>
-          <p>Monthly volume complaints by zone classification.</p>
+          <h2>Paid Overview</h2>
+          <p>Number of residents who completed payments per month.</p>
         </div>
-        <Link href="/admin/analytics#complaints-overview" className="ad-engine-badge" style={{ textDecoration: 'none', cursor: 'pointer' }}>
+        <Link href="/admin/analytics#paid-overview" className="ad-engine-badge" style={{ textDecoration: 'none', cursor: 'pointer' }}>
           R Analytics
         </Link>
       </div>
 
-      <div className="ad-overview-bars" aria-label="Complaints by zone">
-        {complaintOverview.map((item) => (
-          <div key={item.zone} className="ad-overview-row">
-            <span className="ad-overview-label">{item.zone}</span>
-            <div className="ad-overview-track">
+      <div className="ad-overview-bars" aria-label="Paid residents by month">
+        {paidOverview.map((item, i) => (
+          <div 
+            key={item.month || i} 
+            className="ad-overview-row" 
+            style={{ display: 'flex', alignItems: 'center', gap: '10px', cursor: 'pointer' }}
+            title={`${item.month}: ${item.value || 0} completed payments`}
+          >
+            <span className="ad-overview-label" style={{ width: '40px', flexShrink: 0, fontWeight: '500', fontSize: '0.85rem' }}>
+              {item.month}
+            </span>
+            <div className="ad-overview-track" style={{ flexGrow: 1 }}>
               <div
                 className="ad-overview-fill"
-                style={{ width: `${(item.value / maxValue) * 100}%` }}
+                style={{ width: maxValue > 0 ? `${((item.value || 0) / maxValue) * 100}%` : '0%' }}
               />
             </div>
+            <span style={{ width: '30px', fontSize: '0.85rem', color: '#666', textAlign: 'right' }}>
+              {item.value}
+            </span>
           </div>
         ))}
       </div>
@@ -117,12 +217,10 @@ function ComplaintsOverviewCard({ complaintOverview = [] }) {
   );
 }
 
-// Added turnoverData as a prop
 function TurnoverCard({ turnoverData = [] }) {
-  // Prevent crash while data is loading
   if (!turnoverData || turnoverData.length === 0) return null;
 
-  const maxValue = Math.max(...turnoverData.map((item) => Math.max(item.moveIn, item.moveOut)));
+  const maxValue = Math.max(...turnoverData.map((item) => Math.max(item.moveIn || 0, item.moveOut || 0)));
 
   return (
     <article className="ad-card ad-turnover-card">
@@ -139,11 +237,19 @@ function TurnoverCard({ turnoverData = [] }) {
       </div>
 
       <div className="ad-bar-chart" aria-label="Tenant turnover bar chart">
-        {turnoverData.map((item) => (
-          <div key={item.month} className="ad-bar-group">
+        {turnoverData.map((item, i) => (
+          <div key={item.month || i} className="ad-bar-group">
             <div className="ad-bar-stack">
-              <div className="ad-bar movein" style={{ height: `${(item.moveIn / maxValue) * 100}%` }} />
-              <div className="ad-bar moveout" style={{ height: `${(item.moveOut / maxValue) * 100}%` }} />
+              <div 
+                className="ad-bar movein" 
+                style={{ height: maxValue > 0 ? `${((item.moveIn || 0) / maxValue) * 100}%` : '0%', cursor: 'pointer' }} 
+                title={`${item.month} - Move In: ${item.moveIn || 0} tenants`}
+              />
+              <div 
+                className="ad-bar moveout" 
+                style={{ height: maxValue > 0 ? `${((item.moveOut || 0) / maxValue) * 100}%` : '0%', cursor: 'pointer' }} 
+                title={`${item.month} - Move Out: ${item.moveOut || 0} tenants`}
+              />
             </div>
             <span>{item.month}</span>
           </div>
@@ -156,30 +262,49 @@ function TurnoverCard({ turnoverData = [] }) {
 export default function AdminDashboardPage() {
   const [metrics, setMetrics] = useState([]);
   const [issueCategories, setIssueCategories] = useState([]);
-  const [complaintOverview, setComplaintOverview] = useState([]);
+  const [paidOverview, setPaidOverview] = useState([]);
   const [turnoverData, setTurnoverData] = useState([]);
 
   useEffect(() => {
     async function loadDashboard() {
       try {
-        const res = await fetch("http://localhost:5000/api/dashboard");
-        const data = await res.json();
-        
-        // Use fallbacks to prevent undefined errors if the database misses a key
-        setMetrics(data.metrics || []);
-        setIssueCategories(data.issueCategories || []);
-        setComplaintOverview(data.complaintOverview || []);
-        setTurnoverData(data.turnover || []);
+        const token = localStorage.getItem('token'); 
+
+        const res = await fetch("http://localhost:5000/api/dashboard", {
+          method: 'GET',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${token}` 
+          }
+        });
+
+        const raw = await res.json();
+        const data = raw.data || raw;
+
+        setIssueCategories(data.issueCategorization || data.issueCategories || []);
+        setPaidOverview(data.paidOverview || data.complaintOverview || []);
+        setTurnoverData(data.tenantTurnover || data.turnover || data.turnoverRate || data.tenant_turnover || []);
+
+        if (data.metrics && Array.isArray(data.metrics)) {
+          setMetrics(data.metrics);
+        } else {
+          setMetrics([
+            { icon: Icons.tenant, label: 'Pending Tenants', value: data.pendingTenants ?? 0, detail: 'Awaiting approval', tone: 'amber' },
+            { icon: Icons.complaints, label: 'Open Complaints', value: data.openComplaints ?? 0, detail: 'Requires action', tone: 'rose' },
+            { icon: Icons.analytics, label: 'Collection Rate', value: `${data.collectionRate ?? 0}%`, detail: 'Verified payments', tone: 'emerald' },
+            { icon: Icons.dashboard, label: 'Avg Resolution', value: data.avgResolution || '0 days', detail: 'Turnaround time', tone: 'indigo' },
+          ]);
+        }
       } catch (err) {
-        console.log(err);
+        console.error("Failed to fetch dashboard data:", err);
       }
     }
-    
+
     loadDashboard();
   }, []);
 
   return (
-    <main className="ad-shell">
+    <main className="ad-shell" style={{ height: '100vh', overflowY: 'auto' }}>
       <aside className="ad-sidebar">
         <div className="ad-brand">
           <div className="ad-brand-mark">ZG</div>
@@ -215,7 +340,7 @@ export default function AdminDashboardPage() {
         </div>
       </aside>
 
-      <section className="ad-main">
+      <section className="ad-main" style={{ overflowY: 'visible', paddingBottom: '40px' }}>
         <header className="ad-topbar">
           <label className="ad-search">
             <span>⌕</span>
@@ -236,7 +361,7 @@ export default function AdminDashboardPage() {
             <h1>Admin Dashboard</h1>
             <p>Operational overview for approvals, complaints, payments, and resident activity.</p>
           </div>
-          
+
           <div className="ad-actions">
             <button type="button" className="ad-secondary-button">Filter</button>
             <button type="button" className="ad-primary-button">Generate Report</button>
@@ -244,21 +369,19 @@ export default function AdminDashboardPage() {
         </section>
 
         <section className="ad-metrics-grid">
-          {metrics.map((metric) => (
-            <MetricCard key={metric.label} {...metric} />
+          {metrics && metrics.length > 0 && metrics.map((metric, i) => (
+            <MetricCard key={metric.label || i} {...metric} />
           ))}
         </section>
 
         <section className="ad-analytics-grid">
-          {/* Passing the fetched states down as props to the components */}
           <PieChartCard issueCategories={issueCategories} />
-          <ComplaintsOverviewCard complaintOverview={complaintOverview} />
+          <PaidOverviewCard paidOverview={paidOverview} />
         </section>
 
         <section className="ad-turnover-row">
           <TurnoverCard turnoverData={turnoverData} />
         </section>
-
       </section>
     </main>
   );
