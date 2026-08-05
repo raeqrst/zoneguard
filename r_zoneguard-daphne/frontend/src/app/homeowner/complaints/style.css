@@ -277,3 +277,15 @@
   color: #4b5563;
   line-height: 1.5;
 }
+
+/* Warning / Arrears Banner Styling */
+.cmp-banner-warning {
+  background-color: #fefce8;
+  border-color: #fde047;
+  color: #854d0e;
+}
+
+.cmp-banner-icon-warning {
+  background-color: #fef3c7;
+  color: #b45309;
+}

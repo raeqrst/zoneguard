@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 import './style.css';
 
@@ -22,35 +23,51 @@ const Icons = {
   ),
   arrowRight: (
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="5" y1="12" x2="19" y2="12"></line><polyline points="12 5 19 12 12 19"></polyline></svg>
+  ),
+  lock: (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
   )
 };
 
-export default function HomeownerDashboardPage({ initialData }) {
-  const [userData, setUserData] = useState(initialData?.user || {
-    firstName: 'John',
-    lastName: 'D.',
-    role: 'HOMEOWNER',
-    avatarText: 'JD'
-  });
+export default function HomeownerDashboardPage() {
+  const searchParams = useSearchParams();
+  const propertyId = searchParams.get('propertyId') || '';
 
-  const [dues, setDues] = useState(initialData?.dues || {
-    balance: 0.00,
-    status: 'IN GOOD STANDING',
-    lastPaymentMonth: 'JUNE 2026',
-    lastPaymentStatus: 'APPROVED',
-    nextBillingCycle: 'July 2026'
-  });
+  const [dashboardData, setDashboardData] = useState(null);
+  const [loading, setLoading] = useState(true);
 
-  const [complaintStats, setComplaintStats] = useState(initialData?.complaints || {
-    activeTickets: 3,
-    investigatingCount: 2
-  });
-
+  // Payment Form States
   const [referenceNumber, setReferenceNumber] = useState('');
   const [proofFile, setProofFile] = useState(null);
   const [proofPreview, setProofPreview] = useState(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [submitMessage, setSubmitMessage] = useState(null);
+
+  // Fetch Live Dynamic Dashboard Data
+  const fetchDashboardData = async (propId) => {
+    setLoading(true);
+    try {
+      const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+
+      const url = new URL('http://localhost:5000/api/homeowner/dashboard');
+      if (propId) url.searchParams.append('propertyId', propId);
+      if (loggedInUserId) url.searchParams.append('userId', loggedInUserId);
+
+      const res = await fetch(url.toString());
+      const data = await res.json();
+
+      if (res.ok) {
+        setDashboardData(data);
+      }
+    } catch (err) {
+      console.error('Failed to load dashboard:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchDashboardData(propertyId);
+  }, [propertyId]);
 
   const handleFileChange = (e) => {
     const file = e.target.files[0];
@@ -66,42 +83,73 @@ export default function HomeownerDashboardPage({ initialData }) {
 
   const handlePaymentSubmit = async (e) => {
     e.preventDefault();
-    if (!referenceNumber || !proofFile) {
-      alert('Please provide both the reference number and proof of payment.');
+    if (!referenceNumber.trim()) {
+      alert('Please provide a reference number.');
       return;
     }
 
     setIsSubmitting(true);
-    setSubmitMessage(null);
-
     try {
-      const formData = new FormData();
-      formData.append('referenceNumber', referenceNumber);
-      formData.append('proof', proofFile);
-
-      const response = await fetch('/api/homeowner/payments', {
+      const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
+      const response = await fetch('http://localhost:5000/api/homeowner/payments', {
         method: 'POST',
-        body: formData,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          referenceNumber: referenceNumber.trim(),
+          propertyId: propertyId || dashboardData?.activePropertyId,
+          userId: loggedInUserId
+        }),
       });
 
-      if (!response.ok) throw new Error('Submission failed');
-
-      setSubmitMessage({ type: 'success', text: 'Payment submitted for validation!' });
-      setReferenceNumber('');
-      setProofFile(null);
-      setProofPreview(null);
+      const data = await response.json();
+      if (response.ok) {
+        alert('Payment submitted successfully for validation!');
+        setReferenceNumber('');
+        setProofFile(null);
+        setProofPreview(null);
+        fetchDashboardData(propertyId);
+      } else {
+        alert('Failed to submit payment: ' + (data.message || 'Unknown error'));
+      }
     } catch (error) {
-      setSubmitMessage({ type: 'error', text: error.message || 'Something went wrong.' });
+      console.error('Payment submission error:', error);
+      alert('Network error while submitting payment.');
     } finally {
       setIsSubmitting(false);
     }
   };
 
+  if (loading && !dashboardData) {
+    return <div style={{ padding: '40px', color: '#6b7280' }}>Loading dashboard...</div>;
+  }
+
+  const dues = dashboardData?.dues || {
+    balance: 0.00,
+    status: 'IN GOOD STANDING',
+    isDelinquent: false,
+    lastPaymentMonth: 'None',
+    lastPaymentStatus: 'N/A',
+    nextBillingCycle: 'September 2026'
+  };
+
+  const complaintStats = dashboardData?.complaints || {
+    activeTickets: 0,
+    investigatingCount: 0
+  };
+
+  const activeProperty = dashboardData?.properties?.find(
+    p => String(p.id) === String(dashboardData.activePropertyId)
+  );
+
+  const isPrimary = activeProperty
+    ? activeProperty.name.toLowerCase().includes('primary')
+    : true;
+
   return (
     <main className="dashboard-content">
       {/* PAGE HEADING */}
       <div className="page-title-section">
-        <h1>Hello, {userData.firstName}!</h1>
+        <h1>Hello, {dashboardData?.homeownerName?.split(' ')[0] || 'Resident'}!</h1>
       </div>
 
       <div className="dashboard-grid">
@@ -113,21 +161,25 @@ export default function HomeownerDashboardPage({ initialData }) {
             <div className="dues-header">
               <div className="dues-title-group">
                 <h2>My Dues</h2>
-                <p className="card-paragraph">Your monthly homeowners association dues are currently up to date. Thank you for contributing to the community's growth and security.</p>
+                <p className="card-paragraph">
+                  Currently viewing dues for: <strong>{activeProperty?.name || 'Primary Residence'}</strong>
+                </p>
               </div>
-              <span className="status-pill active-pill">
-                {Icons.check} {dues.status}
+              <span className={`status-pill ${dues.isDelinquent ? 'warning-pill' : 'active-pill'}`}>
+                {!dues.isDelinquent && Icons.check} {dues.status}
               </span>
             </div>
             <div className="dues-content">
               <div className="dues-left">
                 <span className="dues-label">CURRENT BALANCE</span>
-                <strong className="dues-value">₱{dues.balance.toFixed(2)}</strong>
+                <strong className="dues-value">₱{Number(dues.balance).toFixed(2)}</strong>
               </div>
               <div className="dues-right">
                 <div className="dues-meta">
-                  <span className="meta-label">{dues.lastPaymentMonth} PAYMENT</span>
-                  <strong className="meta-badge approved">{dues.lastPaymentStatus}</strong>
+                  <span className="meta-label">LAST PAYMENT</span>
+                  <strong className={`meta-badge ${dues.isDelinquent ? 'pending' : 'approved'}`}>
+                    {dues.lastPaymentMonth} ({dues.lastPaymentStatus})
+                  </strong>
                 </div>
                 <div className="dues-meta right-align">
                   <span className="meta-label">NEXT BILLING CYCLE</span>
@@ -137,20 +189,24 @@ export default function HomeownerDashboardPage({ initialData }) {
             </div>
           </section>
 
-          {/* BADGE SECTION (STATIC) */}
-          <div className="section-title">Community Standing</div>
-          <section className="dashboard-card badge-card">
-            <div className="badge-visual">
-              <div className="badge-coin">
-                <div className="stars">★★★★★</div>
-                <span>GOLD</span>
-              </div>
-            </div>
-            <div>
-              <h3>Gold Badge Status</h3>
-              <p>You are in the top 5% of residents for consistent on-time payments. Keep up the great work!</p>
-            </div>
-          </section>
+          {/* BADGE SECTION (ONLY SHOWN FOR PRIMARY RESIDENCE) */}
+          {isPrimary && !dues.isDelinquent && (
+            <>
+              <div className="section-title">Community Standing</div>
+              <section className="dashboard-card badge-card">
+                <div className="badge-visual">
+                  <div className="badge-coin">
+                    <div className="stars">★★★★★</div>
+                    <span>GOLD</span>
+                  </div>
+                </div>
+                <div>
+                  <h3>Gold Badge Status</h3>
+                  <p>You are in the top 5% of residents for consistent on-time payments. Keep up the great work!</p>
+                </div>
+              </section>
+            </>
+          )}
 
           {/* OVERVIEW SECTION */}
           <div className="section-title">Overview</div>
@@ -162,7 +218,9 @@ export default function HomeownerDashboardPage({ initialData }) {
               </div>
               <div className="overview-body">
                 <h4>Active Tickets</h4>
-                <strong className="overview-number">{complaintStats.activeTickets}</strong>
+                <strong className="overview-number">
+                  {complaintStats.activeTickets === 0 ? 'None' : complaintStats.activeTickets}
+                </strong>
               </div>
               <div className="overview-footer">
                 <span className="dot yellow"></span>
@@ -171,18 +229,30 @@ export default function HomeownerDashboardPage({ initialData }) {
             </section>
           </div>
 
-          {/* SERVICE ACCESS CARD */}
+          {/* SERVICE ACCESS CARD (DYNAMIC BASED ON DUES) */}
           <section className="dashboard-card service-card">
             <div className="service-body">
               <div className="service-copy">
-                <h3>{Icons.check} Service Access</h3>
-                <p>As a homeowner in good standing, you have full access to community services and administrative request channels.</p>
+                <h3 style={{ display: 'flex', alignItems: 'center', gap: '6px', color: dues.isDelinquent ? '#991b1b' : '#111827' }}>
+                  {dues.isDelinquent ? Icons.lock : Icons.check} Service Access
+                </h3>
+                <p>
+                  {dues.isDelinquent 
+                    ? 'Service access is temporarily restricted due to unpaid balances. Please settle your arrears to submit administrative requests or complaints.' 
+                    : 'As a resident, you have access to community service requests and complaint channels.'}
+                </p>
               </div>
               <div className="service-actions">
-                <Link href="/homeowner/complaints" className="service-btn">
-                  <span><span className="btn-icon">📄</span> Submit complaint</span>
-                  {Icons.arrowRight}
-                </Link>
+                {dues.isDelinquent ? (
+                  <button className="service-btn" style={{ opacity: 0.6, cursor: 'not-allowed', color: '#9ca3af' }} disabled>
+                    <span><span className="btn-icon">🔒</span> Submit complaint</span>
+                  </button>
+                ) : (
+                  <Link href="/homeowner/complaints" className="service-btn">
+                    <span><span className="btn-icon">📄</span> Submit complaint</span>
+                    {Icons.arrowRight}
+                  </Link>
+                )}
               </div>
             </div>
           </section>
@@ -213,11 +283,11 @@ export default function HomeownerDashboardPage({ initialData }) {
               <div className="form-section">
                 <span className="form-label">UPLOAD SCREENSHOT</span>
                 <label className="upload-box" style={{ cursor: 'pointer' }}>
-                  <input 
-                    type="file" 
-                    accept="image/png, image/jpeg" 
-                    onChange={handleFileChange} 
-                    style={{ display: 'none' }} 
+                  <input
+                    type="file"
+                    accept="image/png, image/jpeg"
+                    onChange={handleFileChange}
+                    style={{ display: 'none' }}
                   />
                   <div className="upload-icon">{Icons.upload}</div>
                   <div className="upload-text">
@@ -235,8 +305,8 @@ export default function HomeownerDashboardPage({ initialData }) {
               <div className="form-section">
                 <span className="form-label">INPUT REFERENCE NUMBER</span>
                 <div className="input-with-icon">
-                  <input 
-                    className="input-ref" 
+                  <input
+                    className="input-ref"
                     placeholder="e.g. 9012345678910"
                     value={referenceNumber}
                     onChange={(e) => setReferenceNumber(e.target.value)}
@@ -246,19 +316,9 @@ export default function HomeownerDashboardPage({ initialData }) {
                 </div>
               </div>
 
-              {submitMessage && (
-                <div style={{ 
-                  marginBottom: '12px', 
-                  fontSize: '13px', 
-                  color: submitMessage.type === 'success' ? '#059669' : '#dc2626' 
-                }}>
-                  {submitMessage.text}
-                </div>
-              )}
-
-              <button 
-                type="submit" 
-                className="btn-primary btn-full" 
+              <button
+                type="submit"
+                className="btn-primary btn-full"
                 disabled={isSubmitting}
               >
                 {isSubmitting ? 'SUBMITTING...' : 'SUBMIT FOR VALIDATION'}

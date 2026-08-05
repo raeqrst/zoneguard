@@ -81,6 +81,7 @@ export default function HomeownerLayout({ children }) {
       try {
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('zoneguard_user');
+        const loggedInUserId = localStorage.getItem('userId'); // Extract the saved ID
 
         if (storedUser) {
           const parsed = JSON.parse(storedUser);
@@ -95,16 +96,42 @@ export default function HomeownerLayout({ children }) {
           });
         }
 
-        const response = await fetch('/api/homeowner/properties', {
+        // Send the request to port 5000 and pass the userId
+        const response = await fetch(`http://localhost:5000/api/homeowner/properties?userId=${loggedInUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
 
         if (response.ok) {
           const data = await response.json();
-          setProperties(data.properties || []);
-          if (data.properties?.length > 0) {
-            setSelectedPropertyId(data.properties[0].id);
+          let fetchedProps = data.properties || [];
+
+          // Sort the properties so that 'Primary Residence' always appears first
+          fetchedProps.sort((a, b) => {
+            const aIsPrimary = a.name.toLowerCase().includes('primary');
+            const bIsPrimary = b.name.toLowerCase().includes('primary');
+            if (aIsPrimary && !bIsPrimary) return -1;
+            if (!aIsPrimary && bIsPrimary) return 1;
+            return 0;
+          });
+
+          setProperties(fetchedProps);
+
+          // Get URL parameter and stored ID to determine what should be selected
+          const urlParams = new URLSearchParams(window.location.search);
+          const urlPropId = urlParams.get('propertyId');
+          const storedId = localStorage.getItem('active_property_id');
+
+          // Prioritize URL > Valid Stored ID > First Item (which is now guaranteed to be Primary if it exists)
+          if (urlPropId && fetchedProps.some(p => String(p.id) === String(urlPropId))) {
+            setSelectedPropertyId(urlPropId);
+            localStorage.setItem('active_property_id', urlPropId);
+          } else if (storedId && fetchedProps.some(p => String(p.id) === String(storedId))) {
+            setSelectedPropertyId(storedId);
+          } else if (fetchedProps.length > 0) {
+            setSelectedPropertyId(fetchedProps[0].id);
+            localStorage.setItem('active_property_id', fetchedProps[0].id);
           }
+
         } else {
           setProperties([
             { id: 1, name: 'Primary Residence (NIA Village Subd.)' },
@@ -121,24 +148,17 @@ export default function HomeownerLayout({ children }) {
     loadHomeownerSession();
   }, []);
 
- const handlePropertySwitch = (propertyId) => {
-  setSelectedPropertyId(propertyId);
-  localStorage.setItem('active_property_id', propertyId);
-  
-  // Notify open pages that active property changed
-  window.dispatchEvent(new Event('propertyChanged'));
+  const handlePropertySwitch = (propertyId) => {
+    setSelectedPropertyId(propertyId);
+    localStorage.setItem('active_property_id', propertyId);
+    
+    // Notify open pages that active property changed
+    window.dispatchEvent(new Event('propertyChanged'));
 
-  const selectedProp = properties.find((p) => p.id === propertyId);
-  const isPrimary = selectedProp ? selectedProp.id === 1 || selectedProp.name.toLowerCase().includes('primary') : false;
+    // Update the URL to fetch the selected property's data without leaving the current page
+    router.push(`${pathname}?propertyId=${propertyId}`);
+  };
 
-  if (isPrimary) {
-    // Primary Residence redirects back to Homeowner Dashboard
-    router.push('/homeowner/dashboard');
-  } else {
-    // Secondary rental properties direct to Tenant Management
-    router.push(`/homeowner/tenant_management?propertyId=${propertyId}`);
-  }
-};
   const handleLogout = async () => {
     try {
       await fetch('/api/auth/logout', { method: 'POST' });
@@ -195,7 +215,7 @@ export default function HomeownerLayout({ children }) {
               {properties.map((prop) => (
                 <button
                   key={prop.id}
-                  className={`prop-tab ${selectedPropertyId === prop.id ? 'active' : ''}`}
+                  className={`prop-tab ${String(selectedPropertyId) === String(prop.id) ? 'active' : ''}`}
                   onClick={() => handlePropertySwitch(prop.id)}
                 >
                   {prop.name}

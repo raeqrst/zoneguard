@@ -261,3 +261,48 @@
   font-weight: 700;
   font-size: 0.85rem;
 }
+
+/* Add or update this in your layout.css */
+
+.content-area {
+  flex: 1; /* Ensures it takes up the rest of the screen next to the sidebar */
+  height: 100vh; /* Locks the height to the viewport */
+  overflow-y: auto; /* THIS enables the regular main-window scrolling! */
+  overflow-x: hidden;
+}
+
+/* Optional: Make sure the parent containers aren't hiding the scroll */
+.layout-wrapper, .main-container {
+  height: 100vh;
+  overflow: hidden; 
+  display: flex;
+}
+
+/* LAYOUT BASE STRUCTURE */
+.layout-wrapper {
+  min-height: 100vh;
+  width: 100%; /* Force full viewport width */
+  background-color: #f8fafc;
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  box-sizing: border-box;
+}
+
+.main-container {
+  display: flex;
+  height: 100vh; 
+  width: 100%; /* Force full viewport width */
+  overflow: hidden; 
+}
+
+.content-area {
+  margin-left: 260px;
+  width: calc(100% - 260px); /* Strictly fill the remaining screen space */
+  display: flex;
+  flex-direction: column;
+  padding: 20px 28px; 
+  box-sizing: border-box;
+  height: 100vh;
+  overflow-y: auto; /* Keeps the smooth full-page scrolling */
+  overflow-x: hidden;
+  background-color: #f8fafc; /* Ensures the background color paints the whole width */
+}

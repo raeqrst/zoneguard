@@ -7,7 +7,9 @@
   font-family: 'Inter', sans-serif;
   background: #f8fafc;
   overflow-x: hidden;
+  box-sizing: border-box;
 }
+
 /* PAGE TITLE SECTION */
 .page-title-section {
   width: 100%;
@@ -92,11 +94,17 @@
   font-size: 0.7rem;
   font-weight: 700;
   letter-spacing: 0.03em;
+  white-space: nowrap;
 }
 
 .active-pill {
   background-color: #ecfdf5;
   color: #065f46;
+}
+
+.warning-pill {
+  background-color: #fef2f2;
+  color: #991b1b;
 }
 
 .dues-content {
@@ -132,14 +140,22 @@
   text-align: right;
 }
 
-.meta-badge.approved {
+.meta-badge {
   display: inline-block;
-  background: #d1fae5;
-  color: #065f46;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 0.7rem;
   font-weight: 700;
+}
+
+.meta-badge.approved {
+  background: #d1fae5;
+  color: #065f46;
+}
+
+.meta-badge.pending {
+  background: #fef3c7;
+  color: #92400e;
 }
 
 .meta-text {

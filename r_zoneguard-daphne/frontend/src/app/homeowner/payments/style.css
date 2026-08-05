@@ -242,10 +242,14 @@
   opacity: 0.8;
 }
 
-/* Ledger Table */
+/* --- FULL PAGE SCROLL FIX --- */
 .zg-table-wrapper {
   width: 100%;
-  overflow-x: auto;
+  /* Removed max-height and overflow-y so the table grows naturally */
+  overflow-x: auto; /* Keeps horizontal scrolling for mobile devices */
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  position: relative;
 }
 
 .zg-table {
@@ -433,4 +437,465 @@
   display: flex;
   justify-content: flex-end;
   gap: 12px;
+}
+
+
+/* --- QR CODE DIGITAL PAYMENT MODAL --- */
+.zg-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  backdrop-filter: blur(2px);
+}
+
+.zg-modal-card {
+  background-color: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 460px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-sizing: border-box;
+}
+
+.zg-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 20px;
+}
+
+.zg-modal-header h2 {
+  font-size: 1.2rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.zg-modal-subtitle {
+  font-size: 0.8rem;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.zg-modal-close {
+  background: transparent;
+  border: none;
+  color: #64748b;
+  cursor: pointer;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background 0.15s;
+}
+
+.zg-modal-close:hover {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.zg-provider-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  padding: 6px 16px;
+  border-radius: 30px;
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 auto 16px auto;
+  display: flex;
+  width: fit-content;
+}
+
+.zg-qr-display-box {
+  background: #ffffff;
+  border: 2px dashed #a7f3d0;
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  margin-bottom: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.zg-modal-form-section {
+  margin-bottom: 16px;
+}
+
+.zg-modal-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: #64748b;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+  text-transform: uppercase;
+}
+
+.zg-modal-upload-box {
+  border: 2px dashed #cbd5e1;
+  border-radius: 8px;
+  padding: 14px;
+  text-align: center;
+  background: #f8fafc;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  transition: border-color 0.15s;
+}
+
+.zg-modal-upload-box:hover {
+  border-color: #044e3a;
+}
+
+.zg-modal-upload-box strong {
+  font-size: 0.78rem;
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.zg-modal-upload-box span {
+  font-size: 0.68rem;
+  color: #94a3b8;
+}
+
+.zg-input-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.zg-modal-input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.85rem;
+  color: #0f172a;
+  outline: none;
+  font-family: inherit;
+  box-sizing: border-box;
+}
+
+.zg-modal-input:focus {
+  border-color: #044e3a;
+  box-shadow: 0 0 0 3px rgba(4, 78, 58, 0.1);
+}
+
+.zg-input-hint {
+  position: absolute;
+  right: 14px;
+  color: #94a3b8;
+  font-style: italic;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.zg-modal-submit-btn {
+  width: 100%;
+  padding: 14px;
+  background-color: #044e3a;
+  color: #ffffff;
+  border: none;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.8rem;
+  letter-spacing: 0.05em;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: background-color 0.15s;
+}
+
+.zg-modal-submit-btn:hover:not(:disabled) {
+  background-color: #033a2b;
+}
+
+.zg-modal-submit-btn:disabled {
+  background-color: #94a3b8;
+  cursor: not-allowed;
+}
+
+.zg-status-badge-validating {
+  background: #fef3c7;
+  color: #b45309;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.zg-dispute-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 820px;
+  box-sizing: border-box;
+}
+
+.zg-dispute-layout {
+  display: grid;
+  grid-template-columns: 320px 1fr;
+  gap: 24px;
+  margin-top: 16px;
+}
+
+.zg-summary-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.zg-summary-box h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 8px 0;
+}
+
+.zg-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8rem;
+  color: #64748b;
+}
+
+.zg-summary-row strong {
+  color: #0f172a;
+}
+
+.zg-summary-total {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px solid #e2e8f0;
+  padding-top: 12px;
+  margin-top: 4px;
+}
+
+.zg-summary-total span {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #64748b;
+}
+
+.zg-summary-total h2 {
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.zg-security-box {
+  background: #064e3b;
+  border-radius: 8px;
+  padding: 14px;
+  color: #ffffff;
+  margin-top: auto;
+}
+
+.zg-security-box strong {
+  display: block;
+  font-size: 0.78rem;
+  margin-bottom: 4px;
+}
+
+.zg-security-box p {
+  font-size: 0.72rem;
+  margin: 0;
+  line-height: 1.4;
+  color: #a7f3d0;
+}
+
+.zg-details-box h4 {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin: 0 0 4px 0;
+}
+
+.zg-subtext {
+  font-size: 0.8rem;
+  color: #64748b;
+  margin: 0 0 16px 0;
+}
+
+.zg-dispute-textarea {
+  width: 100%;
+  height: 110px;
+  padding: 12px;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  font-family: inherit;
+  font-size: 0.85rem;
+  resize: none;
+  box-sizing: border-box;
+  margin-bottom: 16px;
+}
+
+.zg-dispute-textarea:focus {
+  outline: none;
+  border-color: #044e3a;
+}
+
+.zg-modal-submit-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
+
+/* Stepper Summary Modal */
+.zg-summary-modal-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 32px;
+  width: 100%;
+  max-width: 600px;
+  box-sizing: border-box;
+}
+
+.zg-stepper-container {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 28px 0;
+  padding: 0 20px;
+}
+
+.zg-step {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #94a3b8;
+}
+
+.zg-step.active {
+  color: #064e3b;
+}
+
+.zg-step-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #e2e8f0;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 800;
+}
+
+.zg-step.active .zg-step-icon {
+  background: #064e3b;
+}
+
+.zg-step-line {
+  flex: 1;
+  height: 2px;
+  background: #e2e8f0;
+  margin: 0 8px;
+  margin-bottom: 24px;
+}
+
+.zg-step-line.active {
+  background: #064e3b;
+}
+
+.zg-review-details-box {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+.zg-review-text {
+  font-size: 0.85rem;
+  color: #334155;
+  margin: 0 0 16px 0;
+  line-height: 1.5;
+}
+
+.zg-evidence-preview {
+  width: 100px;
+  height: 70px;
+  background: #e2e8f0;
+  border-radius: 6px;
+}
+
+.zg-close-summary-btn {
+  width: 100%;
+  background: #064e3b;
+  color: #ffffff;
+  border: none;
+  padding: 14px;
+  border-radius: 8px;
+  font-weight: 800;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.zg-close-summary-btn:hover {
+  background: #043e2f;
+}
+
+/* PENDING / VALIDATING STATUS (Purple Theme) */
+.zg-status-badge-pending,
+.zg-status-badge-validating {
+  background-color: #f3e8ff !important;
+  color: #7e22ce !important;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+/* IN DISPUTE STATUS (Blue Theme) */
+.zg-status-badge-dispute {
+  background-color: #dbeafe !important;
+  color: #1e40af !important;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  display: inline-block;
+}
+
+
+/* UNPAID CURRENT CYCLE STATUS */
+.zg-status-badge-unpaid {
+  background-color: #f1f5f9;
+  color: #475569;
+  padding: 6px 14px;
+  border-radius: 9999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  display: inline-block;
 }
