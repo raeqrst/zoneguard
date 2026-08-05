@@ -1,17 +1,16 @@
 'use client';
 
-
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import './style.css';
-
 
 const Icons = {
   complaints: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
   ),
   sticker: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="19.07" y2="4.93"></line><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg>
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="4"></circle><line x1="4.93" y1="4.93" x2="9.17" y2="9.17"></line><line x1="14.83" y1="14.83" x2="19.07" y2="19.07"></line><line x1="14.83" y1="9.17" x2="18.36" y2="5.64"></line><line x1="4.93" y1="19.07" x2="9.17" y2="14.83"></line></svg>
   ),
   qr: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="6" height="6"></rect><rect x="15" y="3" width="6" height="6"></rect><rect x="15" y="15" width="6" height="6"></rect><path d="M15 9h-3v3"></path><path d="M9 15h3v3"></path></svg>
@@ -30,65 +29,153 @@ const Icons = {
   )
 };
 
-
 export default function TenantDashboardPage() {
+  const router = useRouter();
+  const [data, setData] = useState(null);
+  const [localUser, setLocalUser] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState(null);
+
+  useEffect(() => {
+    const storedUserRaw = localStorage.getItem('user') || localStorage.getItem('zoneguard_user');
+    
+    // Auth Guard: Redirect to login if user session is missing
+    if (!storedUserRaw) {
+      router.push('/login');
+      return;
+    }
+
+    try {
+      const parsed = JSON.parse(storedUserRaw);
+      const userObj = parsed.user || parsed.data || parsed;
+      setLocalUser(userObj);
+
+      // Extract user ID using all common schema key variations
+      const userId = userObj?.user_id || userObj?.id || userObj?.account_id || userObj?.homeowner_id || userObj?.tenant_id;
+
+      if (!userId) {
+        console.warn('No valid User ID found in localStorage user object:', userObj);
+        setFetchError('User session ID not found. Please log in again.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('Fetching dashboard data for User ID:', userId);
+
+      fetch(`http://localhost:5000/api/tenant/dashboard/${userId}`)
+        .then(async (res) => {
+          if (!res.ok) {
+            throw new Error(`Server status ${res.status}: ${res.statusText}`);
+          }
+          return res.json();
+        })
+        .then((resData) => {
+          console.log('API Response received:', resData);
+          if (resData.success && resData.data) {
+            setData(resData.data);
+          } else if (resData.data) {
+            setData(resData.data);
+          } else {
+            setData(resData);
+          }
+          setFetchError(null);
+        })
+        .catch((err) => {
+          console.error('Failed to load dashboard:', err);
+          setFetchError(err.message || 'Unable to connect to backend server.');
+        })
+        .finally(() => {
+          setLoading(false);
+        });
+
+    } catch (err) {
+      console.error('Error parsing stored user:', err);
+      router.push('/login');
+    }
+  }, [router]);
+
+  const profileSource = data?.profile || data?.user || data || {};
+
+  const firstName = profileSource.first_name || profileSource.firstName || localUser?.first_name || localUser?.firstName || 'Resident';
+  const lastName = profileSource.last_name || profileSource.lastName || localUser?.last_name || localUser?.lastName || '';
+
+  const fullNameDisplay = firstName + (lastName ? ` ${lastName[0]}.` : '');
+  const avatarInitials = ((firstName[0] || 'R') + (lastName[0] || '')).toUpperCase();
+  const systemRole = profileSource.system_role || profileSource.systemRole || profileSource.role || localUser?.system_role || localUser?.role || 'TENANT';
+  const lotName = profileSource.lot_name || profileSource.lotName || localUser?.lot_name || 'NIA Village Subd.';
+
+  // Extract dues and complaints directly from fetched state
+  const currentBalance = data?.dues?.balance !== undefined ? Number(data.dues.balance) : 0;
+  const activeComplaintsCount = data?.complaints?.active_count ?? data?.complaints?.activeCount ?? 0;
+  const investigatingComplaintsCount = data?.complaints?.investigating_count ?? data?.complaints?.investigatingCount ?? 0;
+
   return (
     <>
       <header className="topbar">
         <div className="property-tabs">
-          <button className="prop-tab active">Rented Unit (NIA Village Subd.)</button>
+          <button className="prop-tab active">
+            {profileSource.is_rented || profileSource.isRented ? 'Rented Unit' : 'Owned Unit'} ({lotName})
+          </button>
         </div>
-
 
         <div className="user-profile">
           <div className="user-info">
-            <span className="user-name">Brian S.</span>
-            <span className="user-role">TENANT</span>
+            <span className="user-name">{fullNameDisplay}</span>
+            <span className="user-role">{systemRole}</span>
           </div>
-          <div className="user-avatar">CB</div>
+          <div className="user-avatar">{avatarInitials}</div>
         </div>
       </header>
 
+      {/* Backend API Connection Alert */}
+      {fetchError && (
+        <div style={{ padding: '12px 16px', margin: '16px 0', backgroundColor: '#fee2e2', color: '#991b1b', borderRadius: '8px', fontSize: '14px', border: '1px solid #f87171' }}>
+          <strong>API Connection Error:</strong> {fetchError} — Ensure your backend server is running at <code>http://localhost:5000</code> and returning data for this user ID.
+        </div>
+      )}
 
       <div className="page-title-section">
-        <h1>Hello, Brian!</h1>
+        <h1>Hello, {firstName}!</h1>
       </div>
-
 
       <div className="dashboard-grid">
         {/* LEFT COLUMN */}
         <div className="left-column">
-
 
           {/* DUES CARD */}
           <section className="dashboard-card dues-card">
             <div className="dues-header">
               <div className="dues-title-group">
                 <h2>My Dues</h2>
-                <p className="card-paragraph">Your monthly homeowners association dues are currently up to date. Thank you for contributing to the community's growth and security.</p>
+                <p className="card-paragraph">
+                  {currentBalance === 0
+                    ? "Your monthly homeowners association dues are currently up to date. Thank you for contributing to the community's growth and security."
+                    : "You have an outstanding balance for your homeowners association dues. Please submit your payment below to maintain good standing."}
+                </p>
               </div>
               <span className="status-pill active-pill">
-                {Icons.check} IN GOOD STANDING
+                {Icons.check} {data?.dues?.standing_status || data?.dues?.standingStatus || (currentBalance === 0 ? 'IN GOOD STANDING' : 'OUTSTANDING DUES')}
               </span>
             </div>
             <div className="dues-content">
               <div className="dues-left">
                 <span className="dues-label">CURRENT BALANCE</span>
-                <strong className="dues-value">₱0.00</strong>
+                <strong className="dues-value">
+                  ₱{loading ? '...' : currentBalance.toFixed(2)}
+                </strong>
               </div>
               <div className="dues-right">
                 <div className="dues-meta">
-                  <span className="meta-label">JUNE 2026 PAYMENT</span>
-                  <strong className="meta-badge approved">APPROVED</strong>
+                  <span className="meta-label">{data?.dues?.last_payment_period || data?.dues?.lastPaymentPeriod || 'JUNE 2026 PAYMENT'}</span>
+                  <strong className="meta-badge approved">{data?.dues?.last_payment_status || data?.dues?.lastPaymentStatus || 'APPROVED'}</strong>
                 </div>
                 <div className="dues-meta right-align">
                   <span className="meta-label">NEXT BILLING CYCLE</span>
-                  <strong className="meta-text">July 2026</strong>
+                  <strong className="meta-text">{data?.dues?.next_billing_cycle || data?.dues?.nextBillingCycle || 'July 2026'}</strong>
                 </div>
               </div>
             </div>
           </section>
-
 
           {/* OVERVIEW SECTION */}
           <div className="section-title">Overview</div>
@@ -100,14 +187,13 @@ export default function TenantDashboardPage() {
               </div>
               <div className="overview-body">
                 <h4>Active Tickets</h4>
-                <strong className="overview-number">3</strong>
+                <strong className="overview-number">{loading ? '...' : activeComplaintsCount}</strong>
               </div>
               <div className="overview-footer">
                 <span className="dot yellow"></span>
-                <span className="muted-text">2 Investigating</span>
+                <span className="muted-text">{investigatingComplaintsCount} Investigating</span>
               </div>
             </section>
-
 
             <section className="dashboard-card overview-card">
               <div className="overview-header">
@@ -116,21 +202,20 @@ export default function TenantDashboardPage() {
               </div>
               <div className="overview-body">
                 <h4>Registered Vehicles</h4>
-                <strong className="overview-number">1</strong>
+                <strong className="overview-number">{data?.vehicles?.total_count ?? data?.vehicles?.totalCount ?? 0}</strong>
               </div>
               <div className="overview-footer split">
                 <div>
                   <span className="dot yellow"></span>
-                  <span className="muted-text">1 Private</span>
+                  <span className="muted-text">{data?.vehicles?.private_count ?? data?.vehicles?.privateCount ?? 0} Private</span>
                 </div>
                 <div>
                   <span className="dot yellow"></span>
-                  <span className="muted-text">0 Commercial</span>
+                  <span className="muted-text">{data?.vehicles?.commercial_count ?? data?.vehicles?.commercialCount ?? 0} Commercial</span>
                 </div>
               </div>
             </section>
           </div>
-
 
           {/* SERVICE ACCESS CARD */}
           <section className="dashboard-card service-card">
@@ -153,17 +238,14 @@ export default function TenantDashboardPage() {
           </section>
         </div>
 
-
         {/* RIGHT COLUMN */}
         <div className="right-column">
-
 
           {/* PAYMENT CARD */}
           <section className="dashboard-card payment-card">
             <div className="panel-heading">
               <h3>Pay via QR</h3>
             </div>
-
 
             <div className="form-section">
               <span className="form-label">SCAN QR CODE</span>
@@ -177,7 +259,6 @@ export default function TenantDashboardPage() {
               </div>
             </div>
 
-
             <div className="form-section">
               <span className="form-label">UPLOAD SCREENSHOT</span>
               <div className="upload-box">
@@ -189,7 +270,6 @@ export default function TenantDashboardPage() {
               </div>
             </div>
 
-
             <div className="form-section">
               <span className="form-label">INPUT REFERENCE NUMBER</span>
               <div className="input-with-icon">
@@ -198,10 +278,8 @@ export default function TenantDashboardPage() {
               </div>
             </div>
 
-
             <button className="btn-primary btn-full">SUBMIT FOR VALIDATION</button>
           </section>
-
 
           {/* OFFICE HOURS CARD */}
           <section className="dashboard-card office-card">
@@ -216,10 +294,8 @@ export default function TenantDashboardPage() {
             </ul>
           </section>
 
-
         </div>
       </div>
     </>
   );
 }
-

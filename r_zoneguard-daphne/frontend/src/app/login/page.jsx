@@ -45,17 +45,20 @@ export default function UnifiedLoginPage() {
                 throw new Error(data.message || 'Login failed. Please check your credentials.');
             }
 
-            // Store Auth Credentials
-            localStorage.setItem('token', data.token);
+            // Store Auth Token
+            if (data.token) {
+                localStorage.setItem('token', data.token);
+            }
             
-            // Kept your original user storage just in case other dashboards rely on it
-            localStorage.setItem('user', JSON.stringify(data.user || data));
+            // Safely extract user data regardless of backend response format
+            const userData = data.user || data.data || data;
             
-            // ✅ ADDED: This is the exact key the new Homeowner Dashboard needs to display the dynamic name!
-            localStorage.setItem('zoneguard_user', JSON.stringify(data.user || data));
+            // Store user details across local storage keys
+            localStorage.setItem('user', JSON.stringify(userData));
+            localStorage.setItem('zoneguard_user', JSON.stringify(userData));
 
-            // ✅ Bulletproof role check (handles lowercase & different property names)
-            const rawRole = data.user?.system_role || data.user?.role || data.role || '';
+            // Bulletproof role check
+            const rawRole = userData.system_role || userData.systemRole || userData.role || '';
             const userRole = String(rawRole).toUpperCase();
 
             switch (userRole) {

@@ -9,6 +9,7 @@ const complaintRoutes = require("./routes/complaintroutes");
 const financialRoutes = require("./routes/financialroutes");
 const propertyRoutes = require("./routes/propertyroutes");
 const residentRoutes = require("./routes/residentRoutes");
+const tenantRoutes = require("./routes/tenantRoutes");
 
 const app = express();
 
@@ -22,6 +23,7 @@ app.use("/api/complaints", complaintRoutes);
 app.use("/api/financials", financialRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/residents", residentRoutes);
+app.use("/api/tenant", tenantRoutes);
 
 app.get('/health', (req, res) => {
     res.json({
