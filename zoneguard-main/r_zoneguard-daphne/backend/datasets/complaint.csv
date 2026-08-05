@@ -1,0 +1,61 @@
+ticket_id,complaint_category,complaint_subject,complaint_desc,evidence_img,complaint_status,assigned_director_id,escalation_remarks,created_at,user_id,updated_at
+P3-0001,PUBLIC_RELATIONS,Security personnel concern,Reported by homeowner during the week.,uploads/complaints/CMP001.jpg,ESCALATED,DIR-2026-0001,Requires legal review.,2026-03-04 08:31:00,USR-2026-0131,2026-03-09 08:31:00
+G3-0002,GRIEVANCES,Noise complaint,Requires follow-up from assigned personnel.,,RESOLVED,,,2026-04-15 21:52:00,USR-2026-0142,2026-04-23 21:52:00
+P3-0003,PUBLIC_RELATIONS,Security personnel concern,Resident reported the issue for HOA action.,,RESOLVED,,,2026-04-08 08:31:00,USR-2026-0036,2026-04-11 08:31:00
+S3-0004,SPORTS,Basketball court lights,Requires follow-up from assigned personnel.,,RESOLVED,,,2026-03-19 07:21:00,USR-2026-0119,2026-03-21 07:21:00
+B3-0005,BEAUTIFICATION,Garbage accumulation,Needs inspection by HOA.,,RESOLVED,,,2026-01-01 06:52:00,USR-2026-0091,2026-01-16 06:52:00
+G3-0006,GRIEVANCES,Noise complaint,Reported by homeowner during the week.,uploads/complaints/CMP006.jpg,INVESTIGATING,,,2026-04-06 04:07:00,USR-2026-0048,2026-04-16 04:07:00
+G3-0007,GRIEVANCES,Noise complaint,Requires follow-up from assigned personnel.,uploads/complaints/CMP007.jpg,INVESTIGATING,,,2026-07-08 11:27:00,USR-2026-0119,2026-07-19 11:27:00
+G3-0008,GRIEVANCES,Noise complaint,Requires follow-up from assigned personnel.,uploads/complaints/CMP008.jpg,RESOLVED,,,2026-02-19 13:32:00,USR-2026-0056,2026-02-20 13:32:00
+G3-0009,GRIEVANCES,Noise complaint,Needs inspection by HOA.,uploads/complaints/CMP009.jpg,INVESTIGATING,,,2026-02-05 12:12:00,USR-2026-0054,2026-02-08 12:12:00
+G3-0010,GRIEVANCES,Noise complaint,Resident reported the issue for HOA action.,,INVESTIGATING,,,2026-06-25 04:21:00,USR-2026-0106,2026-07-02 04:21:00
+P3-0011,PUBLIC_RELATIONS,Security personnel concern,Resident reported the issue for HOA action.,,INVESTIGATING,,,2026-03-08 14:27:00,USR-2026-0083,2026-03-15 14:27:00
+G3-0012,GRIEVANCES,Noise complaint,Requires follow-up from assigned personnel.,,ACTIVE,,,2026-01-10 00:18:00,USR-2026-0094,2026-01-18 00:18:00
+P3-0013,PUBLIC_RELATIONS,Security personnel concern,Needs inspection by HOA.,,RESOLVED,,,2026-05-20 21:21:00,USR-2026-0078,2026-05-27 21:21:00
+F3-0014,FINANCIAL,Payment not reflected,Resident reported the issue for HOA action.,uploads/complaints/CMP014.jpg,RESOLVED,,,2026-06-02 09:50:00,USR-2026-0007,2026-06-05 09:50:00
+P3-0015,PUBLIC_RELATIONS,Security personnel concern,Reported by homeowner during the week.,uploads/complaints/CMP015.jpg,RESOLVED,,,2026-06-08 00:02:00,USR-2026-0061,2026-06-21 00:02:00
+I3-0016,INFRASTRUCTURE,Broken streetlight,Needs inspection by HOA.,,RESOLVED,,,2026-01-25 00:35:00,USR-2026-0082,2026-02-01 00:35:00
+S3-0017,SPORTS,Basketball court lights,Needs inspection by HOA.,uploads/complaints/CMP017.jpg,ESCALATED,DIR-2026-0001,Needs engineering inspection.,2026-07-06 22:06:00,USR-2026-0080,2026-07-17 22:06:00
+F3-0018,FINANCIAL,Payment not reflected,Needs inspection by HOA.,,INVESTIGATING,,,2026-05-07 22:30:00,USR-2026-0044,2026-05-17 22:30:00
+P3-0019,PUBLIC_RELATIONS,Security personnel concern,Needs inspection by HOA.,uploads/complaints/CMP019.jpg,ACTIVE,,,2026-05-31 16:17:00,USR-2026-0135,2026-06-10 16:17:00
+B3-0020,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,uploads/complaints/CMP020.jpg,ACTIVE,,,2026-06-10 03:49:00,USR-2026-0068,2026-06-20 03:49:00
+B3-0021,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,uploads/complaints/CMP021.jpg,INVESTIGATING,,,2026-06-06 01:49:00,USR-2026-0115,2026-06-12 01:49:00
+I3-0022,INFRASTRUCTURE,Broken streetlight,Needs inspection by HOA.,,RESOLVED,,,2026-04-28 08:52:00,USR-2026-0097,2026-05-13 08:52:00
+B3-0023,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,,RESOLVED,,,2026-06-29 01:48:00,USR-2026-0007,2026-07-09 01:48:00
+P3-0024,PUBLIC_RELATIONS,Security personnel concern,Requires follow-up from assigned personnel.,,ACTIVE,,,2026-06-01 19:58:00,USR-2026-0046,2026-06-10 19:58:00
+I3-0025,INFRASTRUCTURE,Broken streetlight,Resident reported the issue for HOA action.,,RESOLVED,,,2026-02-26 02:13:00,USR-2026-0081,2026-03-04 02:13:00
+P3-0026,PUBLIC_RELATIONS,Security personnel concern,Requires follow-up from assigned personnel.,,RESOLVED,,,2026-04-08 21:50:00,USR-2026-0036,2026-04-12 21:50:00
+G3-0027,GRIEVANCES,Noise complaint,Requires follow-up from assigned personnel.,,ESCALATED,DIR-2026-0001,Requires board approval.,2026-07-15 06:38:00,USR-2026-0068,2026-07-29 06:38:00
+B3-0028,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,uploads/complaints/CMP028.jpg,RESOLVED,,,2026-05-26 08:45:00,USR-2026-0142,2026-06-09 08:45:00
+B3-0029,BEAUTIFICATION,Garbage accumulation,Reported by homeowner during the week.,uploads/complaints/CMP029.jpg,ACTIVE,,,2026-03-13 09:20:00,USR-2026-0011,2026-03-14 09:20:00
+B3-0030,BEAUTIFICATION,Garbage accumulation,Requires follow-up from assigned personnel.,uploads/complaints/CMP030.jpg,INVESTIGATING,,,2026-03-13 08:00:00,USR-2026-0152,2026-03-14 08:00:00
+B3-0031,BEAUTIFICATION,Garbage accumulation,Reported by homeowner during the week.,,RESOLVED,,,2026-04-10 18:58:00,USR-2026-0101,2026-04-19 18:58:00
+P3-0032,PUBLIC_RELATIONS,Security personnel concern,Needs inspection by HOA.,uploads/complaints/CMP032.jpg,ESCALATED,DIR-2026-0001,Pending director investigation.,2026-03-26 21:34:00,USR-2026-0079,2026-04-01 21:34:00
+B3-0033,BEAUTIFICATION,Garbage accumulation,Needs inspection by HOA.,,RESOLVED,,,2026-01-09 15:58:00,USR-2026-0125,2026-01-15 15:58:00
+B3-0034,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,,ESCALATED,DIR-2026-0001,Requires legal review.,2026-01-08 08:51:00,USR-2026-0090,2026-01-19 08:51:00
+I3-0035,INFRASTRUCTURE,Broken streetlight,Requires follow-up from assigned personnel.,,ACTIVE,,,2026-05-05 09:08:00,USR-2026-0076,2026-05-20 09:08:00
+S3-0036,SPORTS,Basketball court lights,Resident reported the issue for HOA action.,uploads/complaints/CMP036.jpg,ESCALATED,DIR-2026-0001,Pending director investigation.,2026-05-25 10:55:00,USR-2026-0064,2026-06-01 10:55:00
+G3-0037,GRIEVANCES,Noise complaint,Resident reported the issue for HOA action.,,INVESTIGATING,,,2026-04-10 00:41:00,USR-2026-0079,2026-04-23 00:41:00
+F3-0038,FINANCIAL,Payment not reflected,Requires follow-up from assigned personnel.,uploads/complaints/CMP038.jpg,RESOLVED,,,2026-03-09 15:29:00,USR-2026-0137,2026-03-10 15:29:00
+G3-0039,GRIEVANCES,Noise complaint,Resident reported the issue for HOA action.,uploads/complaints/CMP039.jpg,RESOLVED,,,2026-06-09 10:54:00,USR-2026-0057,2026-06-20 10:54:00
+P3-0040,PUBLIC_RELATIONS,Security personnel concern,Resident reported the issue for HOA action.,uploads/complaints/CMP040.jpg,INVESTIGATING,,,2026-03-28 11:34:00,USR-2026-0152,2026-04-05 11:34:00
+F3-0041,FINANCIAL,Payment not reflected,Reported by homeowner during the week.,uploads/complaints/CMP041.jpg,INVESTIGATING,,,2026-01-14 19:42:00,USR-2026-0013,2026-01-14 19:42:00
+G3-0042,GRIEVANCES,Noise complaint,Resident reported the issue for HOA action.,,RESOLVED,,,2026-05-07 15:45:00,USR-2026-0132,2026-05-11 15:45:00
+I3-0043,INFRASTRUCTURE,Broken streetlight,Needs inspection by HOA.,,INVESTIGATING,,,2026-04-26 11:02:00,USR-2026-0038,2026-05-02 11:02:00
+F3-0044,FINANCIAL,Payment not reflected,Needs inspection by HOA.,,ACTIVE,,,2026-07-08 16:05:00,USR-2026-0145,2026-07-22 16:05:00
+G3-0045,GRIEVANCES,Noise complaint,Needs inspection by HOA.,uploads/complaints/CMP045.jpg,RESOLVED,,,2026-05-01 18:56:00,USR-2026-0145,2026-05-14 18:56:00
+I3-0046,INFRASTRUCTURE,Broken streetlight,Resident reported the issue for HOA action.,,RESOLVED,,,2026-04-08 08:40:00,USR-2026-0073,2026-04-22 08:40:00
+G3-0047,GRIEVANCES,Noise complaint,Needs inspection by HOA.,uploads/complaints/CMP047.jpg,RESOLVED,,,2026-03-22 05:06:00,USR-2026-0143,2026-03-25 05:06:00
+G3-0048,GRIEVANCES,Noise complaint,Reported by homeowner during the week.,uploads/complaints/CMP048.jpg,INVESTIGATING,,,2026-05-01 04:02:00,USR-2026-0034,2026-05-06 04:02:00
+G3-0049,GRIEVANCES,Noise complaint,Reported by homeowner during the week.,uploads/complaints/CMP049.jpg,ACTIVE,,,2026-06-20 17:14:00,USR-2026-0107,2026-06-24 17:14:00
+F3-0050,FINANCIAL,Payment not reflected,Resident reported the issue for HOA action.,uploads/complaints/CMP050.jpg,RESOLVED,,,2026-03-28 15:07:00,USR-2026-0006,2026-04-09 15:07:00
+F3-0051,FINANCIAL,Payment not reflected,Requires follow-up from assigned personnel.,,RESOLVED,,,2026-02-12 16:01:00,USR-2026-0085,2026-02-27 16:01:00
+I3-0052,INFRASTRUCTURE,Broken streetlight,Resident reported the issue for HOA action.,uploads/complaints/CMP052.jpg,RESOLVED,,,2026-02-22 09:03:00,USR-2026-0081,2026-02-22 09:03:00
+F3-0053,FINANCIAL,Payment not reflected,Requires follow-up from assigned personnel.,uploads/complaints/CMP053.jpg,RESOLVED,,,2026-06-30 07:36:00,USR-2026-0012,2026-07-14 07:36:00
+S3-0054,SPORTS,Basketball court lights,Resident reported the issue for HOA action.,uploads/complaints/CMP054.jpg,ACTIVE,,,2026-07-20 21:02:00,USR-2026-0067,2026-07-21 21:02:00
+B3-0055,BEAUTIFICATION,Garbage accumulation,Requires follow-up from assigned personnel.,,ACTIVE,,,2026-02-03 17:35:00,USR-2026-0044,2026-02-08 17:35:00
+I3-0056,INFRASTRUCTURE,Broken streetlight,Needs inspection by HOA.,uploads/complaints/CMP056.jpg,ESCALATED,DIR-2026-0002,Requires board approval.,2026-01-01 07:48:00,USR-2026-0052,2026-01-15 07:48:00
+B3-0057,BEAUTIFICATION,Garbage accumulation,Resident reported the issue for HOA action.,,INVESTIGATING,,,2026-03-07 15:49:00,USR-2026-0077,2026-03-15 15:49:00
+S3-0058,SPORTS,Basketball court lights,Needs inspection by HOA.,,RESOLVED,,,2026-04-20 23:53:00,USR-2026-0125,2026-05-03 23:53:00
+P3-0059,PUBLIC_RELATIONS,Security personnel concern,Reported by homeowner during the week.,uploads/complaints/CMP059.jpg,INVESTIGATING,,,2026-01-24 20:08:00,USR-2026-0066,2026-01-28 20:08:00
+F3-0060,FINANCIAL,Payment not reflected,Requires follow-up from assigned personnel.,,RESOLVED,,,2026-04-01 11:34:00,USR-2026-0007,2026-04-15 11:34:00

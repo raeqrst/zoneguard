@@ -1,0 +1,13 @@
+dispute_id,homeowner_id,collector_id,billing_id,reference_month,homeowner_claim,evidence_url,dispute_status,created_at,updated_at
+D-0001,OWN-2026-0120,COL-2026-0001,BIL-2026-0003,Feb-26,Reference number mismatch.,,RESOLVED,2026-02-13 00:00:00,2026-02-23 00:00:00
+D-0002,OWN-2026-0052,COL-2026-0001,BIL-2026-0089,Feb-26,Collector marked account unpaid despite payment.,uploads/disputes/D002.jpg,REVIEWING,2026-02-25 00:00:00,2026-03-03 00:00:00
+D-0003,OWN-2026-0002,COL-2026-0001,BIL-2026-0105,Mar-26,Reference number mismatch.,,REVIEWING,2026-03-09 00:00:00,2026-03-15 00:00:00
+D-0004,OWN-2026-0033,COL-2026-0001,BIL-2026-0125,Mar-26,Reference number mismatch.,uploads/disputes/D004.jpg,REVIEWING,2026-03-21 00:00:00,2026-03-29 00:00:00
+D-0005,OWN-2026-0110,COL-2026-0001,BIL-2026-0006,Apr-26,Duplicate payment detected.,uploads/disputes/D005.jpg,REVIEWING,2026-04-02 00:00:00,2026-04-12 00:00:00
+D-0006,OWN-2026-0047,COL-2026-0001,BIL-2026-0132,Apr-26,Duplicate payment detected.,uploads/disputes/D006.jpg,REVIEWING,2026-04-14 00:00:00,2026-04-19 00:00:00
+D-0007,OWN-2026-0032,COL-2026-0001,BIL-2026-0030,Apr-26,Reference number mismatch.,uploads/disputes/D007.jpg,RESOLVED,2026-04-26 00:00:00,2026-04-29 00:00:00
+D-0008,OWN-2026-0080,COL-2026-0001,BIL-2026-0149,May-26,Incorrect billing amount.,uploads/disputes/D008.jpg,RESOLVED,2026-05-08 00:00:00,2026-05-13 00:00:00
+D-0009,OWN-2026-0007,COL-2026-0001,BIL-2026-0110,May-26,Incorrect billing amount.,uploads/disputes/D009.jpg,RESOLVED,2026-05-20 00:00:00,2026-05-28 00:00:00
+D-0010,OWN-2026-0138,COL-2026-0001,BIL-2026-0031,Jun-26,GCash receipt not reflected.,,RESOLVED,2026-06-01 00:00:00,2026-06-11 00:00:00
+D-0011,OWN-2026-0024,COL-2026-0001,BIL-2026-0121,Jun-26,GCash receipt not reflected.,,REJECTED,2026-06-13 00:00:00,2026-06-16 00:00:00
+D-0012,OWN-2026-0009,COL-2026-0001,BIL-2026-0146,Jun-26,Collector marked account unpaid despite payment.,uploads/disputes/D012.jpg,REJECTED,2026-06-25 00:00:00,2026-06-27 00:00:00

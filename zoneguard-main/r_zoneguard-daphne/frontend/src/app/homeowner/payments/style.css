@@ -1,0 +1,436 @@
+/* ==========================================
+   ZoneGuard Homeowner Payments Stylesheet
+   ========================================== */
+
+:root {
+  --primary-green: #044e3a;
+  --primary-dark: #064e3b;
+  --bg-color: #f8fafc;
+  --surface-color: #ffffff;
+  --border-color: #e2e8f0;
+  --border-light: #f1f5f9;
+  --text-main: #0f172a;
+  --text-muted: #64748b;
+  --text-light: #94a3b8;
+
+  /* Status Colors */
+  --warning-bg: #fef3c7;
+  --warning-text: #92400e;
+  --danger-bg: #fee2e2;
+  --danger-text: #991b1b;
+  --success-bg: #e6f4ea;
+  --success-text: #044e3a;
+}
+
+.zg-payments-container {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Property Selection Tabs */
+.zg-property-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+
+.zg-property-tab {
+  padding: 8px 18px;
+  border-radius: 20px;
+  border: 1px solid var(--border-color);
+  background-color: #ffffff;
+  color: var(--text-muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.zg-property-tab.active {
+  background-color: var(--primary-dark);
+  color: #ffffff;
+  border-color: var(--primary-dark);
+}
+
+/* Header & Search Bar */
+.zg-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.zg-search-container {
+  position: relative;
+  width: 420px;
+}
+
+.zg-search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  display: flex;
+}
+
+.zg-search-input {
+  width: 100%;
+  padding: 12px 16px 12px 46px;
+  background-color: var(--surface-color);
+  border: 1px solid var(--border-color);
+  border-radius: 30px;
+  font-size: 0.9rem;
+  outline: none;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.02);
+  box-sizing: border-box;
+  color: var(--text-main);
+  transition: border-color 0.2s;
+}
+
+.zg-search-input:focus {
+  border-color: var(--primary-dark);
+}
+
+/* Outstanding Balance Card */
+.zg-balance-card {
+  background-color: var(--surface-color);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  padding: 28px 36px;
+  margin-bottom: 32px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.zg-balance-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.zg-balance-title {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--text-muted);
+  margin-bottom: 8px;
+}
+
+.zg-balance-amount {
+  font-size: 2.5rem;
+  font-weight: 900;
+  color: var(--text-main);
+  margin: 0;
+  letter-spacing: -0.5px;
+}
+
+.zg-arrears-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+.zg-balance-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 20px;
+  border-top: 1px solid var(--border-light);
+  padding-top: 20px;
+}
+
+.zg-stat-label {
+  display: block;
+  font-size: 0.68rem;
+  font-weight: 800;
+  color: var(--text-light);
+  margin-bottom: 6px;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+}
+
+.zg-stat-value {
+  display: block;
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+.zg-badge-rejected {
+  display: inline-block;
+  background-color: var(--danger-bg);
+  color: var(--danger-text);
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 800;
+}
+
+/* Annual Ledger Table Container */
+.zg-ledger-card {
+  background-color: var(--surface-color);
+  border-radius: 16px;
+  border: 1px solid var(--border-color);
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+}
+
+.zg-ledger-topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 24px 32px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.zg-ledger-title-area {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.zg-ledger-heading {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  margin: 0;
+}
+
+.zg-year-toggle {
+  display: flex;
+  background-color: var(--border-light);
+  border-radius: 8px;
+  padding: 3px;
+  margin-left: 12px;
+}
+
+.zg-year-btn {
+  padding: 4px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 0.8rem;
+  font-weight: 800;
+  cursor: pointer;
+  background-color: transparent;
+  color: var(--text-muted);
+  transition: all 0.2s ease;
+}
+
+.zg-year-btn.active {
+  background-color: #ffffff;
+  color: var(--text-main);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.zg-export-btn {
+  background: none;
+  border: none;
+  color: var(--primary-dark);
+  font-size: 0.85rem;
+  font-weight: 800;
+  cursor: pointer;
+  transition: opacity 0.2s;
+}
+
+.zg-export-btn:hover {
+  opacity: 0.8;
+}
+
+/* Ledger Table */
+.zg-table-wrapper {
+  width: 100%;
+  overflow-x: auto;
+}
+
+.zg-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.zg-table th {
+  background-color: var(--bg-color);
+  border-bottom: 1px solid var(--border-color);
+  padding: 14px 20px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: var(--primary-dark);
+  letter-spacing: 0.5px;
+}
+
+.zg-table th:first-child {
+  padding-left: 32px;
+}
+
+.zg-table th:last-child {
+  padding-right: 32px;
+  text-align: right;
+}
+
+.zg-table td {
+  padding: 20px 20px;
+  border-bottom: 1px solid var(--border-light);
+  font-size: 0.9rem;
+  color: var(--text-main);
+}
+
+.zg-table tr:last-child td {
+  border-bottom: none;
+}
+
+.zg-table td:first-child {
+  padding-left: 32px;
+  font-weight: 800;
+}
+
+.zg-table td:last-child {
+  padding-right: 32px;
+  text-align: right;
+}
+
+.zg-status-badge-arrears {
+  background-color: var(--warning-bg);
+  color: var(--warning-text);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.zg-status-badge-paid {
+  background-color: var(--success-bg);
+  color: var(--success-text);
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-block;
+}
+
+.zg-text-past-due {
+  color: #dc2626;
+  font-weight: 700;
+}
+
+.zg-action-buttons {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+}
+
+.zg-btn-pay {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--primary-dark);
+  color: #ffffff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.zg-btn-pay:hover {
+  background-color: #033a2b;
+}
+
+.zg-btn-dispute {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: 1px solid #cbd5e1;
+  background-color: #ffffff;
+  color: #475569;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.zg-btn-dispute:hover {
+  background-color: #f8fafc;
+}
+
+.zg-btn-generic {
+  padding: 6px 14px;
+  border-radius: 6px;
+  border: none;
+  background-color: var(--border-light);
+  color: var(--text-main);
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background-color 0.2s;
+}
+
+.zg-btn-generic:hover {
+  background-color: #e2e8f0;
+}
+
+/* Interactive Modal Styling */
+.zg-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(15, 23, 42, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.zg-modal-card {
+  background-color: #ffffff;
+  border-radius: 12px;
+  padding: 28px;
+  width: 100%;
+  max-width: 480px;
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+}
+
+.zg-modal-title {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary-dark);
+  margin-top: 0;
+  margin-bottom: 8px;
+}
+
+.zg-modal-body {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+  margin-bottom: 20px;
+}
+
+.zg-modal-input,
+.zg-modal-textarea {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  box-sizing: border-box;
+  margin-top: 8px;
+  margin-bottom: 16px;
+  outline: none;
+}
+
+.zg-modal-input:focus,
+.zg-modal-textarea:focus {
+  border-color: var(--primary-dark);
+}
+
+.zg-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 12px;
+}

@@ -1,0 +1,37 @@
+{
+  "name": "zoneguard-backend",
+  "version": "1.0.0",
+  "description": "ZoneGuard REST API - Express + PostgreSQL backend",
+  "main": "src/server.js",
+  "type": "commonjs",
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "dev:test": "node src/dev_test_server.js",
+    "start": "node src/server.js",
+    "db:migrate": "node src/scripts/migrate.js",
+    "db:seed": "node src/scripts/seed.js",
+    "db:archive": "node src/scripts/archiveJob.js",
+    "lint": "eslint src"
+  },
+  "dependencies": {
+    "@prisma/adapter-pg": "^7.9.1",
+    "@prisma/client": "^7.9.1",
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "csv-parser": "^3.2.1",
+    "dotenv": "^16.6.1",
+    "express": "^4.19.2",
+    "jsonwebtoken": "^9.0.2",
+    "nodemailer": "^6.9.14",
+    "pg": "^8.22.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.43",
+    "eslint": "^9.9.0",
+    "nodemon": "^3.1.4",
+    "prisma": "^7.9.1"
+  },
+  "prisma": {
+    "seed": "node prisma/seed.js"
+  }
+}

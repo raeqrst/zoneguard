@@ -1,0 +1,335 @@
+datasource db {
+  provider = "postgresql"
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+// ==========================================
+// ENUMS (Matches all CSV status/enum values)
+// ==========================================
+
+enum Role {
+  ADMIN
+  DIRECTOR
+  COLLECTOR
+  HOMEOWNER
+  TENANT
+}
+
+enum AccountStatus {
+  ACTIVE
+  INACTIVE
+  SUSPENDED
+}
+
+enum ZoneStatus {
+  ACTIVE
+  INACTIVE
+}
+
+enum LotStanding {
+  PAID
+  UNPAID
+  WITH_ARREARS
+  IN_DISPUTE
+  DELINQUENT
+}
+
+enum ComplaintStatus {
+  ACTIVE
+  INVESTIGATING
+  ESCALATED
+  RESOLVED
+  PENDING
+  IN_PROGRESS
+  DISMISSED
+}
+
+enum PaymentStatus {
+  VERIFIED
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum PaymentMethod {
+  DIGITAL
+  CASH
+  BANK_TRANSFER
+  GCASH
+  CHECK
+}
+
+enum ReceivableStatus {
+  PAID
+  OVERDUE
+  PENDING
+  UNPAID
+  PARTIAL
+}
+
+enum DisputeStatus {
+  RESOLVED
+  REVIEWING
+  REJECTED
+  PENDING
+  APPROVED
+}
+
+enum ApprovalStatus {
+  APPROVED
+  PENDING
+  REJECTED
+}
+
+enum DelegationStatus {
+  ACTIVE
+  INACTIVE
+  REVOKED
+}
+
+// ==========================================
+// MODELS
+// ==========================================
+
+model Zone {
+  id        String     @id @default(uuid()) @map("zone_id")
+  name      String     @map("zone_name")
+  status    ZoneStatus @default(ACTIVE) @map("zone_status")
+  createdAt DateTime   @default(now()) @map("created_at")
+  updatedAt DateTime   @updatedAt @map("updated_at")
+
+  // Relationships
+  users               User[]
+  lots                Lot[]
+  monthlyAllocations  MonthlyAllocation[]
+  transactions        Transaction[]
+
+  @@map("zones")
+}
+
+model User {
+  id            String         @id @default(uuid()) @map("user_id")
+  zoneId        String?        @map("zone_id")
+  firstName     String         @map("first_name")
+  lastName      String         @map("last_name")
+  middleName    String?        @map("middle_name")
+  email         String?        @unique
+  phoneNumber   String?        @map("phone_number")
+  dateOfBirth   DateTime?      @map("date_of_birth")
+  passwordHash  String         @map("password_hash")
+  systemRole    Role           @default(HOMEOWNER) @map("system_role")
+  accountStatus AccountStatus  @default(ACTIVE) @map("account_status")
+  createdAt     DateTime       @default(now()) @map("created_at")
+  updatedAt     DateTime       @updatedAt @map("updated_at")
+
+  // Relationships
+  zone               Zone?               @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  homeowners         Homeowner[]
+  tenants            Tenant[]            @relation("TenantUser")
+  approvedTenants    Tenant[]            @relation("TenantApprover")
+  complaints         Complaint[]
+  auditLogs AuditLog[]
+  processedTxns      Transaction[]       @relation("ProcessedBy")
+  createdAllocations MonthlyAllocation[] @relation("CreatedByDirector")
+  collectorDisputes PaymentDispute[] @relation("CollectorDisputes")
+  
+
+  @@map("users")
+}
+
+model Lot {
+  id           String      @id @default(uuid()) @map("lot_id")
+  homeownerId  String?     @map("homeowner_id")
+  zoneId       String?     @map("zone_id")
+  houseNumber  String?     @map("house_number")
+  blockNumber  Int?        @map("block_number")
+  lotNumber    Int?        @map("lot_number")
+  street       String?
+  longitude    Float?
+  latitude     Float?
+  isDelinquent Boolean     @default(false) @map("is_delinquent")
+  isPrimaryLot Boolean     @default(true) @map("is_primary_lot")
+  lotStanding  LotStanding @default(UNPAID) @map("lot_standing")
+  occupied     Boolean     @default(true)
+  createdAt    DateTime    @default(now()) @map("created_at")
+  updatedAt    DateTime    @updatedAt @map("updated_at")
+
+  // Relationships
+  zone               Zone?                @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  tenants            Tenant[]
+  accountsReceivable AccountsReceivable[]
+
+  @@map("lots")
+}
+
+model Homeowner {
+  id                String   @id @default(uuid()) @map("homeowner_id")
+  userId            String?  @map("user_id")
+  streakCount       Int      @default(0) @map("streak_count")
+  currentStarCount  Int      @default(0) @map("current_star_count")
+  currentBadgeLevel String?  @map("current_badge_level")
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Relationships
+  user            User?            @relation(fields: [userId], references: [id], onDelete: SetNull)
+  paymentDisputes PaymentDispute[]
+
+  @@map("homeowners")
+}
+
+model Tenant {
+  id                String           @map("tenant_id") // <-- Remove @id here
+  lotId             String           @map("lot_id")
+  userId            String?          @map("user_id")
+  permitUrl         String?          @map("permit_url")
+  delegationStatus  DelegationStatus @default(ACTIVE) @map("delegation_status")
+  approvalStatus    ApprovalStatus   @default(PENDING) @map("approval_status")
+  approvedById      String?          @map("approved_by")
+  approvedAt        DateTime?        @map("approved_at")
+  rejectionReason   String?          @map("rejection_reason")
+  canProcessPayment Boolean          @default(false) @map("can_process_payment")
+  createdAt         DateTime         @default(now()) @map("created_at")
+  updatedAt         DateTime         @updatedAt @map("updated_at")
+
+  // Relationships
+  lot        Lot   @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  user       User? @relation("TenantUser", fields: [userId], references: [id], onDelete: SetNull)
+  approvedBy User? @relation("TenantApprover", fields: [approvedById], references: [id], onDelete: SetNull)
+
+  @@id([id, lotId]) // <-- Compound Primary Key!
+  @@map("tenants")
+}
+
+model Complaint {
+  id                 String          @id @default(uuid()) @map("ticket_id")
+  complaintCategory  String          @map("complaint_category")
+  complaintSubject   String          @map("complaint_subject")
+  complaintDesc      String          @map("complaint_desc")
+  evidenceImg        String?         @map("evidence_img")
+  status             ComplaintStatus @default(ACTIVE) @map("complaint_status")
+  assignedDirectorId String?         @map("assigned_director_id")
+  escalatedRemarks   String?         @map("escalation_remarks")
+  createdAt          DateTime        @default(now()) @map("created_at")
+  userId             String?         @map("user_id")
+  updatedAt          DateTime        @updatedAt @map("updated_at")
+
+  // Relationships
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("complaints")
+}
+
+model Transaction {
+  id                 String        @id @default(uuid()) @map("transaction_id")
+  billingId          String?       @map("billing_id")
+  zoneId             String?       @map("zone_id")
+  amount             Decimal       @db.Decimal(10, 2)
+  paymentCategory    String        @map("payment_category")
+  productionShare    Decimal?      @map("production_share") @db.Decimal(10, 2)
+  hoaShare           Decimal?      @map("hoa_share") @db.Decimal(10, 2)
+  collectorIncentive Decimal?      @map("collector_incentive") @db.Decimal(10, 2)
+  paymentMethod      PaymentMethod @default(DIGITAL) @map("payment_method")
+  paymentStatus      PaymentStatus @default(VERIFIED) @map("payment_status")
+  paymentProof       String?       @map("payment_proof")
+  processedById      String?       @map("processed_by")
+  transactionDate    DateTime      @default(now()) @map("transaction_date")
+  userId             String?       @map("user_id")
+  referenceNo        String?       @map("reference_no")
+
+  // Relationships
+  zone            Zone?              @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  processedBy     User?              @relation("ProcessedBy", fields: [processedById], references: [id], onDelete: SetNull)
+  @@map("transactions")
+}
+
+model AccountsReceivable {
+  id              String           @id @default(uuid()) @map("billing_id")
+  billingMonth    Int              @map("billing_month")
+  billingYear     Int              @map("billing_year")
+  baseAmount      Decimal          @map("base_amount") @db.Decimal(10, 2)
+  isAnnualPayment Boolean          @default(false) @map("is_annual_payment")
+  billingStatus   ReceivableStatus @default(PENDING) @map("billing_status")
+  lotId           String           @map("lot_id")
+  dueDate         DateTime         @map("due_date")
+  createdAt       DateTime         @default(now()) @map("created_at")
+  updatedAt       DateTime         @updatedAt @map("updated_at")
+
+  // Relationships
+  lot             Lot              @relation(fields: [lotId], references: [id], onDelete: Cascade)
+  paymentDisputes PaymentDispute[]
+
+  @@map("accounts_receivables")
+}
+
+model MonthlyAllocation {
+  id                        String    @id @default(uuid()) @map("allocation_id")
+  directorId                String?   @map("director_id")
+  zoneId                    String?   @map("zone_id")
+  billingCycle              DateTime  @map("billing_cycle")
+  totalGrossCollections     Decimal   @map("total_gross_collections") @db.Decimal(12, 2)
+  accruedCollectorIncentive Decimal   @map("accrued_collector_incentive") @db.Decimal(12, 2)
+  isLocked                  Boolean   @default(true) @map("is_locked")
+  dateLocked                DateTime? @map("date_locked")
+  createdAt                 DateTime  @default(now()) @map("created_at")
+  updatedAt                 DateTime  @updatedAt @map("updated_at")
+
+  // Relationships
+  zone     Zone?              @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  director User?              @relation("CreatedByDirector", fields: [directorId], references: [id], onDelete: SetNull)
+  details  AllocationDetail[]
+
+  @@map("monthly_allocations")
+}
+
+model AllocationDetail {
+  id              String   @id @default(uuid()) @map("detail_id")
+  allocationId    String   @map("allocation_id")
+  expenseCategory String   @map("expense_category")
+  allocatedAmount Decimal  @map("allocated_amount") @db.Decimal(10, 2)
+  remittanceFlag  Boolean  @default(false) @map("remittance_flag")
+  createdAt       DateTime @default(now()) @map("created_at")
+
+  // Relationships
+  monthlyAllocation MonthlyAllocation @relation(fields: [allocationId], references: [id], onDelete: Cascade)
+
+  @@map("allocation_details")
+}
+
+model PaymentDispute {
+  id             String        @id @default(uuid()) @map("dispute_id")
+  homeownerId    String        @map("homeowner_id")
+  collectorId    String?       @map("collector_id")
+  billingId      String?       @map("billing_id")
+  referenceMonth String?       @map("reference_month")
+  homeownerClaim String        @map("homeowner_claim")
+  evidenceUrl    String?       @map("evidence_url")
+  status         DisputeStatus @default(REVIEWING) @map("dispute_status")
+  createdAt      DateTime      @default(now()) @map("created_at")
+  updatedAt      DateTime      @updatedAt @map("updated_at")
+
+  // Relationships
+  homeowner          Homeowner           @relation(fields: [homeownerId], references: [id], onDelete: Cascade)
+  accountsReceivable AccountsReceivable? @relation(fields: [billingId], references: [id], onDelete: SetNull)
+  collector          User?               @relation("CollectorDisputes", fields: [collectorId], references: [id], onDelete: SetNull)
+
+  @@map("payment_disputes")
+}
+
+model AuditLog {
+  id              String   @id @default(uuid()) @map("log_id")
+  userId          String?  @map("user_id")
+  actionCategory  String   @map("action_category")
+  targetReference String?  @map("target_reference")
+  actionDetails   String?  @map("action_details") @db.Text
+  timestamp       DateTime @default(now())
+
+  // Relationships
+  user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@map("audit_logs")
+}

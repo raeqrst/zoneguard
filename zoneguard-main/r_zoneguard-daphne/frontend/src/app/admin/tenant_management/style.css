@@ -1,0 +1,273 @@
+.tenant-management-page {
+  width: 100%;
+}
+
+/* PAGE HEADER */
+.page-title-section {
+  margin-bottom: 32px;
+}
+
+.page-title-section h1 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  color: #064e3b;
+  margin-bottom: 8px;
+  letter-spacing: -0.02em;
+}
+
+.page-title-section p {
+  color: #64748b;
+  font-size: 0.95rem;
+}
+
+/* FILTERS & SEARCH */
+.filters-section {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.filter-group {
+  display: flex;
+  gap: 10px;
+}
+
+.pill {
+  padding: 8px 24px;
+  border-radius: 99px;
+  border: none;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.active-pill {
+  background-color: #064e3b;
+  color: #ffffff;
+}
+
+.light-pill {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+
+.light-pill:hover {
+  background-color: #d1fae5;
+}
+
+.action-group {
+  margin-left: auto;
+  display: flex;
+  gap: 12px;
+}
+
+.table-search {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  padding: 8px 14px;
+}
+
+.table-search input {
+  border: none;
+  outline: none;
+  font-size: 0.8rem;
+  width: 200px;
+}
+
+.table-search span {
+  color: #94a3b8;
+  display: flex;
+}
+
+/* TABLE AREA */
+.table-container {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.02);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f8fafc;
+  color: #64748b;
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  text-align: center;
+  padding: 18px 16px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+th:first-child,
+th:nth-child(2) {
+  text-align: left;
+  padding-left: 28px;
+}
+
+td {
+  padding: 20px 16px;
+  border-bottom: 1px solid #f1f5f9;
+  text-align: center;
+  font-size: 0.88rem;
+  font-weight: 600;
+}
+
+td:first-child,
+td:nth-child(2) {
+  text-align: left;
+  padding-left: 28px;
+}
+
+.person-cell {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.88rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.person-info {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.person-info strong {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.person-info span {
+  font-size: 0.75rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.btn-view-details {
+  background: transparent;
+  border: none;
+  color: #475569;
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  transition: color 0.2s ease;
+}
+
+.btn-view-details:hover {
+  color: #0f172a;
+}
+
+/* STATUS BADGES */
+.status-badge {
+  padding: 6px 18px;
+  border-radius: 6px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  display: inline-block;
+  min-width: 100px;
+}
+
+.status-yellow {
+  background-color: #fde047;
+  color: #854d0e;
+}
+
+.status-green {
+  background-color: #22c55e;
+  color: #ffffff;
+}
+
+.status-red {
+  background-color: #ef4444;
+  color: #ffffff;
+}
+
+/* EXECUTIVE ACTIONS BUTTONS */
+.btn-action {
+  padding: 8px 24px;
+  border-radius: 6px;
+  font-size: 0.82rem;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  min-width: 90px;
+}
+
+.btn-update-active {
+  background-color: #064e3b;
+  color: #ffffff;
+}
+
+.btn-update-active:hover {
+  background-color: #043d2e;
+}
+
+.btn-update-disabled {
+  background-color: #9ca3af;
+  color: #ffffff;
+  cursor: not-allowed;
+  opacity: 0.8;
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  padding: 16px 28px;
+  background: #ffffff;
+  gap: 8px;
+}
+
+.page-btn {
+  width: 34px;
+  height: 34px;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.88rem;
+  transition: all 0.2s ease;
+}
+
+.page-btn:hover:not(.active) {
+  background-color: #f1f5f9;
+}
+
+.page-btn.active {
+  background: #064e3b;
+  color: #ffffff;
+  border-color: #064e3b;
+}

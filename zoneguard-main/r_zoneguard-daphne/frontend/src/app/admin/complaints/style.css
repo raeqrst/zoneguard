@@ -1,0 +1,229 @@
+.complaints-page {
+  width: 100%;
+}
+
+.page-title-section {
+  margin-bottom: 24px;
+}
+
+.page-title-section h1 {
+  font-size: 2.2rem;
+  color: #064e3b;
+  margin: 0 0 8px 0;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.page-title-section p {
+  color: #6b7280;
+  margin: 0;
+  font-size: 0.95rem;
+}
+
+.filters-section {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 16px;
+}
+
+.filter-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.pill {
+  padding: 6px 14px;
+  border-radius: 99px;
+  border: none;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.active-pill {
+  background-color: #064e3b;
+  color: white;
+}
+
+.light-pill {
+  background-color: #ecfdf5;
+  color: #065f46;
+}
+
+.info-banner {
+  font-size: 0.8rem;
+  color: #6b7280;
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* TABLE STYLING */
+.table-container {
+  background: white;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background-color: #f9fafb;
+  color: #6b7280;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: center;
+  padding: 16px;
+  border-bottom: 1px solid #e5e7eb;
+}
+
+th:first-child, th:nth-child(2) { text-align: left; }
+th:first-child { padding-left: 24px; }
+th:last-child { text-align: center; }
+
+td {
+  padding: 14px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  text-align: center;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #111827;
+}
+
+td:first-child { text-align: left; padding-left: 24px; }
+td:nth-child(2) { text-align: left; }
+
+.resident-cell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.resident-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.resident-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.resident-info strong { color: #111827; font-weight: 700; }
+.resident-info span { font-size: 0.7rem; color: #6b7280; }
+
+.cat-pill {
+  padding: 6px 12px;
+  border-radius: 99px;
+  font-size: 0.7rem;
+  font-weight: 800;
+  display: inline-block;
+  text-transform: uppercase;
+}
+.cat-financial { background-color: #fef08a; color: #854d0e; }
+.cat-infrastructure { background-color: #bbf7d0; color: #166534; }
+.cat-beautification { background-color: #e9d5ff; color: #6b21a8; }
+.cat-pr { background-color: #bae6fd; color: #075985; }
+.cat-grievance { background-color: #fecdd3; color: #9f1239; }
+
+.status-pill {
+  padding: 6px 16px;
+  border-radius: 99px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: white;
+  display: inline-block;
+  min-width: 100px;
+}
+.stat-escalated { background-color: #3b82f6; }
+.stat-investigating { background-color: #eab308; }
+.stat-resolved { background-color: #22c55e; }
+.stat-active { background-color: #ef4444; }
+
+.prio-score { font-weight: 800; font-size: 1rem; }
+.prio-red { color: #dc2626; }
+.prio-yellow { color: #ca8a04; }
+.prio-green { color: #16a34a; }
+
+.subject-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  color: #065f46;
+  font-weight: 600;
+  font-size: 0.8rem;
+}
+
+.actions-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.btn-resolve {
+  background-color: #064e3b;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.btn-map {
+  background-color: #d1fae5;
+  color: #064e3b;
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* PAGINATION */
+.pagination {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 6px;
+  padding: 16px 24px;
+  background-color: #ffffff;
+}
+
+.page-btn {
+  border: 1px solid #d1d5db;
+  background: white;
+  color: #374151;
+  border-radius: 6px;
+  padding: 4px 10px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.page-btn.active {
+  background-color: #064e3b;
+  color: white;
+  border-color: #064e3b;
+}
