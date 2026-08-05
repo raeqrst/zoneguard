@@ -1,42 +1,29 @@
+require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-
-require('dotenv').config();
-
-const authRoutes = require('./routes/authroutes');
-const dashboardRoutes = require("./routes/dashboardRoutes");
-const complaintRoutes = require("./routes/complaintroutes");
-const financialRoutes = require("./routes/financialroutes");
-const propertyRoutes = require("./routes/propertyroutes");
-const residentRoutes = require("./routes/residentRoutes");
-
 const app = express();
 
-app.use(cors());
-app.use(express.json());
+const analyticsRouter = require('./routes/analyticsRoutes');
+const dashboardRoutes = require('./routes/dashboardRoutes');
+const authRoutes = require('./routes/authRoutes');
+const residentRoutes = require('./routes/residentRoutes'); 
+const complaintRoutes = require('./routes/complaintRoutes');
+const tenantManagementRoutes = require('./routes/tenantmanagementRoutes');
+const adminSettingsRoutes = require('./routes/adminSettingsRoutes');
 
-// Mount all API routes
-app.use("/api/auth", authRoutes);
-app.use("/api/dashboard", dashboardRoutes);
-app.use("/api/complaints", complaintRoutes);
-app.use("/api/financials", financialRoutes);
-app.use("/api/properties", propertyRoutes);
-app.use("/api/residents", residentRoutes);
-
-app.get('/health', (req, res) => {
-    res.json({
-        status: 'ok',
-        service: 'zoneguard-backend',
-        uptime: process.uptime(),
-    });
-});
-
-app.get('/', (req, res) => {
-    res.json({ message: 'ZoneGuard backend is running' });
-});
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
-    console.log(`ZoneGuard backend listening on http://localhost:${PORT}`);
-});
+app.use(cors({ origin: 'http://localhost:3001', credentials: true }));
+app.use(express.json());
+
+app.use('/api/analytics', analyticsRouter);
+app.use('/api/dashboard', dashboardRoutes);
+app.use('/api/auth', authRoutes);
+app.use('/api/residents', residentRoutes); 
+app.use('/api/complaints', complaintRoutes); 
+app.use('/api/tenant_management', tenantManagementRoutes);
+app.use('/api/admin/settings', adminSettingsRoutes);
+
+app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+

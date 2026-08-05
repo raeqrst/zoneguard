@@ -1,6 +1,7 @@
+// src/app/admin/settings/page.jsx (Restored email placement above "edit profile" button and fixed backend field synchronization)
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import './style.css';
 
@@ -48,6 +49,67 @@ const sidebarItems = [
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
+  const [isEditing, setIsEditing] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  const [formData, setFormData] = useState({
+    userId: '',
+    firstName: '',
+    middleName: '',
+    lastName: '',
+    email: '',
+    phoneNumber: '',
+    dateOfBirth: '',
+    systemRole: 'ADMIN',
+    accountStatus: 'ACTIVE'
+  });
+
+  useEffect(() => {
+    async function fetchAdminSettings() {
+      try {
+        const res = await fetch('http://localhost:5000/api/admin/settings');
+        const json = await res.json();
+        if (json.success && json.data) {
+          setFormData(json.data);
+        }
+      } catch (err) {
+        console.error('Failed to load admin settings:', err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchAdminSettings();
+  }, []);
+
+  const handleChange = (e) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
+
+  const handleSaveProfile = async (e) => {
+    e.preventDefault();
+    try {
+      const res = await fetch('http://localhost:5000/api/admin/settings', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
+      });
+      const json = await res.json();
+      if (json.success) {
+        alert('Admin details updated successfully!');
+        setIsEditing(false);
+      } else {
+        alert(json.message || 'Failed to update settings');
+      }
+    } catch (err) {
+      console.error('Error updating settings:', err);
+      alert('An error occurred while updating.');
+    }
+  };
+
+  if (loading) return <div className="layout-wrapper"><div className="main-container"><p style={{padding: '40px'}}>Loading settings...</p></div></div>;
+
+  const adminFullName = `${formData.firstName} ${formData.lastName}`.trim() || 'Admin';
+  const adminInitials = `${formData.firstName?.[0] || 'A'}${formData.lastName?.[0] || 'D'}`;
 
   return (
     <div className="layout-wrapper">
@@ -95,15 +157,15 @@ export default function AdminSettingsPage() {
               <span className="search-icon">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
               </span>
-              <input type="text" placeholder="Search here..." />
+              <input type="text" placeholder="Search here..." autoComplete="off" name="global_search_noop" />
             </div>
 
             <div className="user-profile">
               <div className="user-info">
-                <span className="user-name">Admin</span>
+                <span className="user-name">{adminFullName}</span>
                 <span className="user-role">ADMINISTRATOR</span>
               </div>
-              <div className="user-avatar">AD</div>
+              <div className="user-avatar">{adminInitials}</div>
             </div>
           </header>
 
@@ -132,90 +194,147 @@ export default function AdminSettingsPage() {
             {/* MAIN FORM CARD */}
             <div className="settings-form-card">
               {activeTab === 'profile' ? (
-                <div>
-                  {/* PERSONAL & CONTACT INFORMATION */}
+                <form onSubmit={handleSaveProfile} autoComplete="off">
                   <div className="form-sections-row">
                     <div className="section-column">
-                      <h3 className="settings-section-heading">PERSONAL INFORMATION</h3>
+                      <h3 className="settings-section-heading">ADMIN IDENTITY</h3>
                       <div className="settings-fields-group">
                         <div>
                           <label className="settings-label">FIRST NAME</label>
-                          <input type="text" defaultValue="Darth" readOnly className="settings-input" />
+                          <input 
+                            type="text" 
+                            name="firstName"
+                            value={formData.firstName} 
+                            onChange={handleChange}
+                            readOnly={!isEditing} 
+                            className="settings-input" 
+                          />
                         </div>
                         <div>
-                          <label className="settings-label">MIDDLE INITIAL</label>
-                          <input type="text" defaultValue="C." readOnly className="settings-input" />
+                          <label className="settings-label">MIDDLE NAME</label>
+                          <input 
+                            type="text" 
+                            name="middleName"
+                            value={formData.middleName} 
+                            onChange={handleChange}
+                            readOnly={!isEditing} 
+                            className="settings-input" 
+                          />
                         </div>
                         <div>
                           <label className="settings-label">LAST NAME</label>
-                          <input type="text" defaultValue="Vader" readOnly className="settings-input" />
+                          <input 
+                            type="text" 
+                            name="lastName"
+                            value={formData.lastName} 
+                            onChange={handleChange}
+                            readOnly={!isEditing} 
+                            className="settings-input" 
+                          />
                         </div>
                       </div>
                     </div>
 
                     <div className="section-column">
-                      <h3 className="settings-section-heading">CONTACT INFORMATION</h3>
+                      <h3 className="settings-section-heading">CREDENTIALS & CONTACT</h3>
                       <div className="settings-fields-group">
                         <div>
-                          <label className="settings-label">CONTACT NUMBER</label>
+                          <label className="settings-label">EMAIL ADDRESS</label>
+                          <input 
+                            type="text" 
+                            name="email"
+                            value={formData.email} 
+                            onChange={handleChange}
+                            readOnly={!isEditing} 
+                            className="settings-input" 
+                          />
+                        </div>
+                        <div>
+                          <label className="settings-label">PHONE NUMBER</label>
                           <div className="phone-input-wrapper">
                             <span className="phone-prefix">+63</span>
-                            <input type="text" defaultValue="977 543 1769" readOnly className="settings-input flex-1" />
+                            <input 
+                              type="text" 
+                              name="phoneNumber"
+                              value={formData.phoneNumber} 
+                              onChange={handleChange}
+                              readOnly={!isEditing} 
+                              className="settings-input flex-1" 
+                            />
                           </div>
                         </div>
                         <div>
-                          <label className="settings-label">EMAIL ADDRESS</label>
-                          <input type="text" defaultValue="IAmYourFather@gmail.com" readOnly className="settings-input" />
+                          <label className="settings-label">DATE OF BIRTH</label>
+                          <input 
+                            type="text" 
+                            name="dateOfBirth"
+                            value={formData.dateOfBirth} 
+                            onChange={handleChange}
+                            readOnly={!isEditing} 
+                            className="settings-input" 
+                          />
                         </div>
                       </div>
                     </div>
                   </div>
 
-                  {/* PROPERTY ADDRESS SECTION */}
                   <div className="settings-sub-section">
-                    <h3 className="settings-section-heading">PROPERTY ADDRESS</h3>
+                    <h3 className="settings-section-heading">SYSTEM METADATA</h3>
                     <div className="address-grid-top">
                       <div>
-                        <label className="settings-label">HOUSE NO.</label>
-                        <input type="text" defaultValue="01" readOnly className="settings-input" />
+                        <label className="settings-label">USER ID</label>
+                        <input 
+                          type="text" 
+                          value={formData.userId} 
+                          readOnly 
+                          className="settings-input" 
+                          style={{ backgroundColor: '#f9fafb', color: '#6b7280' }}
+                        />
                       </div>
                       <div>
-                        <label className="settings-label">BLOCK</label>
-                        <input type="text" defaultValue="BLK 8" readOnly className="settings-input" />
+                        <label className="settings-label">SYSTEM ROLE</label>
+                        <input 
+                          type="text" 
+                          value={formData.systemRole} 
+                          readOnly 
+                          className="settings-input" 
+                          style={{ backgroundColor: '#f9fafb', color: '#6b7280' }}
+                        />
                       </div>
                       <div>
-                        <label className="settings-label">LOT</label>
-                        <input type="text" defaultValue="LOT 61" readOnly className="settings-input" />
+                        <label className="settings-label">ACCOUNT STATUS</label>
+                        <input 
+                          type="text" 
+                          value={formData.accountStatus} 
+                          readOnly 
+                          className="settings-input" 
+                          style={{ backgroundColor: '#f9fafb', color: '#10b981', fontWeight: 'bold' }}
+                        />
                       </div>
                     </div>
 
-                    <div className="address-grid-bottom">
-                      <div className="zone-col">
-                        <label className="settings-label">ZONE</label>
-                        <input type="text" defaultValue="Zone 3" readOnly className="settings-input" />
+                    {isEditing && (
+                      <div style={{ marginTop: '20px' }}>
+                        <button type="submit" className="change-password-btn">Save Changes</button>
                       </div>
-                      <div className="street-col">
-                        <label className="settings-label">STREET</label>
-                        <input type="text" defaultValue="Palico Lane St." readOnly className="settings-input" />
-                      </div>
-                    </div>
+                    )}
                   </div>
-                </div>
+                </form>
               ) : (
-                <div className="privacy-container">
+                <div className="privacy-container" autoComplete="off">
                   <h3 className="settings-section-heading text-center">CHANGE PASSWORD</h3>
                   <div className="settings-fields-group">
                     <div>
                       <label className="settings-label">CURRENT PASSWORD</label>
-                      <input type="password" placeholder="Enter current password" className="settings-input" />
+                      <input type="password" placeholder="Enter current password" className="settings-input" autoComplete="new-password" />
                     </div>
                     <div>
                       <label className="settings-label">NEW PASSWORD</label>
-                      <input type="password" placeholder="Enter new password" className="settings-input" />
+                      <input type="password" placeholder="Enter new password" className="settings-input" autoComplete="new-password" />
                     </div>
                     <div>
                       <label className="settings-label">CONFIRM NEW PASSWORD</label>
-                      <input type="password" placeholder="Confirm new password" className="settings-input" />
+                      <input type="password" placeholder="Confirm new password" className="settings-input" autoComplete="new-password" />
                     </div>
                     <button className="change-password-btn">Update Password</button>
                   </div>
@@ -223,15 +342,19 @@ export default function AdminSettingsPage() {
               )}
             </div>
 
-            {/* PROFILE DISPLAY SIDE CARD */}
+            {/* PROFILE DISPLAY SIDE CARD - Restored Email ABOVE Edit Profile */}
             <div className="profile-display-card">
               <div className="profile-avatar-circle">
                 {Icons.userOutline}
               </div>
-              <p className="profile-display-email">IAmYourFather@gmail.com</p>
+              <p className="profile-display-email">{formData.email}</p>
               
-              <button className="edit-profile-btn">
-                edit profile {Icons.pencil}
+              <button 
+                type="button" 
+                className="edit-profile-btn"
+                onClick={() => setIsEditing(!isEditing)}
+              >
+                {isEditing ? 'cancel' : 'edit profile'} {Icons.pencil}
               </button>
             </div>
           </div>

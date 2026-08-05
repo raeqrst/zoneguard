@@ -1,35 +1,9 @@
+// backend/src/routes/analyticsRoutes.js
 const express = require('express');
 const router = express.Router();
-const runRScript = require('../utils/runRScript');
+const { getAnalyticsData } = require('../controllers/analyticsController');
 
-// Route for Complaint Forecasts
-router.get('/complaint-forecast', async (req, res) => {
-  try {
-    const data = await runRScript('complaint_forecast.R');
-    res.json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Route for Financial Forecasts
-router.get('/financial-forecast', async (req, res) => {
-  try {
-    const data = await runRScript('financial_forecast.R');
-    res.json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
-
-// Route for Operational Insights
-router.get('/operational-insights', async (req, res) => {
-  try {
-    const data = await runRScript('operational_insights.R');
-    res.json({ success: true, data });
-  } catch (err) {
-    res.status(500).json({ success: false, error: err.message });
-  }
-});
+// Define the route with the properly imported function callback
+router.get('/', getAnalyticsData);
 
 module.exports = router;
