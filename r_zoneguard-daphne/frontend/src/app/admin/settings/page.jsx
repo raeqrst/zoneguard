@@ -1,3 +1,4 @@
+// src/app/admin/settings/page.jsx (Restored email placement above "edit profile" button and fixed backend field synchronization)
 'use client';
 
 import React, { useState, useEffect } from 'react';

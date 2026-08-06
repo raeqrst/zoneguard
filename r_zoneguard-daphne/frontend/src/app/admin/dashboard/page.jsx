@@ -21,13 +21,14 @@ const sidebarItems = [
   { label: 'Map', href: '#', icon: Icons.map },
   { label: 'Complaints', href: '/admin/complaints', icon: Icons.complaints },
   { label: 'Residents', href: '/admin/residents', icon: Icons.residents },
-  { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant }
+  { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant },
 ];
 
 const EXACT_CATEGORY_MAP = {
   'SPORTS':           { label: 'Sport',            color: '#FFBAE0' },
   'SPORT':            { label: 'Sport',            color: '#FFBAE0' },
   'PUBLIC RELATIONS': { label: 'Public Relations', color: '#BAE3F5' },
+  'PUBLIC_RELATIONS': { label: 'Public Relations', color: '#BAE3F5' },
   'BEAUTIFICATION':   { label: 'Beautification',   color: '#B6A7C8' },
   'FINANCIAL':        { label: 'Financial',        color: '#FBBF24' },
   'GRIEVANCES':       { label: 'Grievance',        color: '#FFDAD6' },
@@ -37,14 +38,14 @@ const EXACT_CATEGORY_MAP = {
 
 function MetricCard({ icon, label, value, detail, tone }) {
   return (
-    <div className={`stat-card tone-${tone}`}>
-      <div className="stat-icon-wrapper">{icon}</div>
-      <div className="stat-info">
-        <span className="stat-label">{label}</span>
-        <span className="stat-value">{value}</span>
-        <span className="stat-detail">{detail}</span>
+    <article className={`ad-metric-card tone-${tone}`}>
+      <div className="ad-metric-icon">{icon}</div>
+      <div>
+        <p>{label}</p>
+        <strong>{value}</strong>
+        <span>{detail}</span>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -57,24 +58,39 @@ function PieChartCard({ issueCategories = [] }) {
       label: item.label || item.complaintCategory || 'Other',
       color: item.color || '#cccccc'
     };
-    return { ...item, ...config, value: item.value || 0 };
+
+    return {
+      label: config.label,
+      value: item.value || 0,
+      color: config.color
+    };
   });
 
-  const total = mappedCategories.reduce((acc, curr) => acc + curr.value, 0);
-  let cumulative = 0;
-  const radius = 25;
+  const total = mappedCategories.reduce((sum, item) => sum + item.value, 0);
+  if (total === 0) return null;
+
+  const radius = 38;
+  const circumference = 2 * Math.PI * radius;
+  let accumulatedOffset = 0;
 
   const slices = mappedCategories.map((item) => {
     const percentage = total > 0 ? ((item.value / total) * 100).toFixed(1) : 0;
-    const dashArray = `${(item.value / total) * 157} 157`; 
-    const dashOffset = -((cumulative / total) * 157);
-    cumulative += item.value;
-    return { ...item, percentage, dashArray, dashOffset };
+    const proportion = total > 0 ? item.value / total : 0;
+    const dashLength = proportion * circumference;
+    const dashOffset = -accumulatedOffset;
+    accumulatedOffset += dashLength;
+
+    return {
+      ...item,
+      percentage,
+      dashArray: `${dashLength} ${circumference - dashLength}`,
+      dashOffset
+    };
   });
 
   return (
-    <div className="dashboard-card">
-      <div className="card-header-row">
+    <article className="ad-card ad-pie-card">
+      <div className="ad-card-header">
         <div>
           <h2>Issue Categorization</h2>
           <p>Monthly volume of recorded complaints by category classification.</p>
@@ -153,7 +169,7 @@ function PieChartCard({ issueCategories = [] }) {
           ))}
         </div>
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -163,8 +179,8 @@ function PaidOverviewCard({ paidOverview = [] }) {
   const maxValue = Math.max(...paidOverview.map((item) => item.value || 0));
 
   return (
-    <div className="dashboard-card">
-      <div className="card-header-row">
+    <article className="ad-card ad-overview-card">
+      <div className="ad-card-header">
         <div>
           <h2>Paid Overview</h2>
           <p>Number of residents who completed payments per month.</p>
@@ -197,7 +213,7 @@ function PaidOverviewCard({ paidOverview = [] }) {
           </div>
         ))}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -207,8 +223,8 @@ function TurnoverCard({ turnoverData = [] }) {
   const maxValue = Math.max(...turnoverData.map((item) => Math.max(item.moveIn || 0, item.moveOut || 0)));
 
   return (
-    <div className="dashboard-card full-width-card">
-      <div className="card-header-row">
+    <article className="ad-card ad-turnover-card">
+      <div className="ad-card-header">
         <div>
           <h2>Tenant Turnover Rate</h2>
           <p>Total moves per month</p>
@@ -239,7 +255,7 @@ function TurnoverCard({ turnoverData = [] }) {
           </div>
         ))}
       </div>
-    </div>
+    </article>
   );
 }
 
@@ -288,67 +304,85 @@ export default function AdminDashboardPage() {
   }, []);
 
   return (
-    <>
-      <main className="ad-shell" style={{ height: '100vh', overflowY: 'auto' }}>
-        <aside className="ad-sidebar">
-          <div className="ad-brand">
-            <div className="ad-brand-mark">ZG</div>
+    <main className="ad-shell" style={{ height: '100vh', overflowY: 'auto' }}>
+      <aside className="ad-sidebar">
+        <div className="ad-brand">
+          <div className="ad-brand-mark">ZG</div>
+          <div>
+            <strong>ZoneGuard</strong>
+            <p>NIA VILLAGE SUBD.</p>
+          </div>
+        </div>
+
+        <nav className="ad-nav">
+          {sidebarItems.map((item) => (
+            <Link
+              key={item.label}
+              href={item.href}
+              className={`ad-nav-item ${item.active ? 'is-active' : ''}`}
+              style={{ display: 'flex', alignItems: 'center', gap: '12px' }}
+            >
+              {item.icon}
+              <span>{item.label}</span>
+            </Link>
+          ))}
+        </nav>
+
+        <div className="ad-sidebar-footer">
+          <button type="button" className="ad-nav-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            {Icons.settings}
+            <span>Account Settings</span>
+          </button>
+          <button type="button" className="ad-nav-item" style={{ display: 'flex', alignItems: 'center', gap: '12px', width: '100%', background: 'none', border: 'none', cursor: 'pointer', textAlign: 'left' }}>
+            {Icons.logout}
+            <span>Logout</span>
+          </button>
+        </div>
+      </aside>
+
+      <section className="ad-main" style={{ overflowY: 'visible', paddingBottom: '40px' }}>
+        <header className="ad-topbar">
+          <label className="ad-search">
+            <span>⌕</span>
+            <input type="text" placeholder="Search dashboard..." aria-label="Search dashboard" />
+          </label>
+
+          <div className="ad-user">
             <div>
-              <strong>ZoneGuard</strong>
-              <p>NIA VILLAGE SUBD.</p>
+              <strong>Admin</strong>
+              <p>ADMINISTRATOR</p>
             </div>
+            <span>AD</span>
+          </div>
+        </header>
+
+        <section className="ad-hero-row">
+          <div>
+            <h1>Admin Dashboard</h1>
+            <p>Operational overview for approvals, complaints, payments, and resident activity.</p>
           </div>
 
-          <div className="action-buttons">
-            <button type="button" className="btn-filter">Filter</button>
-            <button type="button" className="btn-report">Generate Report</button>
+          <div className="ad-actions">
+            <button type="button" className="ad-secondary-button">Filter</button>
+            <button type="button" className="ad-primary-button">Generate Report</button>
           </div>
-        </aside>
-
-        <section className="ad-main" style={{ overflowY: 'visible', paddingBottom: '40px' }}>
-          <header className="ad-topbar">
-            <label className="ad-search">
-              <span>⌕</span>
-              <input type="text" placeholder="Search dashboard..." aria-label="Search dashboard" />
-            </label>
-
-            <div className="ad-user">
-              <div>
-                <strong>Admin</strong>
-                <p>ADMINISTRATOR</p>
-              </div>
-              <span>AD</span>
-            </div>
-          </header>
-
-          <section className="ad-hero-row">
-            <div>
-              <h1>Admin Dashboard</h1>
-              <p>Operational overview for approvals, complaints, payments, and resident activity.</p>
-            </div>
-
-            <div className="ad-actions">
-              <button type="button" className="ad-secondary-button">Filter</button>
-              <button type="button" className="ad-primary-button">Generate Report</button>
-            </div>
-          </section>
-
-          <section className="ad-metrics-grid">
-            {metrics && metrics.length > 0 && metrics.map((metric, i) => (
-              <MetricCard key={metric.label || i} {...metric} />
-            ))}
-          </section>
-
-          <section className="ad-analytics-grid">
-            <PieChartCard issueCategories={issueCategories} />
-            <PaidOverviewCard paidOverview={paidOverview} />
-          </section>
-
-          <section className="ad-turnover-row">
-            <TurnoverCard turnoverData={turnoverData} />
-          </section>
         </section>
-      </main>
-    </>
+
+        <section className="ad-metrics-grid">
+          {metrics && metrics.length > 0 && metrics.map((metric, i) => (
+            <MetricCard key={metric.label || i} {...metric} />
+          ))}
+        </section>
+
+        <section className="ad-analytics-grid">
+          <PieChartCard issueCategories={issueCategories} />
+          <PaidOverviewCard paidOverview={paidOverview} />
+        </section>
+
+        <section className="ad-turnover-row">
+          <TurnoverCard turnoverData={turnoverData} />
+        </section>
+      </section>
+    </main>
   );
 }

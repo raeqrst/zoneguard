@@ -36,6 +36,9 @@ function getConsistentColor(str = '') {
   return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length];
 }
 
+// Updated parser: NO comma after the number/lot (e.g., "Lot 39B Jalaur").
+// Uses comma ONLY between multiple full addresses (e.g., "17A Camiling, 17B Camiling").
+// Updated formatAddressEntry function inside the provided code
 function formatAddressEntry(addrObj) {
   if (!addrObj) return '';
   
@@ -43,17 +46,12 @@ function formatAddressEntry(addrObj) {
   const street = addrObj.street || addrObj.lot_number_street || '';
   const lotNumber = addrObj.lotNumber || addrObj.lot_number || addrObj.lot;
 
-  // If there is a house number, use it directly without forcing the word "Lot"
+  // Removed the comma between the number/lot and the street name
   if (houseNo !== undefined && houseNo !== null && String(houseNo).trim() !== '') {
     return `${String(houseNo).trim()}${street ? ` ${street}` : ''}`;
-  } 
-  // Only prefix with "Lot" if the value isn't already a house number or explicitly prefixed
-  else if (lotNumber !== undefined && lotNumber !== null && String(lotNumber).trim() !== '') {
-    const rawLot = String(lotNumber).trim();
-    const cleanLot = rawLot.replace(/^lot\s*/i, '').trim();
-    // If it's labeled as a house number or doesn't look like a lot designation, don't force "Lot"
-    const prefix = /^h|house/i.test(rawLot) ? '' : 'Lot ';
-    return `${prefix}${cleanLot}${street ? ` ${street}` : ''}`;
+  } else if (lotNumber !== undefined && lotNumber !== null && String(lotNumber).trim() !== '') {
+    const cleanLot = String(lotNumber).replace(/^lot\s*/i, '').trim();
+    return `Lot ${cleanLot}${street ? ` ${street}` : ''}`;
   }
   
   return addrObj.address || '';
