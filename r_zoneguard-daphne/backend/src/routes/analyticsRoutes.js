@@ -32,4 +32,24 @@ router.get('/operational-insights', async (req, res) => {
   }
 });
 
+// complaint heatmap
+router.get('/complaint-heatmap', async (req, res) => {
+  try {
+    const data = await runRScript('complaint_heatmap.R');
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Route for Complaint Status Map (per-lot ticket status, not density)
+router.get('/complaint-status-map', async (req, res) => {
+  try {
+    const data = await runRScript('complaint_status_by_lot.R');
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 module.exports = router;

@@ -1,5 +1,6 @@
 import { Manrope, Sora } from 'next/font/google';
 import './globals.css';
+import 'leaflet/dist/leaflet.css';
 
 const manrope = Manrope({
   subsets: ['latin'],
