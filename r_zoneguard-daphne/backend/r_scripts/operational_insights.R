@@ -11,13 +11,13 @@ if (file.exists(csv_file)) {
     category = c("Infrastructure", "Monthly Dues", "Security"),
     avg_resolve_mins = c(252, NA, 15),       # 252 mins = 4.2 Hours
     delinquency_rate = c(NA, 0.183, NA),     # 18.3% outstanding
-    trend_slope = c(0.15, 0.05, -0.12)       # positive = increasing, negative = decreasing
+    trend_slope = c(0.15, 0.05, -0.12)       # positive = increasing, negative = dec
   )
 }
 
 operational_results <- list()
 
-for (i in 1:nrow(df)) {
+for (i in seq_len(nrow(df))) {
   cat_name <- df$category[i]
   
   # Initialize variables to avoid scope warnings
@@ -45,10 +45,14 @@ for (i in 1:nrow(df)) {
     rate <- df$delinquency_rate[i]
     metric_str <- paste0(round((1 - rate) * 100, 1), "% Paid")
     
-    if (rate > 0.15) {
+    if (!is.na(rate) && rate > 0.15) {
       status <- "At-Risk"
       tone <- "red"
-      insight <- paste0("High delinquency probability (", round(rate * 100, 1), "% uncollected)")
+      insight <- paste0(
+        "High delinquency probability (", 
+        round(rate * 100, 1), 
+        "% uncollected)"
+      )
     } else {
       status <- "Optimal"
       tone <- "green"
@@ -62,7 +66,11 @@ for (i in 1:nrow(df)) {
     if (!is.na(df$trend_slope[i]) && df$trend_slope[i] < 0) {
       status <- "Optimal"
       tone <- "green"
-      insight <- paste0("Decreasing incident trend (", abs(round(df$trend_slope[i] * 100, 1)), "%/wk)")
+      insight <- paste0(
+        "Decreasing incident trend (", 
+        abs(round(df$trend_slope[i] * 100, 1)), 
+        "%/wk)"
+      )
     } else {
       status <- "At-Risk"
       tone <- "red"
@@ -79,5 +87,5 @@ for (i in 1:nrow(df)) {
   )
 }
 
-# 2. Print JSON directly to stdout so Node.js child_process can catch it instantly
+# 2. Print JSON directly to stdout so Node.js can catch it instantly
 cat(toJSON(operational_results, auto_unbox = TRUE, pretty = TRUE))
