@@ -10,6 +10,7 @@ const financialRoutes = require("./routes/financialroutes");
 const propertyRoutes = require("./routes/propertyroutes");
 const residentRoutes = require("./routes/residentRoutes");
 const homeownerDashboardRoutes = require('./routes/homeowner');
+const collectorRoutes = require("./routes/collectorRoutes"); // <-- Imported here
 
 const app = express();
 
@@ -24,6 +25,7 @@ app.use("/api/financials", financialRoutes);
 app.use("/api/properties", propertyRoutes);
 app.use("/api/residents", residentRoutes);
 app.use('/api/homeowner', homeownerDashboardRoutes);
+app.use("/api/collector", collectorRoutes); // <-- Mounted here
 
 app.get('/health', (req, res) => {
     res.json({

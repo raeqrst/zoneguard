@@ -9,18 +9,19 @@ export default function CollectorPaymentsPage() {
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Fetch pending payments connected to backend Prisma API
   useEffect(() => {
     async function loadPayments() {
       setLoading(true);
       try {
         const res = await fetch(`/api/collector/payments?search=${encodeURIComponent(searchTerm)}`);
-        const result = await res.json();
-        if (result.success) {
-          setPayments(result.data);
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && result.data) {
+            setPayments(result.data);
+          }
         }
       } catch (err) {
-        console.error("Failed fetching payments:", err);
+        console.error("Failed fetching payments from backend:", err);
       } finally {
         setLoading(false);
       }
@@ -33,13 +34,12 @@ export default function CollectorPaymentsPage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
-  // Handle Accepting or Declining a payment
   const handleUpdateStatus = async (paymentId, status) => {
     try {
-      const res = await fetch('/api/collector/payments', {
-        method: 'PATCH',
+      const res = await fetch(`/api/collector/payments/${paymentId}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ paymentId, status }),
+        body: JSON.stringify({ status }),
       });
 
       if (res.ok) {
@@ -49,13 +49,17 @@ export default function CollectorPaymentsPage() {
         }
       }
     } catch (err) {
-      console.error("Failed to update payment status:", err);
+      console.error("Failed to update status:", err);
     }
   };
 
+  const filteredPayments = payments.filter(p => 
+    (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.address && p.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
     <div className="payments-page">
-      {/* Title Header */}
       <div className="page-title-section">
         <div className="title-content">
           <h1>Digital Payment Management</h1>
@@ -63,7 +67,6 @@ export default function CollectorPaymentsPage() {
         </div>
       </div>
 
-      {/* Toolbar */}
       <div className="toolbar-section">
         <div className="search-box">
           <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -87,7 +90,6 @@ export default function CollectorPaymentsPage() {
         </button>
       </div>
 
-      {/* Table */}
       <div className="table-container">
         <table>
           <thead>
@@ -106,8 +108,8 @@ export default function CollectorPaymentsPage() {
                   Loading digital payments...
                 </td>
               </tr>
-            ) : payments.length > 0 ? (
-              payments.map((row) => (
+            ) : filteredPayments.length > 0 ? (
+              filteredPayments.map((row) => (
                 <tr key={row.id}>
                   <td>
                     <div className="resident-cell">
@@ -153,9 +155,8 @@ export default function CollectorPaymentsPage() {
           </tbody>
         </table>
 
-        {/* Footer */}
         <div className="table-footer">
-          <span>Showing 1 to {payments.length} of {payments.length} pending digital transactions</span>
+          <span>Showing 1 to {filteredPayments.length} of {filteredPayments.length} pending digital transactions</span>
           <div className="pagination">
             <button className="page-btn">{'<'}</button>
             <button className="page-btn active">1</button>
@@ -165,7 +166,6 @@ export default function CollectorPaymentsPage() {
         </div>
       </div>
 
-      {/* Proof of Payment Detail View Modal */}
       {selectedPayment && (
         <div className="modal-overlay">
           <div className="modal-card">
