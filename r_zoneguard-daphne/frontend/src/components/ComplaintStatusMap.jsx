@@ -78,9 +78,9 @@ export default function ComplaintStatusMap({ onSelectLot, activeStatuses = [] })
 
   return (
     <MapContainer
-      center={[14.692050, 121.050850]}
-      zoom={17}
-      minZoom={16}
+      center={[14.692060, 121.050860]}
+      zoom={18}
+      minZoom={17}
       maxZoom={22}
       style={{ height: '100%', width: '100%', backgroundColor: '#e2e8f0' }}
     >
@@ -97,7 +97,7 @@ export default function ComplaintStatusMap({ onSelectLot, activeStatuses = [] })
         onEachFeature={(feature, layer) => {
           const p = feature.properties;
           const filteredComplaints = getComplaints(feature).filter(c => activeStatuses.includes(c.status.toUpperCase()));
-          
+
           layer.bindTooltip(
             filteredComplaints.length > 0
               ? `<div style="text-align: center;"><strong>${p.lot_id}</strong><br/>${filteredComplaints[0].status} (${filteredComplaints.length})</div>`
