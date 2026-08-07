@@ -72,7 +72,7 @@ function AnalyticsContent() {
 
       const heatResData = heatmapRes?.data || heatmapRes?.hotspots || heatmapRes;
       if (Array.isArray(heatResData)) setHeatmapData(heatResData);
-    }).catch(() => {});
+    }).catch((err) => console.error("Analytics fetch error:", err));
   }, [dateRangeFilter]);
 
   const handleGenerateReport = () => {
@@ -98,7 +98,6 @@ function AnalyticsContent() {
   const summary = analytics || {};
   const parsedTotalHouseholds = getNum(summary.totalHouseholds ?? summary.totalResidents ?? 148) || 148;
 
-  // Complaint Forecast Data Preparation
   const histData = (forecast?.historical || [8, 7, 11, 11, 9, 10, 0, 9]).map(getNum);
   const projData = (forecast?.projected || [15, 12, 10, 9]).map(getNum);
   const combinedProj = histData.length > 0 ? [histData[histData.length - 1], ...projData] : [];
@@ -123,7 +122,6 @@ function AnalyticsContent() {
   const historicalPoints = generatePoints(histData, 0, totalSteps);
   const projectedPoints = generatePoints(combinedProj, Math.max(0, histData.length - 1), totalSteps);
 
-  // Financial Forecasting Full Year & Monthly Collection Trend Preparation
   const defaultMonths = finForecast?.labels?.length > 0 ? finForecast.labels : ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
   const rawFinHist = (finForecast?.historical || []).map(getNum);
   const rawFinProj = (finForecast?.projected || []).map(getNum);
@@ -151,7 +149,6 @@ function AnalyticsContent() {
   const finHistoricalPoints = generateFinPoints(annualHistorical, 0, finTotalSteps);
   const finProjectedPoints = generateFinPoints(annualProjectedCombined, Math.max(0, annualHistorical.length - 1), finTotalSteps);
   
-  // Monthly Collection Trend: strictly up to August (8 bars)
   const barData = annualHistorical.length > 0 ? annualHistorical.slice(0, 8) : [16800, 14200, 13500, 12000, 15500, 17000, 16800, 16000]; 
   const barLabels = defaultMonths.slice(0, 8);
   const maxBarVal = barData.length > 0 ? Math.max(...barData, 1) : 1; 
@@ -184,7 +181,7 @@ function AnalyticsContent() {
 
   const sourceRows = operationalRows.length > 0 ? operationalRows : [
     { category: 'Infrastructure SLA', status: 'Stable', metric: '1.8 Hours Avg', insight: 'Model: stats::glm() - Resolution efficiency optimal', statusTone: 'green' },
-    { category: 'Unpaid Share', status: 'Optimal', metric: `${overdueUnitsPct}% Unpaid`, insight: 'Model: rpart::rpart() - Default risk classification tree', statusTone: 'green' },
+    { category: 'Unpaid Dues', status: 'Optimal', metric: `${overdueUnitsPct}% Unpaid`, insight: 'Model: rpart::rpart() - Default risk classification tree', statusTone: 'green' },
     { category: 'Security & Incident Response', status: 'Optimal', metric: '15 Minutes', insight: 'Model: cluster::kmeans() - Incident hotspot tracking', statusTone: 'green' }
   ];
 
@@ -197,7 +194,7 @@ function AnalyticsContent() {
     const catLower = row.category.toLowerCase();
     const matchesCategoryFilter = categoryFilter === 'all' || 
       catLower.includes(categoryFilter) ||
-      (categoryFilter === 'unpaid share' && (catLower.includes('unpaid share') || catLower.includes('payment') || catLower.includes('delinquency')));
+      (categoryFilter === 'unpaid share' && (catLower.includes('unpaid share') || catLower.includes('unpaid dues') || catLower.includes('payment') || catLower.includes('delinquency')));
 
     return matchesSearch && matchesCategoryFilter;
   });
@@ -208,7 +205,7 @@ function AnalyticsContent() {
   };
 
   const showMetrics = checkMatch(['resident', 'households', 'collection', 'rate', 'risk', 'response', 'time', 'metrics', 'financial', 'analytics']);
-  const showOperational = checkMatch(['operational', 'status', 'infrastructure', 'unpaid share', 'security', 'table', 'metrics', 'financial']);
+  const showOperational = checkMatch(['operational', 'status', 'infrastructure', 'unpaid share', 'unpaid dues', 'security', 'table', 'metrics', 'financial']);
   const showComplaintForecast = checkMatch(['complaint', 'forecast', 'spike', 'analysis', 'arima', '30-day', 'metrics', 'financial']);
   const showHeatmap = checkMatch(['heatmap', 'zone', 'hotspots', 'demand', 'density', 'metrics', 'financial']);
   const showFinancialSection = checkMatch(['financial', 'monitoring', 'revenue', 'payment', 'paid', 'pending', 'overdue', 'forecasting', 'collection', 'metrics']);
@@ -274,6 +271,8 @@ function AnalyticsContent() {
                   <option value="this_month">This Month (August 2026)</option>
                   <option value="last_month">Last Month</option>
                   <option value="last_3_months">Last 3 Months</option>
+                  <option value="next_month">Next Month (September 2026)</option>
+                  <option value="next_3_months">Next 3 Months (Sep - Nov 2026)</option>
                 </select>
               </div>
               <div>
@@ -281,7 +280,7 @@ function AnalyticsContent() {
                 <select value={categoryFilter} onChange={(e) => setCategoryFilter(e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #ddd' }}>
                   <option value="all">All Categories</option>
                   <option value="infrastructure">Infrastructure</option>
-                  <option value="unpaid share">Unpaid Share</option>
+                  <option value="unpaid share">Unpaid Dues</option>
                   <option value="security">Security</option>
                 </select>
               </div>
@@ -610,10 +609,10 @@ function AnalyticsContent() {
                           </div>
                           <div>
                             <span style={{ fontSize: '11px', fontWeight: 'bold', color: '#0e5f43', letterSpacing: '0.5px' }}>EXPECTED REVENUE</span>
-                            <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#555' }}>{parsedTotalHouseholds} households x ₱{revenueDetail.baseAmount || 200}</p>
+                            <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#555' }}>{revenueDetail.householdsCount || 148} households x ₱{revenueDetail.baseAmount || 200}</p>
                           </div>
                         </div>
-                        <strong style={{ fontSize: '20px', fontWeight: '800', color: '#111' }}>₱{(parsedTotalHouseholds * (revenueDetail.baseAmount || 200)).toLocaleString()}</strong>
+                        <strong style={{ fontSize: '20px', fontWeight: '800', color: '#111' }}>₱{(revenueDetail.expectedRevenue || 29600).toLocaleString()}</strong>
                       </div>
                     </div>
 
@@ -624,7 +623,7 @@ function AnalyticsContent() {
                       </div>
                       <div style={{ border: '1px solid #eee', padding: '16px', borderRadius: '8px', background: '#fff' }}>
                         <span style={{ fontSize: '11px', color: '#cb5448', fontWeight: '700', letterSpacing: '0.5px' }}>OUTSTANDING</span>
-                        <h4 style={{ margin: '6px 0 0 0', fontSize: '20px', fontWeight: '800', color: '#cb5448' }}>₱{(revenueDetail.outstandingRevenue || (parsedTotalHouseholds * 200)).toLocaleString()}</h4>
+                        <h4 style={{ margin: '6px 0 0 0', fontSize: '20px', fontWeight: '800', color: '#cb5448' }}>₱{(revenueDetail.outstandingRevenue || 29600).toLocaleString()}</h4>
                       </div>
                     </div>
                   </article>

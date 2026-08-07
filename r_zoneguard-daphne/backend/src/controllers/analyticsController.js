@@ -3,55 +3,102 @@ const fs = require('fs');
 const path = require('path');
 const { execSync } = require('child_process');
 
+// Helper to extract date range filter parameters
+const getDateRangeCondition = (range, dateField = 'createdAt') => {
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth() + 1;
+
+  if (range === 'last_month') {
+    const prevMonth = currentMonth === 1 ? 12 : currentMonth - 1;
+    const prevYear = currentMonth === 1 ? currentYear - 1 : currentYear;
+    return {
+      [dateField]: {
+        gte: new Date(prevYear, prevMonth - 1, 1),
+        lt: new Date(prevYear, prevMonth, 1)
+      }
+    };
+  } else if (range === 'last_3_months') {
+    const startMonth = currentMonth - 3 <= 0 ? currentMonth - 3 + 12 : currentMonth - 3;
+    const startYear = currentMonth - 3 <= 0 ? currentYear - 1 : currentYear;
+    return {
+      [dateField]: {
+        gte: new Date(startYear, startMonth - 1, 1),
+        lt: new Date(currentYear, currentMonth, 1)
+      }
+    };
+  } else if (range === 'next_month') {
+    const nextMonth = currentMonth === 12 ? 1 : currentMonth + 1;
+    const nextYear = currentMonth === 12 ? currentYear + 1 : currentYear;
+    return {
+      [dateField]: {
+        gte: new Date(nextYear, nextMonth - 1, 1),
+        lt: new Date(nextYear, nextMonth, 1)
+      }
+    };
+  } else if (range === 'next_3_months') {
+    return {
+      [dateField]: {
+        gte: new Date(currentYear, currentMonth, 1),
+        lt: new Date(currentYear, currentMonth + 3, 1)
+      }
+    };
+  } else {
+    // Default: this_month
+    return {
+      [dateField]: {
+        gte: new Date(currentYear, currentMonth - 1, 1),
+        lt: new Date(currentYear, currentMonth, 1)
+      }
+    };
+  }
+};
+
 // 1. Core Summary Metrics Card
 exports.getAnalyticsData = async (req, res) => {
   try {
+    const range = req.query.range || 'this_month';
     const now = new Date();
     const currentYear = now.getFullYear();
     const currentMonth = now.getMonth() + 1;
 
+    // Dynamic counts from database
     const totalHouseholds = await prisma.lot.count();
     const totalResidents = await prisma.user.count();
 
+    const dateFilter = getDateRangeCondition(range, 'transactionDate');
     const transactions = await prisma.transaction.findMany({
-      where: { paymentStatus: { in: ['VERIFIED', 'COMPLETED', 'PAID', 'SUCCESS', 'APPROVED'] } },
+      where: {
+        paymentStatus: { in: ['VERIFIED', 'COMPLETED', 'PAID', 'SUCCESS', 'APPROVED'] },
+        ...dateFilter
+      },
       select: { amount: true, transactionDate: true, createdAt: true }
     });
 
-    let totalCollected = 0;
-    let paidThisMonthCount = 0;
+    let totalCollected = transactions.reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+    const paidThisMonthCount = transactions.length;
 
-    transactions.forEach(t => {
-      totalCollected += Number(t.amount) || 0;
-      const txDate = t.transactionDate || t.createdAt;
-      if (txDate) {
-        const dt = new Date(txDate);
-        if (dt.getMonth() + 1 === currentMonth && dt.getFullYear() === currentYear) {
-          paidThisMonthCount++;
-        }
-      }
-    });
-
+    // Fetch receivables for expected revenue & status breakdown
     const receivables = await prisma.accountsReceivable.findMany({
-      select: { baseAmount: true, billingStatus: true, billingMonth: true, billingYear: true }
+      where: range === 'this_month' ? { billingMonth: currentMonth, billingYear: currentYear } : {}
     });
 
-    let totalExpected = 0;
-    let overdueCount = 0;
+    let totalExpected = receivables.reduce((sum, r) => sum + (Number(r.baseAmount) || 0), 0);
+    if (totalExpected === 0 && totalHouseholds > 0) {
+      // Fallback to dynamic base amount from database if available, otherwise 0
+      const sampleReceivable = await prisma.accountsReceivable.findFirst({ select: { baseAmount: true } });
+      const dynamicBase = sampleReceivable ? Number(sampleReceivable.baseAmount) : 0;
+      totalExpected = totalHouseholds * dynamicBase;
+    }
+
     let pendingCount = 0;
+    let overdueCount = 0;
 
     receivables.forEach(r => {
-      if (r.billingMonth === currentMonth && r.billingYear === currentYear) {
-        totalExpected += Number(r.baseAmount) || 0;
-      }
       const status = (r.billingStatus || '').toUpperCase();
       if (['PENDING', 'PARTIAL', 'UNPAID'].includes(status)) pendingCount++;
       else if (['OVERDUE', 'DELINQUENT'].includes(status)) overdueCount++;
     });
-
-    if (totalExpected === 0) {
-      totalExpected = totalHouseholds * 200;
-    }
 
     const delinquentLotsCount = await prisma.lot.count({
       where: { OR: [{ isDelinquent: true }, { lotStanding: { in: ['DELINQUENT', 'UNPAID', 'WITH_ARREARS'] } }] }
@@ -60,6 +107,7 @@ exports.getAnalyticsData = async (req, res) => {
     const collectionRate = totalExpected > 0 ? (totalCollected / totalExpected) * 100 : 0;
     const riskIndex = totalHouseholds > 0 ? (delinquentLotsCount / totalHouseholds) * 100 : 0;
 
+    // Response time from resolved complaints
     const resolvedComplaints = await prisma.complaint.findMany({
       where: { status: { in: ['RESOLVED', 'CLOSED'] } },
       select: { createdAt: true, updatedAt: true }
@@ -99,8 +147,8 @@ exports.getAnalyticsData = async (req, res) => {
 exports.getRevenueMonitoringDetail = async (req, res) => {
   try {
     const totalHouseholds = await prisma.lot.count();
-    const receivables = await prisma.accountsReceivable.findMany({ select: { baseAmount: true } });
-    const baseAmount = receivables.length > 0 && receivables[0].baseAmount ? Number(receivables[0].baseAmount) : 200;
+    const sampleReceivable = await prisma.accountsReceivable.findFirst({ select: { baseAmount: true } });
+    const baseAmount = sampleReceivable && sampleReceivable.baseAmount ? Number(sampleReceivable.baseAmount) : 0;
     const expectedRevenue = totalHouseholds * baseAmount;
 
     const transactions = await prisma.transaction.findMany({
@@ -133,15 +181,7 @@ exports.getPaymentDistribution = async (req, res) => {
       else if (['OVERDUE', 'DELINQUENT'].includes(status)) overdueCount++;
     });
 
-    if (receivables.length === 0) {
-      const totalLots = await prisma.lot.count();
-      overdueCount = await prisma.lot.count({
-        where: { OR: [{ isDelinquent: true }, { lotStanding: { in: ['DELINQUENT', 'UNPAID', 'WITH_ARREARS'] } }] }
-      });
-      pendingCount = Math.max(0, totalLots - overdueCount);
-    }
-
-    const totalBills = paidCount + pendingCount + overdueCount || 1;
+    const totalBills = paidCount + pendingCount + overdueCount || await prisma.lot.count() || 1;
     return res.status(200).json({
       success: true,
       data: {
@@ -208,20 +248,17 @@ exports.getFinancialForecast = async (req, res) => {
   }
 };
 
-// 6. Zone Operational Status (True Database-Driven R-Analytics Pipeline)
+// 6. Zone Operational Status (Database-Driven R-Analytics Pipeline)
 exports.getOperationalStatus = async (req, res) => {
   try {
-    // Fetch ALL raw complaints to build a real dataset for R's glm() and kmeans()
     const complaints = await prisma.complaint.findMany({
       select: { complaintCategory: true, status: true, createdAt: true, updatedAt: true }
     });
 
-    // Fetch ALL lots to build a real dataset for R's rpart() classification
     const lots = await prisma.lot.findMany({
       select: { isDelinquent: true, lotStanding: true }
     });
 
-    // Structure raw database rows into JSON payload for R execution
     const rawPayload = {
       complaints: complaints.map(c => {
         const cat = (c.complaintCategory || '').toUpperCase();
@@ -268,9 +305,9 @@ exports.getHeatmap = async (req, res) => {
     let hotspots = [];
     if (lotsWithCoords.length > 0) {
       hotspots = lotsWithCoords.map((l, idx) => ({
-        x: 20 + (idx * 5) % 65,
-        y: 25 + (idx * 7) % 60,
-        label: `Lot ${l.houseNumber || idx + 1}`,
+        x: Number(l.longitude) || (20 + (idx * 5) % 65),
+        y: Number(l.latitude) || (25 + (idx * 7) % 60),
+        label: `Lot ${l.houseNumber || idx + 1} (${l.street || 'Unknown Street'})`,
         status: l.isDelinquent ? 'Delinquent' : 'Active'
       }));
     }
