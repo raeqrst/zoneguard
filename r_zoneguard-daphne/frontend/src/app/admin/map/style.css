@@ -299,3 +299,65 @@ body {
   font-weight: 700;
   margin-top: 4px;
 }
+
+.map-view-toggle {
+  display: flex;
+  gap: 8px;
+  margin: 12px 0;
+}
+
+.view-pill {
+  padding: 6px 16px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: white;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.view-pill.active {
+  background: #065f46;
+  color: white;
+  border-color: #065f46;
+}
+
+.ticket-detail-card {
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #064e3b;
+  color: white;
+  padding: 16px 20px;
+  border-radius: 8px;
+  z-index: 1000;
+  min-width: 260px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.ticket-detail-card p {
+  margin: 4px 0;
+  font-size: 13px;
+}
+
+.ticket-detail-card button {
+  margin-top: 8px;
+  background: transparent;
+  border: 1px solid white;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.ticket-card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ticket-counter {
+  font-size: 12px;
+  opacity: 0.8;
+}

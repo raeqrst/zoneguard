@@ -8,6 +8,10 @@ export default function CollectorPaymentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(true);
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
 
   useEffect(() => {
     async function loadPayments() {
@@ -34,6 +38,11 @@ export default function CollectorPaymentsPage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
+  // Reset to page 1 whenever the user types in the search box
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
   const handleUpdateStatus = async (paymentId, status) => {
     try {
       const res = await fetch(`/api/collector/payments/${paymentId}`, {
@@ -47,16 +56,30 @@ export default function CollectorPaymentsPage() {
         if (selectedPayment?.id === paymentId) {
           setSelectedPayment(null);
         }
+        
+        // Handle edge case: if approving the last item on a page, go back one page
+        if (paginatedPayments.length === 1 && currentPage > 1) {
+          setCurrentPage((prev) => prev - 1);
+        }
       }
     } catch (err) {
       console.error("Failed to update status:", err);
     }
   };
 
+  // 1. Filter the payments based on search
   const filteredPayments = payments.filter(p => 
     (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
     (p.address && p.address.toLowerCase().includes(searchTerm.toLowerCase()))
   );
+
+  // 2. Calculate pagination boundaries
+  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  
+  // 3. Slice the array to only show 8 items per page
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
 
   return (
     <div className="payments-page">
@@ -108,8 +131,9 @@ export default function CollectorPaymentsPage() {
                   Loading digital payments...
                 </td>
               </tr>
-            ) : filteredPayments.length > 0 ? (
-              filteredPayments.map((row) => (
+            ) : paginatedPayments.length > 0 ? (
+              // Use paginatedPayments instead of filteredPayments here
+              paginatedPayments.map((row) => (
                 <tr key={row.id}>
                   <td>
                     <div className="resident-cell">
@@ -156,13 +180,43 @@ export default function CollectorPaymentsPage() {
         </table>
 
         <div className="table-footer">
-          <span>Showing 1 to {filteredPayments.length} of {filteredPayments.length} pending digital transactions</span>
-          <div className="pagination">
-            <button className="page-btn">{'<'}</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">2</button>
-            <button className="page-btn">{'>'}</button>
-          </div>
+          <span>
+            Showing {filteredPayments.length > 0 ? startIndex + 1 : 0} to {Math.min(endIndex, filteredPayments.length)} of {filteredPayments.length} pending digital transactions
+          </span>
+          
+          {/* Conditionally render pagination ONLY if there is more than 1 page */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              >
+                {'<'}
+              </button>
+              
+              {/* Generate dynamic page numbers based on totalPages */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button 
+                  key={page} 
+                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              >
+                {'>'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

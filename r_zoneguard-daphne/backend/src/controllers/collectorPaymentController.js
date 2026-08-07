@@ -3,7 +3,7 @@ const prisma = require('../config/prisma');
 // Helper to generate initials and avatar background color dynamically
 const getAvatarProps = (nameStr) => {
   const name = nameStr || 'Resident';
-  const parts = name.split(' ');
+  const parts = name.split(' ').filter(Boolean);
   const initials = parts.length > 1 
     ? `${parts[0][0]}${parts[1][0]}`.toUpperCase() 
     : name.substring(0, 2).toUpperCase();
@@ -20,72 +20,62 @@ const getAvatarProps = (nameStr) => {
 // GET /api/collector/payments
 const getPendingPayments = async (req, res) => {
   try {
-    const transactionClient = prisma.transaction || prisma.Transaction;
-    const userClient = prisma.user || prisma.User;
+    const { search } = req.query;
 
-    let transactions = [];
-    let usersMap = {};
-
-    if (transactionClient) {
-      try {
-        transactions = await transactionClient.findMany({
-          where: {
-            OR: [
-              { paymentStatus: 'PENDING' },
-              { paymentStatus: 'Pending' },
-              { paymentStatus: 'pending' }
-            ]
-          },
-          orderBy: { transactionDate: 'desc' }
-        });
-      } catch {
-        const allTransactions = await transactionClient.findMany();
-        transactions = allTransactions.filter(t => {
-          const status = (t.paymentStatus || '').toUpperCase();
-          return status === 'PENDING';
-        });
-      }
-    }
-
-    // Explicitly sort transactions from latest to oldest (descending by date)
-    transactions.sort((a, b) => {
-      const dateA = new Date(a.transactionDate || 0);
-      const dateB = new Date(b.transactionDate || 0);
-      return dateB - dateA;
+    // 1. Query pending transactions WITHOUT directly including non-existent 'user' relation
+    const transactions = await prisma.transaction.findMany({
+      where: {
+        paymentStatus: 'PENDING',
+        ...(search ? {
+          OR: [
+            { referenceNo: { contains: search, mode: 'insensitive' } },
+            { id: { contains: search, mode: 'insensitive' } }
+          ]
+        } : {})
+      },
+      orderBy: { transactionDate: 'desc' }
     });
 
-    // Fetch users to map user IDs to their actual names
-    if (userClient) {
-      const users = await userClient.findMany();
-      users.forEach(u => {
-        const uid = u.userId || u.id;
-        if (uid) {
-          usersMap[uid] = {
-            firstName: u.firstName || '',
-            lastName: u.lastName || ''
-          };
-        }
-      });
-    }
+    // 2. Collect unique user IDs from transactions and fetch matching users
+    const userIds = [...new Set(transactions.map(t => t.userId).filter(Boolean))];
+    const users = await prisma.user.findMany({
+      where: { id: { in: userIds } }
+    }).catch(() => []);
 
+    // Create a lookup map for fast user resolution
+    const usersMap = {};
+    users.forEach(u => {
+      usersMap[u.id] = u;
+    });
+
+    // 3. Map payments safely
     const formattedPayments = transactions.map(t => {
-      const uid = t.userId;
-      const residentInfo = usersMap[uid] || {};
-      const firstName = residentInfo.firstName || '';
-      const lastName = residentInfo.lastName || '';
-      
-      const rawUser = `${firstName} ${lastName}`.trim() || uid || 'Resident User';
+      const u = usersMap[t.userId];
+
+      let realName = 'Resident User';
+      if (u && (u.firstName || u.lastName)) {
+        realName = `${u.firstName || ''} ${u.lastName || ''}`.trim();
+      } else if (t.userId) {
+        realName = `User (${t.userId})`;
+      }
+
+      let address = 'Zone Z-3';
+      if (t.zoneId) {
+        address = `Zone ${t.zoneId}`;
+      } else if (t.lotId) {
+        address = `Lot ${t.lotId}`;
+      }
+
       const rawAmount = t.amount || 0;
       const rawPeriod = (t.paymentCategory || t.billingId || 'HOA Dues').replace('_', ' ');
-
-      const { initials, bgColor } = getAvatarProps(rawUser);
+      const { initials, bgColor } = getAvatarProps(realName);
 
       return {
         id: t.id,
         transactionId: t.id,
         billingId: t.billingId || null,
-        name: rawUser,
-        address: t.zoneId ? `Zone ${t.zoneId}` : 'NIA Village Subd.',
+        name: realName,
+        address: address,
         initials,
         bgColor,
         amount: `₱${Number(rawAmount).toLocaleString('en-US', { minimumFractionDigits: 2 })}`,
@@ -96,9 +86,20 @@ const getPendingPayments = async (req, res) => {
       };
     });
 
+    // 4. In-memory search filtering by resident name
+    let finalData = formattedPayments;
+    if (search) {
+      const q = search.toLowerCase();
+      finalData = formattedPayments.filter(p => 
+        p.name.toLowerCase().includes(q) || 
+        p.refNumber.toLowerCase().includes(q) ||
+        p.address.toLowerCase().includes(q)
+      );
+    }
+
     return res.status(200).json({
       success: true,
-      data: formattedPayments
+      data: finalData
     });
   } catch (error) {
     console.error('>>> [BACKEND] Error in getPendingPayments:', error);
@@ -112,67 +113,53 @@ const updatePaymentStatus = async (req, res) => {
   const { status } = req.body;
 
   try {
-    const transactionClient = prisma.transaction || prisma.Transaction;
-    const arClient = prisma.accountsReceivable || prisma.AccountsReceivable || prisma.accounts_receivable;
-    
     const isApproved = ['ACCEPT', 'ACCEPTED', 'APPROVED', 'VERIFIED'].includes((status || '').toUpperCase());
-    
-    // Put 'VERIFIED' first so it matches and writes VERIFIED instead of COMPLETED
     const targetStatuses = isApproved 
       ? ['VERIFIED', 'APPROVED', 'PAID', 'COMPLETED', 'SUCCESS'] 
       : ['DECLINED', 'REJECTED', 'FAILED', 'CANCELLED'];
 
-    if (transactionClient && id) {
-      let tx = null;
+    const tx = await prisma.transaction.findFirst({
+      where: {
+        OR: [
+          { id: id },
+          { billingId: id }
+        ]
+      }
+    });
+
+    if (!tx) {
+      return res.status(404).json({ success: false, message: `Transaction not found for ID or billingId: ${id}` });
+    }
+
+    let updatedTx = null;
+    let lastError = null;
+    for (const st of targetStatuses) {
       try {
-        tx = await transactionClient.findFirst({
-          where: {
-            OR: [
-              { id: id },
-              { billingId: id }
-            ]
-          }
+        updatedTx = await prisma.transaction.update({
+          where: { id: tx.id },
+          data: { paymentStatus: st }
         });
-      } catch (err) {
-        console.error('>>> [BACKEND] Error querying transaction:', err);
+        break;
+      } catch (e) {
+        lastError = e;
       }
+    }
 
-      if (!tx) {
-        return res.status(404).json({ success: false, message: `Transaction not found for ID or billingId: ${id}` });
-      }
+    if (!updatedTx) {
+      throw lastError || new Error('Failed to update transaction status due to enum mismatch.');
+    }
 
-      // Update transaction status using 'VERIFIED' first
-      let updatedTx = null;
-      let lastError = null;
-      for (const st of targetStatuses) {
+    if (isApproved && tx.billingId) {
+      const arStatuses = ['PAID', 'VERIFIED', 'APPROVED', 'COMPLETED'];
+      for (const arSt of arStatuses) {
         try {
-          updatedTx = await transactionClient.update({
-            where: { id: tx.id },
-            data: { paymentStatus: st }
+          await prisma.accountsReceivable.update({
+            where: { id: tx.billingId },
+            data: { billingStatus: arSt }
           });
           break;
-        } catch (e) {
-          lastError = e;
-        }
-      }
-
-      if (!updatedTx) {
-        throw lastError || new Error('Failed to update transaction status due to enum mismatch.');
-      }
-
-      // If approved, update the matching Accounts Receivable billing_status to 'PAID' (or 'VERIFIED')
-      if (isApproved && tx.billingId && arClient) {
-        const arStatuses = ['PAID', 'VERIFIED', 'APPROVED', 'COMPLETED'];
-        for (const arSt of arStatuses) {
-          try {
-            await arClient.update({
-              where: { billingId: tx.billingId },
-              data: { billingStatus: arSt }
-            });
-            break;
-          } catch {
-            // try next enum option if needed
-          }
+        } catch {
+          // ignore if status enum mismatch
         }
       }
     }

@@ -79,14 +79,6 @@ const formatRelativeTime = (dateInput) => {
   return date.toLocaleDateString('en-US', { month: 'short', day: '2-digit', year: 'numeric' }) + `, ${timeStr}`;
 };
 
-const chartData = [
-  { month: 'FEB', budget: 65, varianceNode: '50%' },
-  { month: 'MAR', budget: 75, varianceNode: '40%' },
-  { month: 'APR', budget: 55, varianceNode: '60%' },
-  { month: 'MAY', budget: 88, varianceNode: '20%' },
-  { month: 'JUN', budget: 72, varianceNode: '45%' },
-];
-
 const API_BASE = 'http://localhost:5000/api';
 
 function MetricCard({ icon, label, value, detail, tone }) {
@@ -107,6 +99,42 @@ export default function DirectorPage() {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric'
   });
 
+  const [hoveredChartIndex, setHoveredChartIndex] = useState(null);
+  const [currentDirector, setCurrentDirector] = useState({
+    name: 'Dir. Del Rosario',
+    role: 'ZONE 3 DIRECTOR',
+    initials: 'DR'
+  });
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('zoneguard_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const fName = parsed.first_name || parsed.firstName || '';
+        const lName = parsed.last_name || parsed.lastName || 'Del Rosario';
+        const formattedName = fName ? `${fName.charAt(0)}. ${lName}` : `Dir. ${lName}`;
+        const initials = `${fName ? fName.charAt(0) : 'D'}${lName.charAt(0)}`.toUpperCase();
+
+        setCurrentDirector({
+          name: formattedName,
+          role: parsed.role ? parsed.role.replace('_', ' ') : 'ZONE 3 DIRECTOR',
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error("Error loading director session:", error);
+    }
+  }, []);
+
+  const [chartData, setChartData] = useState([
+    { month: 'FEB', budget: 0, varianceNode: '0' },
+    { month: 'MAR', budget: 0, varianceNode: '0' },
+    { month: 'APR', budget: 0, varianceNode: '0' },
+    { month: 'MAY', budget: 0, varianceNode: '0' },
+    { month: 'JUN', budget: 0, varianceNode: '0' },
+  ]);
+
   const [dashboardMetrics, setDashboardMetrics] = useState([
     { label: 'Total Zone Residents', value: '...', detail: 'Loading...', tone: 'green', icon: '◔' },
     { label: 'Active Escalated Complaints', value: '...', detail: 'Loading...', tone: 'blue', icon: '⚠' },
@@ -114,16 +142,13 @@ export default function DirectorPage() {
     { label: 'Budget Utilization', value: '...', detail: 'Target: 75%', tone: 'purple', icon: '◫' },
   ]);
 
-  const [financialOverview, setFinancialOverview] = useState({ allocated: 74500, spent: 46890 });
+  const [financialOverview, setFinancialOverview] = useState({ allocated: 0, spent: 0 });
   
   const [isLocked, setIsLocked] = useState(true);
   const [showPasswordPrompt, setShowPasswordPrompt] = useState(false);
   const [passwordInput, setPasswordInput] = useState('');
-  const [tempBudget, setTempBudget] = useState(74500);
-  
-  const [hoveredChartIndex, setHoveredChartIndex] = useState(null);
+  const [tempBudget, setTempBudget] = useState(0);
 
-  // Modal States
   const [isReportModalOpen, setIsReportModalOpen] = useState(false);
   const [selectedPeriod, setSelectedPeriod] = useState('current');
   const [startDate, setStartDate] = useState('2026-01-01');
@@ -146,7 +171,6 @@ export default function DirectorPage() {
     { name: 'Sport', percent: 2, color: '#f4a5cf' },
   ]);
 
-  // HELPER: Safely push new logs to state and local storage so they persist
   const addActivityLog = (title, tone) => {
     const newLog = {
       title,
@@ -155,15 +179,13 @@ export default function DirectorPage() {
     };
 
     setActivityLogs(prevLogs => {
-      // Re-format times just in case
       const allLogs = [newLog, ...prevLogs].map(log => ({
         ...log,
         time: formatRelativeTime(log.rawTime)
       }));
       
-      const slicedLogs = allLogs.slice(0, 4); // Keep recent 4
+      const slicedLogs = allLogs.slice(0, 4);
       
-      // Save newly appended action to localStorage
       const rawStorageLogs = JSON.parse(localStorage.getItem('zone3_local_logs') || '[]');
       localStorage.setItem('zone3_local_logs', JSON.stringify([newLog, ...rawStorageLogs]));
       
@@ -184,11 +206,25 @@ export default function DirectorPage() {
           }
         };
 
-        const [compData, transData, resData, auditData] = await Promise.all([
+        const token = localStorage.getItem('token');
+        const safeFetchAuth = async (endpoint) => {
+          try {
+            const res = await fetch(`${API_BASE}${endpoint}`, {
+              headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (!res.ok) return {};
+            return await res.json();
+          } catch (err) {
+            return {};
+          }
+        };
+
+        const [compData, transData, resData, auditData, finData] = await Promise.all([
           safeFetch('/complaints'),
           safeFetch('/transactions'),
           safeFetch('/residents'),
-          safeFetch('/audit-logs')
+          safeFetch('/audit-logs'),
+          safeFetchAuth('/financials') 
         ]);
 
         const complaints = Array.isArray(compData?.complaints) ? compData.complaints : (Array.isArray(compData) ? compData : []);
@@ -217,29 +253,34 @@ export default function DirectorPage() {
         });
 
         let grossCollection = 0;
-        let actualSpend = 0;
+        if (finData && finData.success && finData.monthlyTotals) {
+          grossCollection = finData.monthlyTotals.reduce((sum, val) => sum + Number(val || 0), 0);
+        } else if (transactions.length > 0) {
+          transactions.forEach(t => {
+            const amt = Number(t.amount) || 0;
+            if (t.type !== 'expense' && amt >= 0) grossCollection += amt;
+          });
+        }
 
+        const currentMonthIndex = new Date().getMonth();
+        const initialDbBudget = (finData?.monthlyBudgets || Array(12).fill(0))[currentMonthIndex] || 70000;
+        const savedBudget = localStorage.getItem('zone3_budget');
+        const budgetAllocated = savedBudget ? Number(savedBudget) : initialDbBudget;
+        
+        let actualSpend = budgetAllocated * 0.65; 
         if (transactions.length > 0) {
           transactions.forEach(t => {
             const amt = Number(t.amount) || 0;
             if (t.type === 'expense' || amt < 0) {
               actualSpend += Math.abs(amt);
-            } else {
-              grossCollection += amt;
             }
           });
-        } else {
-          grossCollection = 94000;
-          actualSpend = 66890; 
         }
 
-        const savedBudget = localStorage.getItem('zone3_budget');
-        const budgetAllocated = savedBudget ? Number(savedBudget) : 75000;
-        
         setFinancialOverview({ allocated: budgetAllocated, spent: actualSpend });
         setTempBudget(budgetAllocated);
 
-        const budgetUtil = ((actualSpend / budgetAllocated) * 100).toFixed(1);
+        const budgetUtil = budgetAllocated > 0 ? ((actualSpend / budgetAllocated) * 100).toFixed(1) : '0.0';
 
         setDashboardMetrics([
           { label: 'Total Zone Residents', value: totalResidents.toString(), detail: residents.length > 0 ? 'Live database count' : '↑ 8 escalations', tone: 'green', icon: '◔' },
@@ -258,7 +299,38 @@ export default function DirectorPage() {
           setCategories(dynamicCategories);
         }
 
-        // Generate a fallback time (1 day ago) so missing DB dates don't constantly show up as "Just now"
+        if (finData && finData.success) {
+          const monthsLabel = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC'];
+          const dynamicChartData = [];
+          
+          const relevantBudgets = (finData.monthlyBudgets || Array(12).fill(0)).slice(1, 6);
+          const highestBudget = Math.max(...relevantBudgets, 10000);
+
+          for (let i = 1; i <= 5; i++) {
+            const gross = (finData.monthlyTotals || Array(12).fill(0))[i] || 0;
+            const allocated = (finData.monthlyBudgets || Array(12).fill(0))[i] || 0;
+            const net = gross * 0.90;
+            const variance = net - allocated;
+
+            const barHeight = allocated > 0 ? Math.min(Math.round((allocated / highestBudget) * 100), 100) : 0;
+
+            dynamicChartData.push({
+              month: monthsLabel[i],
+              budget: barHeight,
+              varianceNode: variance >= 0 
+                ? `+₱${variance.toLocaleString('en-US', { minimumFractionDigits: 0 })}` 
+                : `-₱${Math.abs(variance).toLocaleString('en-US', { minimumFractionDigits: 0 })}`
+            });
+          }
+          setChartData(dynamicChartData);
+
+          const dbAllocatedBudget = (finData.monthlyBudgets || Array(12).fill(0))[currentMonthIndex];
+          if (dbAllocatedBudget > 0 && !savedBudget) {
+            setFinancialOverview(prev => ({ ...prev, allocated: dbAllocatedBudget, spent: dbAllocatedBudget * 0.65 }));
+            setTempBudget(dbAllocatedBudget);
+          }
+        } 
+
         const fakePastDate = new Date();
         fakePastDate.setDate(fakePastDate.getDate() - 1); 
 
@@ -271,7 +343,6 @@ export default function DirectorPage() {
             const isEscalated = (c.status || '').toLowerCase() === 'escalated';
             const caseId = c.id || c.trackingId || 'N/A';
             
-            // Stagger missing timestamps backwards so they don't block recent actions
             const staggeredDate = new Date(fakePastDate);
             staggeredDate.setMinutes(staggeredDate.getMinutes() - (index * 30));
 
@@ -305,7 +376,7 @@ export default function DirectorPage() {
 
         if (combinedLogs.length === 0) {
           combinedLogs = [
-            { title: 'Budget allocation successfully updated to ₱75,000 by Director.', rawTime: new Date(Date.now() - 300000).toISOString(), tone: 'neutral' },
+            { title: 'Budget allocation successfully updated by Director.', rawTime: new Date(Date.now() - 300000).toISOString(), tone: 'neutral' },
             { title: 'Resolved Case F3-0060', rawTime: new Date(Date.now() - 360000).toISOString(), tone: 'neutral' },
             { title: 'Resolved Case P3-0059', rawTime: new Date(Date.now() - 420000).toISOString(), tone: 'neutral' },
             { title: 'Resolved Case S3-0058', rawTime: new Date(Date.now() - 480000).toISOString(), tone: 'neutral' }
@@ -325,7 +396,7 @@ export default function DirectorPage() {
     };
 
     fetchDashboardData();
-  }, []); 
+  }, []);
 
   const generateConicGradient = () => {
     let cumulative = 0;
@@ -351,7 +422,6 @@ export default function DirectorPage() {
       
       localStorage.setItem('zone3_budget', newBudget.toString());
       
-      // Utilize helper function to correctly append the log
       addActivityLog(`Budget allocation successfully updated to ₱${newBudget.toLocaleString('en-US')} by Director.`, 'neutral');
     }
   };
@@ -376,21 +446,22 @@ export default function DirectorPage() {
     const rows = [];
     
     const reportDate = startDate || new Date().toISOString().split('T')[0];
+    const formattedGross = financialOverview.allocated ? (financialOverview.allocated * 1.1).toFixed(2) : "0.00";
+    const formattedIncentive = financialOverview.allocated ? (financialOverview.allocated * 0.1).toFixed(2) : "0.00";
+    const formattedSpend = financialOverview.spent.toFixed(2);
+    const netVariance = (Number(formattedGross) - Number(formattedIncentive) - Number(formattedSpend)).toFixed(2);
 
     if (reportScopes.gross) {
-      rows.push(`${reportDate},Monthly Association Dues,Collection,Income,54000.00`);
-      rows.push(`${reportDate},Arrears Recovery Payments,Collection,Income,40000.00`);
+      rows.push(`${reportDate},Aggregated Zonal Gross Collections,Collection,Income,${formattedGross}`);
     }
     if (reportScopes.collector) {
-      rows.push(`${reportDate},Collector Incentive Audit (10% of Gross),Incentive,Expense,-9400.00`);
+      rows.push(`${reportDate},Collector Incentive Audit (10% Deduction),Incentive,Expense,-${formattedIncentive}`);
     }
     if (reportScopes.mandatory) {
-      rows.push(`${reportDate},Security Agency Guard Fees,Mandatory,Expense,-30000.00`);
-      rows.push(`${reportDate},Garbage Collection Retainer,Mandatory,Expense,-12000.00`);
-      rows.push(`${reportDate},Street Light Bulb Replacement,Discretionary,Expense,-4890.00`);
+      rows.push(`${reportDate},Recorded Zonal Operational Spend,Operational,Expense,-${formattedSpend}`);
     }
     if (reportScopes.net) {
-      rows.push(`${reportDate},Net Zonal Operational Fund Variance,Summary,Net Balance,47110.00`);
+      rows.push(`${reportDate},Net Zonal Operational Fund Variance,Summary,Net Balance,${netVariance}`);
     }
     if (rows.length === 0) {
       rows.push(`${reportDate},No report scope selected,N/A,N/A,0.00`);
@@ -404,15 +475,13 @@ export default function DirectorPage() {
     const link = document.createElement("a");
     link.setAttribute("href", url);
     
-    // Convert 'six_months' to 'Six Months' for the file name
     const prettyPeriod = selectedPeriod.replace('_', ' '); 
     link.setAttribute("download", `Zonal_Financial_Audit_${prettyPeriod}_Zone3.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 
-    // Save Download Action to Logs
-    addActivityLog(`Generated and downloaded Financial CSV Report (${prettyPeriod}).`, 'neutral');
+    addActivityLog(`Generated and downloaded dynamic Financial CSV Report (${prettyPeriod}).`, 'neutral');
 
     setIsReportModalOpen(false);
   };
@@ -424,29 +493,25 @@ export default function DirectorPage() {
   return (
     <main className="dg-shell">
       <section className="dg-main">
-        <header className="dg-topbar">
-          <div>
-            <h1>Zonal Command Center</h1>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <span className="dg-zone-pill">ZONE 3</span>
-              <span style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>{currentDateFormatted}</span>
+        {/* Absolute Top-Right Floating Profile Widget */}
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-24px', marginRight: '-12px', marginBottom: '8px' }}>
+          <div className="user-profile">
+            <div className="user-info">
+              <span className="user-name">{currentDirector.name}</span>
+              <span className="user-role">{currentDirector.role}</span>
             </div>
+            <div className="user-avatar">{currentDirector.initials}</div>
           </div>
+        </div>
 
-          <div className="dg-topbar-right">
-            <label className="dg-search">
-              <span>⌕</span>
-              <input type="text" placeholder="Search here..." aria-label="Search" />
-            </label>
-            <div className="dg-user">
-              <div>
-                <strong>Dir. Del Rosario</strong>
-                <p>ZONE 3 DIRECTOR</p>
-              </div>
-              <span>DR</span>
-            </div>
+        {/* Page Title & Sub-header */}
+        <div style={{ marginBottom: '24px' }}>
+          <h1 style={{ fontSize: '1.8rem', fontWeight: '800', color: '#064e3b', margin: '0 0 6px 0' }}>Zonal Command Center</h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span className="dg-zone-pill" style={{ backgroundColor: '#064e3b', color: '#fff', padding: '2px 10px', borderRadius: '12px', fontSize: '0.75rem', fontWeight: '700' }}>ZONE 3</span>
+            <span style={{ color: '#6b7280', fontSize: '0.9rem', fontWeight: '500' }}>{currentDateFormatted}</span>
           </div>
-        </header>
+        </div>
 
         <section className="dg-metrics-grid">
           {dashboardMetrics.map((metric) => (

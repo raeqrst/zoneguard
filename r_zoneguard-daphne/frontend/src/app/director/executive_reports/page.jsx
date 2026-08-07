@@ -31,60 +31,117 @@ const formatCurrency = (amount) => {
   return isNegative ? `-₱${formatted}` : `₱${formatted}`;
 };
 
-const financialDataByRange = {
-  Q1: {
-    title: "Q1 2026 (January - March)",
-    rows: [
-      { cycle: 'January', gross: 90000, net: 81000, budget: 100000, variance: -10000 },
-      { cycle: 'February', gross: 95000, net: 85500, budget: 100000, variance: -5000 },
-      { cycle: 'March', gross: 95000, net: 85500, budget: 100000, variance: -5000 },
-    ],
-    total: { gross: 280000, net: 252000, budget: 300000, variance: -20000 }
-  },
-  Q2: {
-    title: "Q2 2026 (April - June)",
-    rows: [
-      { cycle: 'April', gross: 100000, net: 90000, budget: 95000, variance: 5000 },
-      { cycle: 'May', gross: 110000, net: 99000, budget: 100000, variance: 9000 },
-      { cycle: 'June', gross: 100000, net: 90000, budget: 95000, variance: 5000 },
-    ],
-    total: { gross: 310000, net: 279000, budget: 290000, variance: 19000 }
-  },
-  Q3: {
-    title: "Q3 2026 (July - August TD)",
-    rows: [
-      { cycle: 'July', gross: 65000, net: 58500, budget: 52000, variance: 6500 },
-      { cycle: 'August (TD)', gross: 31000, net: 27900, budget: 25000, variance: 2900 },
-    ],
-    total: { gross: 96000, net: 86400, budget: 77000, variance: 9400 }
-  },
-  FULL_YEAR_YTD: {
-    title: "Full Year 2026 YTD (Recorded Data)",
-    rows: [
-      { cycle: 'Q1 Total', gross: 280000, net: 252000, budget: 300000, variance: -20000 },
-      { cycle: 'Q2 Total', gross: 310000, net: 279000, budget: 290000, variance: 19000 },
-      { cycle: 'Q3 Total (TD)', gross: 96000, net: 86400, budget: 77000, variance: 9400 },
-    ],
-    total: { gross: 686000, net: 617400, budget: 667000, variance: 8400 }
-  }
+const generateFinancialData = (monthlyTotals, monthlyBudgets) => {
+  const calcRow = (cycleName, gross, budget) => {
+    const net = gross * 0.90; 
+    const variance = net - budget;
+    return { cycle: cycleName, gross, net, budget, variance };
+  };
+
+  const q1Rows = [
+    calcRow('January', monthlyTotals[0], monthlyBudgets[0]),
+    calcRow('February', monthlyTotals[1], monthlyBudgets[1]),
+    calcRow('March', monthlyTotals[2], monthlyBudgets[2])
+  ];
+  
+  const q2Rows = [
+    calcRow('April', monthlyTotals[3], monthlyBudgets[3]),
+    calcRow('May', monthlyTotals[4], monthlyBudgets[4]),
+    calcRow('June', monthlyTotals[5], monthlyBudgets[5])
+  ];
+
+  const q3Rows = [
+    calcRow('July', monthlyTotals[6], monthlyBudgets[6]),
+    calcRow('August (TD)', monthlyTotals[7], monthlyBudgets[7])
+  ];
+
+  const sumRows = (rows) => rows.reduce(
+    (acc, row) => ({
+      gross: acc.gross + row.gross,
+      net: acc.net + row.net,
+      budget: acc.budget + row.budget,
+      variance: acc.variance + row.variance
+    }),
+    { gross: 0, net: 0, budget: 0, variance: 0 }
+  );
+
+  const q1Total = sumRows(q1Rows);
+  const q2Total = sumRows(q2Rows);
+  const q3Total = sumRows(q3Rows);
+
+  const ytdRows = [
+    { cycle: 'Q1 Total', ...q1Total },
+    { cycle: 'Q2 Total', ...q2Total },
+    { cycle: 'Q3 Total (TD)', ...q3Total }
+  ];
+
+  return {
+    Q1: { title: "Q1 2026 (January - March)", rows: q1Rows, total: q1Total },
+    Q2: { title: "Q2 2026 (April - June)", rows: q2Rows, total: q2Total },
+    Q3: { title: "Q3 2026 (July - August TD)", rows: q3Rows, total: q3Total },
+    FULL_YEAR_YTD: { title: "Full Year 2026 YTD (Recorded Data)", rows: ytdRows, total: sumRows(ytdRows) }
+  };
 };
 
 export default function ExecutiveReportsPage() {
   const [complaintsData, setComplaintsData] = useState([]);
+  const [financialData, setFinancialData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
   const [activeRange, setActiveRange] = useState('Q3');
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [currentDirector, setCurrentDirector] = useState({
+    name: 'Dir. Del Rosario',
+    role: 'ZONE 3 DIRECTOR',
+    initials: 'DR'
+  });
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('zoneguard_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const fName = parsed.first_name || parsed.firstName || '';
+        const lName = parsed.last_name || parsed.lastName || 'Del Rosario';
+        const formattedName = fName ? `${fName.charAt(0)}. ${lName}` : `Dir. ${lName}`;
+        const initials = `${fName ? fName.charAt(0) : 'D'}${lName.charAt(0)}`.toUpperCase();
+
+        setCurrentDirector({
+          name: formattedName,
+          role: parsed.role ? parsed.role.replace('_', ' ') : 'ZONE 3 DIRECTOR',
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error("Error loading director session:", error);
+    }
+  }, []);
 
   useEffect(() => {
     const fetchReportsData = async () => {
       setIsLoading(true);
       try {
-        const response = await fetch(`${API_BASE}/complaints`);
-        const data = await response.json();
-        setComplaintsData(data.complaints || []);
+        const compResponse = await fetch(`${API_BASE}/complaints`);
+        const compData = await compResponse.json();
+        setComplaintsData(compData.complaints || []);
+
+        const token = localStorage.getItem('token');
+        const finResponse = await fetch(`${API_BASE}/financials`, {
+          headers: {
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json'
+          }
+        });
+        const finData = await finResponse.json();
+        
+        if (finData.success) {
+          setFinancialData(generateFinancialData(finData.monthlyTotals, finData.monthlyBudgets));
+        } else {
+          setFinancialData(generateFinancialData(Array(12).fill(0), Array(12).fill(0)));
+        }
       } catch (error) {
         console.error('Failed to load reports data:', error);
+        setFinancialData(generateFinancialData(Array(12).fill(0), Array(12).fill(0)));
       } finally {
         setIsLoading(false);
       }
@@ -122,7 +179,11 @@ export default function ExecutiveReportsPage() {
         { name: 'Sports', total: 3, resolved: 2, active: 1 },
       ];
 
-  const currentFinancialData = financialDataByRange[activeRange];
+  if (isLoading || !financialData) {
+    return <div style={{ padding: '40px', textAlign: 'center', color: '#64748b' }}>Loading Executive Reports...</div>;
+  }
+
+  const currentFinancialData = financialData[activeRange];
 
   const handleDownloadCSV = () => {
     const rangeLabels = {
@@ -161,26 +222,16 @@ export default function ExecutiveReportsPage() {
 
   return (
     <div className="main-content">
-      {/* Top Header */}
-      <header className="top-header">
-        <div className="search-bar">
-          <span className="search-icon">{Icons.search}</span>
-          <input 
-            type="text" 
-            placeholder="Search reports..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-
+      {/* Absolute Top-Right Floating Profile Widget */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-24px', marginRight: '-12px', marginBottom: '8px' }}>
         <div className="user-profile">
           <div className="user-info">
-            <div className="user-name">Dir. Del Rosario</div>
-            <div className="user-role">ZONE 3 DIRECTOR</div>
+            <span className="user-name">{currentDirector.name}</span>
+            <span className="user-role">{currentDirector.role}</span>
           </div>
-          <div className="avatar">DR</div>
+          <div className="user-avatar">{currentDirector.initials}</div>
         </div>
-      </header>
+      </div>
 
       {/* Page Title Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
@@ -308,22 +359,16 @@ export default function ExecutiveReportsPage() {
             </tr>
           </thead>
           <tbody>
-            {isLoading ? (
-              <tr>
-                <td colSpan="4" style={{ textAlign: 'center', padding: '30px', color: '#666' }}>Loading category analytics...</td>
+            {categoriesList.map((cat, idx) => (
+              <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                <td style={{ padding: '16px 24px', fontWeight: '600', color: '#334155' }}>{cat.name}</td>
+                <td style={{ padding: '16px 24px' }}>{cat.total}</td>
+                <td style={{ padding: '16px 24px' }}>{cat.resolved}</td>
+                <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: '700', color: cat.active > 0 ? '#d97706' : '#166534' }}>
+                  {cat.active}
+                </td>
               </tr>
-            ) : (
-              categoriesList.map((cat, idx) => (
-                <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '16px 24px', fontWeight: '600', color: '#334155' }}>{cat.name}</td>
-                  <td style={{ padding: '16px 24px' }}>{cat.total}</td>
-                  <td style={{ padding: '16px 24px' }}>{cat.resolved}</td>
-                  <td style={{ padding: '16px 24px', textAlign: 'right', fontWeight: '700', color: cat.active > 0 ? '#d97706' : '#166534' }}>
-                    {cat.active}
-                  </td>
-                </tr>
-              ))
-            )}
+            ))}
           </tbody>
         </table>
       </div>

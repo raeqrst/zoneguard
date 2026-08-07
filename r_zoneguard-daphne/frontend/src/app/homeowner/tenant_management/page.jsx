@@ -32,13 +32,12 @@ function TenantManagementContent() {
   const [activeTenants, setActiveTenants] = useState([]);
 
   // Form State
-  // Add birthDate to your initial form state
   const [formData, setFormData] = useState({
     firstName: '',
     lastName: '',
     middleName: '',
     email: '',
-    birthDate: '', // Added birthDate
+    birthDate: '',
   });
   const [permitFile, setPermitFile] = useState(null);
 
@@ -93,12 +92,17 @@ function TenantManagementContent() {
           const lName = t.user?.lastName || '';
           const initials = `${fName[0] || ''}${lName[0] || ''}`.toUpperCase();
           const colors = ['#044e3a', '#0284c7', '#d97706', '#7c3aed'];
+          
+          // 🌟 Map backend approval states: 'APPROVED' or 'ACTIVE' maps to 'ACTIVE', everything else defaults to 'PENDING'
+          const rawStatus = (t.approvalStatus || t.status || 'PENDING').toUpperCase();
+          const displayStatus = (rawStatus === 'APPROVED' || rawStatus === 'ACTIVE') ? 'ACTIVE' : 'PENDING';
+
           return {
             id: t.id,
             name: `${fName} ${lName}`,
             initials: initials || 'T',
             avatarBg: colors[idx % colors.length],
-            status: 'ACTIVE'
+            status: displayStatus
           };
         });
         setActiveTenants(formatted);
@@ -118,7 +122,6 @@ function TenantManagementContent() {
     const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
     fetchTenantsForProperty(newId, loggedInUserId);
 
-    // Check if the newly selected property is a primary residence
     const selectedProp = properties.find((p) => String(p.id) === String(newId));
     const isPrimary = selectedProp ? selectedProp.name.toLowerCase().includes('primary') : false;
 
@@ -165,7 +168,7 @@ function TenantManagementContent() {
           middleName: formData.middleName.trim(),
           lastName: formData.lastName.trim(),
           email: formData.email.trim(),
-          birthDate: formData.birthDate || null, // Sent to backend
+          birthDate: formData.birthDate || null,
           rentalPermit: permitFile ? permitFile.name : null,
           permissions: {
             allowDuesPayment: allowDues,
@@ -176,8 +179,8 @@ function TenantManagementContent() {
 
       const data = await res.json();
       if (res.ok) {
-        alert('Tenant account created and linked successfully!');
-        setFormData({ firstName: '', lastName: '', middleName: '', email: '' });
+        alert('Tenant account submitted successfully and is now pending admin approval!');
+        setFormData({ firstName: '', lastName: '', middleName: '', email: '', birthDate: '' });
         setPermitFile(null);
         fetchTenantsForProperty(selectedPropertyId, loggedInUserId);
       } else {
@@ -361,6 +364,7 @@ function TenantManagementContent() {
                       </div>
                       <span className="tm-tenant-name">{tenant.name}</span>
                     </div>
+                    {/* 🌟 Dynamically applies 'active' or 'pending' class based on database status */}
                     <span className={`tm-status-pill ${tenant.status === 'ACTIVE' ? 'active' : 'pending'}`}>
                       {tenant.status}
                     </span>

@@ -14,9 +14,18 @@ export default function DisputesPage() {
   const [actionLoading, setActionLoading] = useState(false);
   const [error, setError] = useState(null);
 
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
   useEffect(() => {
     fetchDisputes();
   }, []);
+
+  // Reset to page 1 whenever the search term or status filter changes
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm, statusFilter]);
 
   const fetchDisputes = async () => {
     setLoading(true);
@@ -53,6 +62,11 @@ export default function DisputesPage() {
         )
       );
       setSelectedDispute(null);
+
+      // Handle edge case: if resolving the last item on a page drops it from the current filter, go back one page
+      if (paginatedDisputes.length === 1 && currentPage > 1) {
+        setCurrentPage((prev) => prev - 1);
+      }
     } catch (err) {
       console.error('Error resolving dispute:', err);
       alert(err.message);
@@ -61,6 +75,7 @@ export default function DisputesPage() {
     }
   };
 
+  // 1. Filter the disputes first
   const filteredDisputes = disputes.filter((item) => {
     const residentName = item.residentName || item.homeowner_id || '';
     const billingId = item.billing_id || '';
@@ -83,6 +98,14 @@ export default function DisputesPage() {
     }
     return true; // 'ALL'
   });
+
+  // 2. Calculate pagination boundaries
+  const totalPages = Math.ceil(filteredDisputes.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  
+  // 3. Slice the array to show only the items for the current page
+  const paginatedDisputes = filteredDisputes.slice(startIndex, endIndex);
 
   const getStatusClass = (status) => {
     switch (status?.toUpperCase()) {
@@ -206,8 +229,9 @@ export default function DisputesPage() {
                   {error}
                 </td>
               </tr>
-            ) : filteredDisputes.length > 0 ? (
-              filteredDisputes.map((item) => {
+            ) : paginatedDisputes.length > 0 ? (
+              // Use paginatedDisputes here instead of filteredDisputes
+              paginatedDisputes.map((item) => {
                 const displayName = item.residentName || item.homeowner_id;
                 const address = 'NIA Subdivision';
                 const initials = displayName.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase();
@@ -256,12 +280,42 @@ export default function DisputesPage() {
         </table>
 
         <div className="table-footer">
-          <span>Showing {filteredDisputes.length} of {disputes.length} records</span>
-          <div className="pagination">
-            <button className="page-btn">&lt;</button>
-            <button className="page-btn active">1</button>
-            <button className="page-btn">&gt;</button>
-          </div>
+          <span>
+            Showing {filteredDisputes.length > 0 ? startIndex + 1 : 0} to {Math.min(endIndex, filteredDisputes.length)} of {filteredDisputes.length} records
+          </span>
+          
+          {/* Dynamically render pagination buttons */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              >
+                {'<'}
+              </button>
+              
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button 
+                  key={page} 
+                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              >
+                {'>'}
+              </button>
+            </div>
+          )}
         </div>
       </div>
 

@@ -45,12 +45,6 @@ const Icons = {
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
-  ),
-  search: (
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="11" cy="11" r="8"></circle>
-      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-    </svg>
   )
 };
 
@@ -64,53 +58,41 @@ export default function CollectorLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
-  // 1. Dynamic User State (Populated from Backend/Session API)
   const [user, setUser] = useState({
     name: 'Collector Name',
-    role: 'Zone Collector',
+    role: 'ZONE COLLECTOR',
     initials: 'CL',
   });
-  const [searchQuery, setSearchQuery] = useState('');
 
   useEffect(() => {
-    // BACKEND INTEGRATION: Fetch current user profile session
-    async function fetchUserProfile() {
-      try {
-        const response = await fetch('/api/auth/me'); // Replace with your actual auth endpoint
-        if (response.ok) {
-          const data = await response.json();
-          setUser({
-            name: `${data.firstName} ${data.lastName}`,
-            role: data.role || 'Zone Collector',
-            initials: `${data.firstName?.[0] || ''}${data.lastName?.[0] || ''}`.toUpperCase() || 'CL',
-          });
-        }
-      } catch (error) {
-        console.error('Failed to load collector session:', error);
-      }
-    }
+    try {
+      const storedUser = localStorage.getItem('zoneguard_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const fName = parsed.first_name || parsed.firstName || '';
+        const lName = parsed.last_name || parsed.lastName || '';
+        const fullName = fName || lName ? `${fName} ${lName}`.trim() : 'Collector Name';
+        const initials = `${fName ? fName.charAt(0) : 'C'}${lName ? lName.charAt(0) : 'L'}`.toUpperCase();
 
-    fetchUserProfile();
+        setUser({
+          name: fullName,
+          role: parsed.role ? parsed.role.replace('_', ' ').toUpperCase() : 'ZONE COLLECTOR',
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error("Error loading collector session from localStorage:", error);
+    }
   }, []);
 
-  // 2. Handle Backend Logout Request
   const handleLogout = async () => {
     try {
-      // Call your backend logout endpoint to destroy session/cookies
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
-      // Clear local storage/cookies if necessary and navigate to login page
       localStorage.clear();
       router.push('/login');
-    }
-  };
-
-  // 3. Handle Search Action
-  const handleSearchSubmit = (e) => {
-    if (e.key === 'Enter' && searchQuery.trim()) {
-      router.push(`/collector/search?query=${encodeURIComponent(searchQuery)}`);
     }
   };
 
@@ -169,18 +151,7 @@ export default function CollectorLayout({ children }) {
 
         {/* CONTENT AREA */}
         <main className="content-area">
-          <header className="topbar">
-            <div className="search-bar-large">
-              <span className="search-icon">{Icons.search}</span>
-              <input 
-                type="text" 
-                placeholder="Search collector portal..." 
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                onKeyDown={handleSearchSubmit}
-              />
-            </div>
-
+          <header className="topbar" style={{ justifyContent: 'flex-end' }}>
             <div className="user-profile">
               <div className="user-info">
                 <span className="user-name">{user.name}</span>

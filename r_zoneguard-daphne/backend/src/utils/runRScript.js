@@ -1,28 +1,37 @@
-const { exec } = require('child_process');
+const { spawn } = require('child_process');
 const path = require('path');
 
 function runRScript(scriptName, args = []) {
   return new Promise((resolve, reject) => {
-    const scriptPath = path.join(__dirname, `../r_scripts/${scriptName}`);
-    const command = `Rscript "${scriptPath}" ${args.join(' ')}`;
+    const backendDir = path.join(__dirname, '../..'); // utils -> src -> backend
+    const scriptPath = path.join(backendDir, 'r_scripts', scriptName);
 
-    console.log(`[Node] Executing R script: ${scriptName}`); // <-- Debug log 1
+    const env = { ...process.env };
+    delete env.PROJ_LIB;
+    delete env.GDAL_DATA;
 
-    exec(command, (error, stdout, stderr) => {
-      if (error) {
-        console.error(`[Node] Error executing ${scriptName}:`, stderr);
-        return reject(error);
+    const rProcess = spawn('Rscript', [scriptPath, ...args], {
+      env,
+      cwd: backendDir,
+    });
+
+    let stdout = '';
+    let stderr = '';
+    rProcess.stdout.on('data', (chunk) => (stdout += chunk));
+    rProcess.stderr.on('data', (chunk) => (stderr += chunk));
+
+    rProcess.on('close', (code) => {
+      if (code !== 0) {
+        return reject(new Error(`R script "${scriptName}" exited ${code}: ${stderr}`));
       }
-      
-      console.log(`[Node] Raw output from ${scriptName}:`, stdout); // <-- Debug log 2
-
       try {
-        const parsedData = JSON.parse(stdout);
-        resolve(parsedData);
-      } catch (e) {
-        resolve(stdout);
+        resolve(JSON.parse(stdout));
+      } catch (err) {
+        reject(new Error(`Bad JSON from ${scriptName}: ${err.message}\nRaw: ${stdout}`));
       }
     });
+
+    rProcess.on('error', reject);
   });
 }
 

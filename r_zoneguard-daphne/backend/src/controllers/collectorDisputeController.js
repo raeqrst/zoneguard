@@ -169,38 +169,45 @@ const updateDisputeStatus = async (req, res) => {
       }
     }
 
-    if (finalStatus === 'RESOLVED') {
+    // ==========================================
+    // 🌟 THE FIX: Sync to Homeowner's Ledger
+    // ==========================================
+    if (finalStatus === 'RESOLVED' || finalStatus === 'REJECTED') {
       const billingId = disputeRecord?.billingId || disputeRecord?.billing_id;
-      const referenceMonth = disputeRecord?.referenceMonth || disputeRecord?.reference_month || disputeRecord?.period;
+      
+      // Determine what the ledger should say based on the collector's decision
+      const newBillingStatus = finalStatus === 'RESOLVED' ? 'PAID' : 'UNPAID';
 
-      let billingMonthNum = null;
-      let billingYearNum = null;
-
-      if (referenceMonth) {
-        const parts = referenceMonth.toString().trim().split(/\s+/);
-        if (parts.length >= 2) {
-          const mStr = parts[0].toLowerCase().substring(0, 3);
-          billingMonthNum = monthMap[mStr] || null;
-          billingYearNum = parseInt(parts[1], 10) || null;
+      if (billingId && billingId !== 'N/A') {
+        try {
+          // Use Prisma ORM first to avoid raw SQL table name mismatches
+          const arClient = prisma.accountsReceivable || prisma.AccountsReceivable;
+          
+          if (arClient) {
+            await arClient.update({
+              where: { id: billingId },
+              data: { billingStatus: newBillingStatus }
+            });
+          } else {
+            // Fallback safely if client naming is unusual
+            await prisma.$executeRaw`
+              UPDATE "AccountsReceivable" 
+              SET "billingStatus" = ${newBillingStatus} 
+              WHERE id = ${billingId}
+            `;
+          }
+        } catch (arErr) {
+          console.error(`>>> [BACKEND] Failed to sync ledger for billing ${billingId}:`, arErr.message);
+          
+          // Absolute last resort raw SQL using your old table naming just in case
+          try {
+            await prisma.$executeRawUnsafe(`
+              UPDATE accounts_receivables 
+              SET billing_status = '${newBillingStatus}'
+              WHERE billing_id = '${billingId}' OR id = '${billingId}'
+            `);
+          } catch(e) {}
         }
-      }
-
-      try {
-        if (billingId && billingId !== 'N/A') {
-          await prisma.$executeRaw`
-            UPDATE accounts_receivables 
-            SET billing_status = 'PAID', date_paid = CURRENT_DATE 
-            WHERE billing_id = ${billingId}
-          `;
-        } else if (billingMonthNum && billingYearNum) {
-          await prisma.$executeRaw`
-            UPDATE accounts_receivables 
-            SET billing_status = 'PAID', date_paid = CURRENT_DATE 
-            WHERE billing_month = ${billingMonthNum} AND billing_year = ${billingYearNum}
-          `;
-        }
-      } catch (arErr) {
-        console.error('>>> [BACKEND] Failed to update accounts receivable via raw SQL:', arErr.message);
       }
     }
 

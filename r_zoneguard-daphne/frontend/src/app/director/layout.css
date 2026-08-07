@@ -38,7 +38,6 @@
   padding: 8px 12px 28px;
 }
 
-
 .brand-logo {
   display: flex;
   align-items: center;
@@ -46,21 +45,19 @@
   flex-shrink: 0;
 }
 
-
 .brand-text {
   display: flex;
   flex-direction: column;
   text-align: left;
 }
 
-
 .brand-text strong {
   font-size: 1.2rem;
   color: #111827;
   font-weight: 700;
   line-height: 1.1;
+  font-family: inherit; /* Ensures it inherits the app's root font family cleanly */
 }
-
 
 .brand-text span {
   font-size: 0.65rem;
@@ -69,6 +66,7 @@
   letter-spacing: 0.05em;
   text-transform: uppercase;
   margin-top: 2px;
+  font-family: inherit;
 }
 
 

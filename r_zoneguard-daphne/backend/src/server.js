@@ -11,6 +11,8 @@ const propertyRoutes = require("./routes/propertyroutes");
 const residentRoutes = require("./routes/residentRoutes");
 const homeownerDashboardRoutes = require('./routes/homeowner');
 const collectorRoutes = require("./routes/collectorRoutes"); // <-- Imported here
+const directorRoutes = require('./routes/directorRoutes');
+const analyticsRoutes = require('./routes/analyticsRoutes');
 
 const app = express();
 
@@ -26,6 +28,8 @@ app.use("/api/properties", propertyRoutes);
 app.use("/api/residents", residentRoutes);
 app.use('/api/homeowner', homeownerDashboardRoutes);
 app.use("/api/collector", collectorRoutes); // <-- Mounted here
+app.use('/api/director', directorRoutes);
+app.use('/api/analytics', analyticsRoutes);
 
 app.get('/health', (req, res) => {
     res.json({

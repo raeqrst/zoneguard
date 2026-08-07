@@ -62,6 +62,11 @@ const parseDate = (val) => {
   return new Date(str);
 };
 
+// 🛠️ HELPER 3: Uniform ID Generators (AR-2026-NNNNN & BIL-2026-NNNNN)
+const generateUniformId = (prefix, index, year = '2026') => {
+  return `${prefix}-${year}-${String(index).padStart(5, '0')}`;
+};
+
 async function main() {
   console.log('🌱 Starting ZoneGuard full database seed...');
 
@@ -192,17 +197,23 @@ async function main() {
 
   console.log('6/12: Seeding Accounts Receivable...');
   const arData = await readCSV('accounts_receivable.csv');
-  const validBillingIds = new Set(); // <-- Add this tracking set
+  const validBillingIds = new Set();
 
-  for (const row of arData) {
-    const billingId = row.billing_id ? row.billing_id.trim() : null;
-    if (billingId) validBillingIds.add(billingId); // <-- Track valid IDs
+  for (let i = 0; i < arData.length; i++) {
+    const row = arData[i];
+    // Enforce uniform BIL-2026-NNNNN pattern if missing or non-uniform
+    let billingId = row.billing_id ? row.billing_id.trim() : null;
+    if (!billingId || !billingId.startsWith('BIL-')) {
+      billingId = generateUniformId('BIL', i + 1, row.billing_year || '2026');
+    }
+    
+    validBillingIds.add(billingId);
 
     await prisma.accountsReceivable.upsert({
-      where: { id: billingId || undefined },
+      where: { id: billingId },
       update: {},
       create: {
-        id: billingId || undefined,
+        id: billingId,
         billingMonth: parseInt(row.billing_month) || 1,
         billingYear: parseInt(row.billing_year) || 2026,
         baseAmount: parseNum(row.base_amount),
@@ -214,23 +225,59 @@ async function main() {
     });
   }
 
+  // Pre-build lot to homeowner/user map for smart transaction resolution
+  const lotToUserMap = new Map();
+
+  try {
+    const allHomeowners = await prisma.homeowner.findMany();
+    const allTenants = await prisma.tenant.findMany();
+    const allLots = await prisma.lot.findMany();
+
+    const hoUserMap = new Map();
+    allHomeowners.forEach(ho => {
+      if (ho.userId) hoUserMap.set(ho.id, ho.userId);
+    });
+
+    const tenantLotUserMap = new Map();
+    allTenants.forEach(t => {
+      if (t.lotId && t.userId) tenantLotUserMap.set(t.lotId, t.userId);
+    });
+
+    allLots.forEach(lot => {
+      if (lot.homeownerId && hoUserMap.has(lot.homeownerId)) {
+        lotToUserMap.set(lot.id, hoUserMap.get(lot.homeownerId));
+      } else if (tenantLotUserMap.has(lot.id)) {
+        lotToUserMap.set(lot.id, tenantLotUserMap.get(lot.id));
+      }
+    });
+  } catch (err) {
+    console.warn("⚠️ Failed to build lotToUserMap:", err.message);
+  }
+
   console.log('7/12: Seeding Monthly Allocations...');
   const monthlyAllocData = await readCSV('monthly_allocations.csv');
   for (const row of monthlyAllocData) {
-    await prisma.monthlyAllocation.upsert({
-      where: { id: row.allocation_id ? row.allocation_id.trim() : undefined },
-      update: {},
-      create: {
-        id: row.allocation_id ? row.allocation_id.trim() : undefined,
-        directorId: row.director_id ? row.director_id.trim() : null,
-        zoneId: row.zone_id ? row.zone_id.trim() : null,
-        billingCycle: parseDate(row.billing_cycle), // Fixed with parseDate
-        totalGrossCollections: parseNum(row.total_gross_collections),
-        accruedCollectorIncentive: parseNum(row.accrued_collector_incentive),
-        isLocked: parseBool(row.is_locked),
-        dateLocked: parseDate(row.date_locked),
-      }
-    });
+    try {
+      const rawDirectorId = row.director_id ? row.director_id.trim() : null;
+      const safeDirectorId = validUserIds.has(rawDirectorId) ? rawDirectorId : null;
+
+      await prisma.monthlyAllocation.upsert({
+        where: { id: row.allocation_id ? row.allocation_id.trim() : undefined },
+        update: {},
+        create: {
+          id: row.allocation_id ? row.allocation_id.trim() : undefined,
+          directorId: safeDirectorId,
+          zoneId: row.zone_id ? row.zone_id.trim() : null,
+          billingCycle: parseDate(row.billing_cycle),
+          totalGrossCollections: parseNum(row.total_gross_collections),
+          accruedCollectorIncentive: parseNum(row.accrued_collector_incentive),
+          isLocked: parseBool(row.is_locked),
+          dateLocked: parseDate(row.date_locked),
+        }
+      });
+    } catch (err) {
+      console.warn(`⚠️ Skipped monthly allocation ${row.allocation_id}: ${err.message.split('\n')[0]}`);
+    }
   }
 
   console.log('8/12: Seeding Allocation Details...');
@@ -255,20 +302,48 @@ async function main() {
 
   console.log('9/12: Seeding Transactions...');
   const trxData = await readCSV('transactions.csv');
-  for (const row of trxData) {
+  let fallbackCount = 0;
+
+  for (let i = 0; i < trxData.length; i++) {
+    const row = trxData[i];
     try {
+      // Enforce uniform AR-2026-NNNNN pattern if missing or non-uniform (like raw UUIDs)
+      let transactionId = row.transaction_id ? row.transaction_id.trim() : null;
+      if (!transactionId || !transactionId.startsWith('AR-')) {
+        transactionId = generateUniformId('AR', i + 1, '2026');
+      }
+
       const rawProcessedBy = row.processed_by ? row.processed_by.trim() : null;
       const rawUserId = row.user_id ? row.user_id.trim() : null;
+      const rawBillingId = row.billing_id ? row.billing_id.trim() : null;
+      const rawLotId = row.lot_id ? row.lot_id.trim() : null;
+
+      let safeUserId = validUserIds.has(rawUserId) ? rawUserId : null;
+
+      if (!safeUserId) {
+        if (rawLotId && lotToUserMap.has(rawLotId)) {
+          safeUserId = lotToUserMap.get(rawLotId);
+          fallbackCount++;
+        } else if (rawBillingId) {
+          const arRecord = await prisma.accountsReceivable.findUnique({
+            where: { id: rawBillingId },
+            select: { lotId: true }
+          });
+          if (arRecord?.lotId && lotToUserMap.has(arRecord.lotId)) {
+            safeUserId = lotToUserMap.get(arRecord.lotId);
+            fallbackCount++;
+          }
+        }
+      }
 
       const safeProcessedById = validUserIds.has(rawProcessedBy) ? rawProcessedBy : null;
-      const safeUserId = validUserIds.has(rawUserId) ? rawUserId : null;
 
       await prisma.transaction.upsert({
-        where: { id: row.transaction_id ? row.transaction_id.trim() : undefined },
+        where: { id: transactionId },
         update: {},
         create: {
-          id: row.transaction_id ? row.transaction_id.trim() : undefined,
-          billingId: row.billing_id ? row.billing_id.trim() : null,
+          id: transactionId,
+          billingId: rawBillingId,
           zoneId: row.zone_id ? row.zone_id.trim() : null,
           amount: parseNum(row.amount),
           paymentCategory: row.payment_category ? row.payment_category.trim() : 'MONTHLY_DUES',
@@ -285,8 +360,12 @@ async function main() {
         }
       });
     } catch (err) {
-      console.warn(`⚠️ Skipped transaction ${row.transaction_id} | Reason: ${err.message.split('\n')[0]}`);
+      console.warn(`⚠️ Skipped transaction row ${i + 1} | Reason: ${err.message.split('\n')[0]}`);
     }
+  }
+
+  if (fallbackCount > 0) {
+    console.log(`ℹ️ Resolved ${fallbackCount} orphaned transactions to their lot owners.`);
   }
 
   console.log('10/12: Seeding Payment Disputes...');
@@ -297,7 +376,7 @@ async function main() {
       const safeCollectorId = validUserIds.has(rawCollectorId) ? rawCollectorId : null;
 
       const rawBillingId = row.billing_id ? row.billing_id.trim() : null;
-      const safeBillingId = validBillingIds.has(rawBillingId) ? rawBillingId : null; // <-- Validate billing ID
+      const safeBillingId = validBillingIds.has(rawBillingId) ? rawBillingId : null;
 
       await prisma.paymentDispute.upsert({
         where: { id: row.dispute_id ? row.dispute_id.trim() : undefined },
@@ -306,7 +385,7 @@ async function main() {
           id: row.dispute_id ? row.dispute_id.trim() : undefined,
           homeownerId: row.homeowner_id ? row.homeowner_id.trim() : null,
           collectorId: safeCollectorId,
-          billingId: safeBillingId, // <-- Use safe validated billing ID
+          billingId: safeBillingId,
           referenceMonth: row.reference_month || null,
           homeownerClaim: row.homeowner_claim || null,
           evidenceUrl: row.evidence_url || null,
@@ -375,7 +454,35 @@ async function main() {
     }
   }
 
-  console.log('🎉 ALL 12 TABLES SUCCESSFULLY SEEDED!');
+  // ==========================================
+  // 🌟 POST-PROCESSING (THE FIX)
+  // ==========================================
+  console.log('13/13: Syncing Active Disputes to Ledger Status...');
+  
+  const activeDisputes = await prisma.paymentDispute.findMany({
+    where: { 
+      status: { in: ['PENDING', 'REVIEWING'] } 
+    }
+  });
+
+  let syncedCount = 0;
+  for (const dispute of activeDisputes) {
+    if (dispute.billingId) {
+      try {
+        await prisma.accountsReceivable.update({
+          where: { id: dispute.billingId },
+          data: { billingStatus: 'IN_DISPUTE' }
+        });
+        syncedCount++;
+      } catch (err) {
+        // Ignores if billingId doesn't exist
+      }
+    }
+  }
+  
+  console.log(`ℹ️ Successfully updated ${syncedCount} ledger records to reflect active disputes.`);
+
+  console.log('🎉 ALL 12 TABLES SUCCESSFULLY SEEDED AND SYNCED!');
 }
 
 main()

@@ -88,8 +88,12 @@ router.get('/dashboard', async (req, res) => {
       orderBy: { transactionDate: 'desc' }
     });
 
+    // 🌟 THE FIX: Only fetch ACTIVE disputes
     const disputes = homeowner ? await prisma.paymentDispute.findMany({
-      where: { homeownerId: homeowner.id }
+      where: { 
+        homeownerId: homeowner.id,
+        status: { in: ['PENDING', 'REVIEWING'] }
+      }
     }).catch(() => []) : [];
 
     // Dynamically ensure current cycle bill is present if missing
@@ -200,8 +204,12 @@ router.get('/payments', async (req, res) => {
       orderBy: { transactionDate: 'desc' }
     });
 
+    // 🌟 THE FIX: Only fetch ACTIVE disputes
     const disputes = homeowner ? await prisma.paymentDispute.findMany({
-      where: { homeownerId: homeowner.id }
+      where: { 
+        homeownerId: homeowner.id,
+        status: { in: ['PENDING', 'REVIEWING'] }
+      }
     }).catch(() => []) : [];
 
     const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
@@ -417,12 +425,15 @@ router.post('/disputes', async (req, res) => {
     const randomNum = Math.floor(1000 + Math.random() * 9000);
     const customId = `D-${randomNum}`;
 
+    // 🌟 THE FIX: Remove '#' from dynamic frontend IDs to prevent P2003 foreign key constraint errors
+    const cleanBillingId = billingId ? String(billingId).replace('#', '') : null;
+
     const newDispute = await prisma.paymentDispute.create({
       data: {
         id: customId,
         homeownerId: homeowner ? homeowner.id : null,
         collectorId: null,
-        billingId: billingId ? String(billingId) : null,
+        billingId: cleanBillingId,
         referenceMonth: referenceMonth || 'Current',
         homeownerClaim: homeownerClaim,
         evidenceUrl: evidenceUrl || null,
