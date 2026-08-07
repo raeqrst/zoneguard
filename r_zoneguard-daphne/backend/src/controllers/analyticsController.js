@@ -1,4 +1,7 @@
 const prisma = require('../config/db');
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
 
 // 1. Core Summary Metrics Card
 exports.getAnalyticsData = async (req, res) => {
@@ -92,23 +95,14 @@ exports.getAnalyticsData = async (req, res) => {
   }
 };
 
-// 2. Dedicated Endpoint: Revenue Monitoring Detail Card
+// 2. Revenue Monitoring Detail Card
 exports.getRevenueMonitoringDetail = async (req, res) => {
   try {
     const totalHouseholds = await prisma.lot.count();
-
-    // Pull base amount dynamically from accounts receivables or default to 200
-    const receivables = await prisma.accountsReceivable.findMany({
-      select: { baseAmount: true }
-    });
-
-    const baseAmount = receivables.length > 0 && receivables[0].baseAmount 
-      ? Number(receivables[0].baseAmount) 
-      : 200;
-
+    const receivables = await prisma.accountsReceivable.findMany({ select: { baseAmount: true } });
+    const baseAmount = receivables.length > 0 && receivables[0].baseAmount ? Number(receivables[0].baseAmount) : 200;
     const expectedRevenue = totalHouseholds * baseAmount;
 
-    // Sum all verified collections
     const transactions = await prisma.transaction.findMany({
       where: { paymentStatus: { in: ['VERIFIED', 'COMPLETED', 'PAID', 'SUCCESS', 'APPROVED'] } },
       select: { amount: true }
@@ -119,30 +113,18 @@ exports.getRevenueMonitoringDetail = async (req, res) => {
 
     return res.status(200).json({
       success: true,
-      data: {
-        householdsCount: totalHouseholds,
-        baseAmount: baseAmount,
-        expectedRevenue: expectedRevenue,
-        collectedRevenue: collectedRevenue,
-        outstandingRevenue: outstandingRevenue
-      }
+      data: { householdsCount: totalHouseholds, baseAmount, expectedRevenue, collectedRevenue, outstandingRevenue }
     });
   } catch (error) {
-    console.error("Revenue Monitoring Detail Error:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 3. Dedicated Endpoint: Payment Distribution Card & Chart
+// 3. Payment Distribution Card & Chart
 exports.getPaymentDistribution = async (req, res) => {
   try {
-    const receivables = await prisma.accountsReceivable.findMany({
-      select: { billingStatus: true }
-    });
-
-    let paidCount = 0;
-    let pendingCount = 0;
-    let overdueCount = 0;
+    const receivables = await prisma.accountsReceivable.findMany({ select: { billingStatus: true } });
+    let paidCount = 0, pendingCount = 0, overdueCount = 0;
 
     receivables.forEach(r => {
       const status = (r.billingStatus || '').toUpperCase();
@@ -151,7 +133,6 @@ exports.getPaymentDistribution = async (req, res) => {
       else if (['OVERDUE', 'DELINQUENT'].includes(status)) overdueCount++;
     });
 
-    // Fallback using Lot standings if receivables table is unpopulated
     if (receivables.length === 0) {
       const totalLots = await prisma.lot.count();
       overdueCount = await prisma.lot.count({
@@ -161,24 +142,16 @@ exports.getPaymentDistribution = async (req, res) => {
     }
 
     const totalBills = paidCount + pendingCount + overdueCount || 1;
-    const paidPercentage = Number(((paidCount / totalBills) * 100).toFixed(1));
-    const pendingPercentage = Number(((pendingCount / totalBills) * 100).toFixed(1));
-    const overduePercentage = Number(((overdueCount / totalBills) * 100).toFixed(1));
-
     return res.status(200).json({
       success: true,
       data: {
-        paidPercentage,
-        pendingPercentage,
-        overduePercentage,
-        paidCount,
-        pendingCount,
-        overdueCount,
-        totalBills
+        paidPercentage: Number(((paidCount / totalBills) * 100).toFixed(1)),
+        pendingPercentage: Number(((pendingCount / totalBills) * 100).toFixed(1)),
+        overduePercentage: Number(((overdueCount / totalBills) * 100).toFixed(1)),
+        paidCount, pendingCount, overdueCount, totalBills
       }
     });
   } catch (error) {
-    console.error("Payment Distribution Error:", error);
     return res.status(500).json({ success: false, error: error.message });
   }
 };
@@ -188,104 +161,95 @@ exports.getComplaintForecast = async (req, res) => {
   try {
     const complaints = await prisma.complaint.findMany({ select: { createdAt: true } });
     const monthlyCounts = Array(12).fill(0);
-
     complaints.forEach(c => {
       if (c.createdAt) {
         const m = new Date(c.createdAt).getMonth();
         if (m >= 0 && m < 12) monthlyCounts[m]++;
       }
     });
-
     const activeMonths = monthlyCounts.filter(v => v > 0);
     const avg = activeMonths.length > 0 ? activeMonths.reduce((a, b) => a + b, 0) / activeMonths.length : 0;
     const projected = [Number(avg.toFixed(1)), Number(avg.toFixed(1)), Number(avg.toFixed(1)), Number(avg.toFixed(1))];
 
     return res.status(200).json({
       success: true,
-      data: {
-        historical: monthlyCounts,
-        projected,
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      }
+      data: { historical: monthlyCounts, projected, labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 5. Financial Forecast (Monthly Collection Trend & Projections)
+// 5. Financial Forecast
 exports.getFinancialForecast = async (req, res) => {
   try {
     const transactions = await prisma.transaction.findMany({
       where: { paymentStatus: { in: ['VERIFIED', 'COMPLETED', 'PAID', 'SUCCESS', 'APPROVED'] } },
       select: { amount: true, transactionDate: true, createdAt: true }
     });
-
     const monthlyRev = Array(12).fill(0);
     transactions.forEach(t => {
       const txDate = t.transactionDate || t.createdAt;
       if (txDate) {
         const m = new Date(txDate).getMonth();
-        if (m >= 0 && m < 12) {
-          monthlyRev[m] += Number(t.amount) || 0;
-        }
+        if (m >= 0 && m < 12) monthlyRev[m] += Number(t.amount) || 0;
       }
     });
-
     const activeRev = monthlyRev.filter(v => v > 0);
     const avgRev = activeRev.length > 0 ? activeRev.reduce((a, b) => a + b, 0) / activeRev.length : 0;
     const projected = [Math.round(avgRev), Math.round(avgRev), Math.round(avgRev), Math.round(avgRev)];
 
     return res.status(200).json({
       success: true,
-      data: {
-        historical: monthlyRev,
-        projected,
-        labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
-      }
+      data: { historical: monthlyRev, projected, labels: ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'] }
     });
   } catch (error) {
     return res.status(500).json({ success: false, error: error.message });
   }
 };
 
-// 6. Zone Operational Status
+// 6. Zone Operational Status (True Database-Driven R-Analytics Pipeline)
 exports.getOperationalStatus = async (req, res) => {
   try {
+    // Fetch ALL raw complaints to build a real dataset for R's glm() and kmeans()
     const complaints = await prisma.complaint.findMany({
       select: { complaintCategory: true, status: true, createdAt: true, updatedAt: true }
     });
 
-    let infraTimes = [];
-    let securityTimes = [];
-
-    complaints.forEach(c => {
-      const cat = (c.complaintCategory || '').toUpperCase();
-      if (['RESOLVED', 'CLOSED'].includes((c.status || '').toUpperCase()) && c.createdAt && c.updatedAt) {
-        const diffMins = (new Date(c.updatedAt) - new Date(c.createdAt)) / 60000;
-        if (diffMins >= 0) {
-          if (cat.includes('INFRA') || cat.includes('MAINTENANCE')) infraTimes.push(diffMins);
-          if (cat.includes('SEC') || cat.includes('SAFETY')) securityTimes.push(diffMins);
-        }
-      }
+    // Fetch ALL lots to build a real dataset for R's rpart() classification
+    const lots = await prisma.lot.findMany({
+      select: { isDelinquent: true, lotStanding: true }
     });
 
-    const infraAvgHours = infraTimes.length > 0 ? (infraTimes.reduce((a, b) => a + b, 0) / infraTimes.length / 60).toFixed(1) : '201.6';
-    const securityAvgMins = securityTimes.length > 0 ? Math.round(securityTimes.reduce((a, b) => a + b, 0) / securityTimes.length) : 15;
+    // Structure raw database rows into JSON payload for R execution
+    const rawPayload = {
+      complaints: complaints.map(c => {
+        const cat = (c.complaintCategory || '').toUpperCase();
+        const isResolved = ['RESOLVED', 'CLOSED'].includes((c.status || '').toUpperCase());
+        const durationMins = (isResolved && c.createdAt && c.updatedAt) ? Math.max(0, (new Date(c.updatedAt) - new Date(c.createdAt)) / 60000) : null;
+        return {
+          category: cat,
+          resolved: isResolved ? 1 : 0,
+          durationMins: durationMins
+        };
+      }),
+      lots: lots.map(l => ({
+        isDelinquent: (l.isDelinquent || ['UNPAID', 'DELINQUENT', 'WITH_ARREARS'].includes((l.lotStanding || '').toUpperCase())) ? 1 : 0
+      }))
+    };
 
-    const totalLots = await prisma.lot.count();
-    const unpaidLots = await prisma.lot.count({
-      where: { lotStanding: { in: ['UNPAID', 'DELINQUENT', 'WITH_ARREARS'] } }
-    });
-    const delinquencyRate = totalLots > 0 ? ((unpaidLots / totalLots) * 100).toFixed(1) : '18.3';
+    const jsonInputPath = path.join(__dirname, '../../r_scripts/input_raw_data.json');
+    fs.writeFileSync(jsonInputPath, JSON.stringify(rawPayload, null, 2));
+
+    const rScriptPath = path.join(__dirname, '../../r_scripts/operational_insights.R');
+    const rOutput = execSync(`Rscript "${rScriptPath}" "${jsonInputPath}"`, { encoding: 'utf8' });
+    const parsedResults = JSON.parse(rOutput.trim());
+
+    if (fs.existsSync(jsonInputPath)) fs.unlinkSync(jsonInputPath);
 
     return res.status(200).json({
       success: true,
-      data: [
-        { category: 'Infrastructure', status: 'Stable', metric: `${infraAvgHours} Hours`, insight: 'Resolution rate optimal', statusTone: 'green' },
-        { category: 'Monthly Dues', status: 'At-Risk', metric: `${delinquencyRate}% Unpaid`, insight: 'High delinquency probability', statusTone: 'red' },
-        { category: 'Security', status: 'Optimal', metric: `${securityAvgMins} Minutes`, insight: 'Decreasing incident trend', statusTone: 'green' }
-      ]
+      data: parsedResults
     });
   } catch (error) {
     console.error("Operational Status Error:", error);

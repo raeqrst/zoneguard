@@ -20,7 +20,28 @@ const getTenants = async (req, res) => {
         }
 
         if (search) {
+            // Find homeowner IDs whose user details match the search query
+            let homeownerIds = [];
+            try {
+                const matchingHomeowners = await prisma.homeowner.findMany({
+                    where: {
+                        user: {
+                            OR: [
+                                { firstName: { contains: search, mode: 'insensitive' } },
+                                { lastName: { contains: search, mode: 'insensitive' } },
+                                { email: { contains: search, mode: 'insensitive' } }
+                            ]
+                        }
+                    },
+                    select: { id: true }
+                });
+                homeownerIds = matchingHomeowners.map(h => h.id);
+            } catch (e) {
+                // Fallback if homeowner search fails
+            }
+
             whereClause.OR = [
+                // 1. Search Tenant's User info
                 {
                     user: {
                         OR: [
@@ -30,11 +51,13 @@ const getTenants = async (req, res) => {
                         ]
                     }
                 },
+                // 2. Search Lot details & Resident/Homeowner ID match
                 {
                     lot: {
                         OR: [
                             { houseNumber: { contains: search, mode: 'insensitive' } },
-                            { street: { contains: search, mode: 'insensitive' } }
+                            { street: { contains: search, mode: 'insensitive' } },
+                            ...(homeownerIds.length > 0 ? [{ homeownerId: { in: homeownerIds } }] : [])
                         ]
                     }
                 }

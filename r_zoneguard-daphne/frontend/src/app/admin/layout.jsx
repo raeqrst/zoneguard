@@ -1,11 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter, useSearchParams } from 'next/navigation';
+import { Suspense } from 'react';
 import './layout.css';
 
 const Icons = {
-  // Green House Brand Logo
   houseBrand: (
     <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#065f46" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -85,16 +85,43 @@ const menuItems = [
   { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant },
 ];
 
+function TopSearchBar() {
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const handleSearch = (e) => {
+    const term = e.target.value;
+    const params = new URLSearchParams(searchParams);
+    if (term) {
+      params.set('q', term);
+    } else {
+      params.delete('q');
+    }
+    router.replace(`${pathname}?${params.toString()}`);
+  };
+
+  return (
+    <div className="search-bar-large">
+      <span className="search-icon">{Icons.search}</span>
+      <input 
+        type="text" 
+        placeholder="Search here..." 
+        defaultValue={searchParams.get('q') || ''}
+        onChange={handleSearch}
+      />
+    </div>
+  );
+}
+
 export default function AdminLayout({ children }) {
   const pathname = usePathname();
 
   return (
     <div className="layout-wrapper">
       <div className="main-container">
-        {/* SIDEBAR */}
         <aside className="sidebar">
           <div className="brand-header">
-            {/* House Logo */}
             <div className="brand-logo">
               {Icons.houseBrand}
             </div>
@@ -123,7 +150,6 @@ export default function AdminLayout({ children }) {
           <div className="sidebar-footer">
             <div className="sidebar-divider" />
             
-            {/* LINKED ACCOUNT SETTINGS ROUTE */}
             <Link 
               href="/admin/settings" 
               className={`nav-link ${pathname === '/admin/settings' ? 'active' : ''}`}
@@ -139,13 +165,11 @@ export default function AdminLayout({ children }) {
           </div>
         </aside>
 
-        {/* CONTENT AREA */}
         <main className="content-area">
           <header className="topbar">
-            <div className="search-bar-large">
-              <span className="search-icon">{Icons.search}</span>
-              <input type="text" placeholder="Search dashboard..." />
-            </div>
+            <Suspense fallback={<div className="search-bar-large"><span className="search-icon">{Icons.search}</span><input type="text" placeholder="Loading..." /></div>}>
+              <TopSearchBar />
+            </Suspense>
 
             <div className="user-profile">
               <div className="user-info">

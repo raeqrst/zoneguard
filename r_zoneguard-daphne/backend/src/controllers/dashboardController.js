@@ -1,3 +1,4 @@
+console.log("🔥 BRAND NEW DASHBOARD CONTROLLER IS RUNNING!");
 // backend/src/controllers/dashboardController.js
 const prisma = require('../config/db');
 
@@ -53,13 +54,17 @@ exports.getDashboardData = async (req, res) => {
             value: monthlyPaidMap[index + 1] ? monthlyPaidMap[index + 1].size : 0
         }));
 
-        // 2. Pure Database Query for Tenant Turnover Rate (Move In vs Move Out)
+        // 2. Multi-Lot Tenant Turnover: Group by unique userId to prevent multi-lot inflation
         const tenantRecords = await prisma.tenant.findMany({
+            where: {
+                approvalStatus: 'APPROVED',
+                userId: { not: null }
+            },
             select: {
+                userId: true,
                 createdAt: true,
                 approvedAt: true,
                 updatedAt: true,
-                approvalStatus: true,
                 delegationStatus: true
             }
         }).catch(() => []);
@@ -67,29 +72,52 @@ exports.getDashboardData = async (req, res) => {
         const moveInCounts = Array(12).fill(0);
         const moveOutCounts = Array(12).fill(0);
 
+        // Track the earliest move-in month for each unique human tenant (userId)
+        const userFirstMoveInMonth = new Map();
+        const userFirstMoveOutMonth = new Map();
+
         tenantRecords.forEach((tenant) => {
-            // Move In: Counts approved tenants or tenant registration by month
+            const uid = tenant.userId;
+            if (!uid) return;
+
+            // Move In: Find earliest approval/creation date across all their lots
             const moveInDate = tenant.approvedAt || tenant.createdAt;
             if (moveInDate) {
                 const date = new Date(moveInDate);
                 if (date.getUTCFullYear() === currentYear) {
                     const monthIdx = date.getUTCMonth(); // 0 to 11
-                    if (tenant.approvalStatus === 'APPROVED' || tenant.approvalStatus === 'PENDING') {
-                        moveInCounts[monthIdx]++;
+                    if (!userFirstMoveInMonth.has(uid) || monthIdx < userFirstMoveInMonth.get(uid)) {
+                        userFirstMoveInMonth.set(uid, monthIdx);
                     }
                 }
             }
 
-            // Move Out: Counts revoked/inactive tenant delegations by month
+            // Move Out: Track unique tenant departures if delegation is revoked/inactive
             if (['REVOKED', 'INACTIVE'].includes(tenant.delegationStatus)) {
                 const moveOutDate = tenant.updatedAt || tenant.createdAt;
                 if (moveOutDate) {
                     const date = new Date(moveOutDate);
                     if (date.getUTCFullYear() === currentYear) {
-                        const monthIdx = date.getUTCMonth(); // 0 to 11
-                        moveOutCounts[monthIdx]++;
+                        const monthIdx = date.getUTCMonth();
+                        if (!userFirstMoveOutMonth.has(uid) || monthIdx < userFirstMoveOutMonth.get(uid)) {
+                            userFirstMoveOutMonth.set(uid, monthIdx);
+                        }
                     }
                 }
+            }
+        });
+
+        // Tally unique move-ins per month
+        userFirstMoveInMonth.forEach((monthIdx) => {
+            if (monthIdx >= 0 && monthIdx < 12) {
+                moveInCounts[monthIdx]++;
+            }
+        });
+
+        // Tally unique move-outs per month
+        userFirstMoveOutMonth.forEach((monthIdx) => {
+            if (monthIdx >= 0 && monthIdx < 12) {
+                moveOutCounts[monthIdx]++;
             }
         });
 
@@ -153,23 +181,23 @@ exports.getDashboardData = async (req, res) => {
         });
 
        const payload = {
-    pendingTenants,
-    openComplaints,
-    collectionRate,
-    avgResolution,
-    issueCategories,
-    paidOverview,
-    turnover: tenantTurnover, 
-    tenantTurnover: tenantTurnover,
-    turnoverRate: tenantTurnover,
-    tenant_turnover: tenantTurnover
-};
+            pendingTenants,
+            openComplaints,
+            collectionRate,
+            avgResolution,
+            issueCategories,
+            paidOverview,
+            turnover: tenantTurnover, 
+            tenantTurnover: tenantTurnover,
+            turnoverRate: tenantTurnover,
+            tenant_turnover: tenantTurnover
+        };
 
-return res.status(200).json({
-    success: true,
-    data: payload,
-    ...payload
-});
+        return res.status(200).json({
+            success: true,
+            data: payload,
+            ...payload
+        });
 
     } catch (error) {
         console.error("Dashboard Controller Error:", error);

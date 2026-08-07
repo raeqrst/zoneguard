@@ -19,10 +19,12 @@ router.get('/', async (req, res) => {
       where: { status: { notIn: ['RESOLVED', 'DISMISSED'] } }
     });
 
-    // 3. REAL ACTIVE TENANTS COUNT (Expected monthly billing count)
-    const totalActiveTenants = await prisma.tenant.count({
-      where: { delegationStatus: 'ACTIVE' }
+    // 3. REAL ACTIVE TENANTS COUNT (Deduplicated by unique userId to support multi-lot rentals)
+    const activeTenantsRows = await prisma.tenant.findMany({
+      where: { delegationStatus: 'ACTIVE', userId: { not: null } },
+      select: { userId: true }
     });
+    const totalActiveTenants = new Set(activeTenantsRows.map(t => t.userId)).size;
 
     // 4. REAL CURRENT-MONTH COLLECTION RATE
     const startOfMonth = new Date(currentYear, currentMonth, 1);
@@ -38,7 +40,7 @@ router.get('/', async (req, res) => {
       }
     });
 
-    // Collection Rate = (Verified Payments This Month / Total Active Tenants) * 100
+    // Collection Rate = (Verified Payments This Month / Total Active Unique Tenants) * 100
     const collectionRate = totalActiveTenants > 0 
       ? Number(((verifiedThisMonth / totalActiveTenants) * 100).toFixed(1)) 
       : 0.0;
@@ -112,34 +114,67 @@ router.get('/', async (req, res) => {
       value: monthlyCounts[index]
     }));
 
-    // 8. REAL TENANT TURNOVER RATE (Timezone-safe UTC extraction)
+    // 8. REAL TENANT TURNOVER RATE (Deduplicated by unique userId to prevent multi-lot row inflation)
     const allTenants = await prisma.tenant.findMany({
-      select: { createdAt: true, updatedAt: true, delegationStatus: true }
+      where: {
+        approvalStatus: 'APPROVED',
+        userId: { not: null }
+      },
+      select: { userId: true, createdAt: true, updatedAt: true, delegationStatus: true }
     });
 
-    const turnoverMap = {};
-    MONTH_LABELS.forEach(m => { turnoverMap[m] = { moveIn: 0, moveOut: 0 }; });
+    const userFirstMoveInMonth = new Map();
+    const userFirstMoveOutMonth = new Map();
 
     allTenants.forEach(tn => {
+      const uid = tn.userId;
+      if (!uid) return;
+
+      // Track earliest approval/creation month for each unique human tenant
       if (tn.createdAt) {
         const dIn = new Date(tn.createdAt);
-        const moveInMonth = MONTH_LABELS[dIn.getUTCMonth()];
-        if (turnoverMap[moveInMonth]) turnoverMap[moveInMonth].moveIn++;
+        if (dIn.getUTCFullYear() === currentYear) {
+          const monthIdx = dIn.getUTCMonth();
+          if (monthIdx >= 0 && monthIdx < 12) {
+            if (!userFirstMoveInMonth.has(uid) || monthIdx < userFirstMoveInMonth.get(uid)) {
+              userFirstMoveInMonth.set(uid, monthIdx);
+            }
+          }
+        }
       }
 
-      if (tn.delegationStatus === 'REVOKED' || tn.delegationStatus === 'INACTIVE') {
-        if (tn.updatedAt) {
-          const dOut = new Date(tn.updatedAt);
-          const moveOutMonth = MONTH_LABELS[dOut.getUTCMonth()];
-          if (turnoverMap[moveOutMonth]) turnoverMap[moveOutMonth].moveOut++;
+      // Track move-out if delegation is revoked or inactive
+      if (['REVOKED', 'INACTIVE'].includes(tn.delegationStatus)) {
+        const dOut = tn.updatedAt || tn.createdAt;
+        if (dOut) {
+          const d = new Date(dOut);
+          if (d.getUTCFullYear() === currentYear) {
+            const monthIdx = d.getUTCMonth();
+            if (monthIdx >= 0 && monthIdx < 12) {
+              if (!userFirstMoveOutMonth.has(uid) || monthIdx < userFirstMoveOutMonth.get(uid)) {
+                userFirstMoveOutMonth.set(uid, monthIdx);
+              }
+            }
+          }
         }
       }
     });
 
-    const tenantTurnover = MONTH_LABELS.map(m => ({
+    const moveInCounts = Array(12).fill(0);
+    const moveOutCounts = Array(12).fill(0);
+
+    userFirstMoveInMonth.forEach(monthIdx => {
+      moveInCounts[monthIdx]++;
+    });
+
+    userFirstMoveOutMonth.forEach(monthIdx => {
+      moveOutCounts[monthIdx]++;
+    });
+
+    const tenantTurnover = MONTH_LABELS.map((m, index) => ({
       month: m,
-      moveIn: turnoverMap[m].moveIn,
-      moveOut: turnoverMap[m].moveOut
+      moveIn: moveInCounts[index],
+      moveOut: moveOutCounts[index]
     }));
 
     const payload = {
