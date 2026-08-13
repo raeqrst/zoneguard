@@ -1,7 +1,13 @@
+<<<<<<< HEAD
 // src/app/admin/settings/page.jsx
 'use client';
 
 import React, { useState, useEffect } from 'react';
+=======
+'use client';
+
+import React, { useState } from 'react';
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 import './style.css';
 
 const Icons = {
@@ -15,6 +21,7 @@ const Icons = {
 
 export default function AdminSettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
+<<<<<<< HEAD
   const [isEditing, setIsEditing] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -73,6 +80,8 @@ export default function AdminSettingsPage() {
   };
 
   if (loading) return <div style={{ padding: '40px' }}>Loading settings...</div>;
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
   return (
     <div className="settings-page">
@@ -101,6 +110,7 @@ export default function AdminSettingsPage() {
         {/* MAIN FORM CARD */}
         <div className="settings-form-card">
           {activeTab === 'profile' ? (
+<<<<<<< HEAD
             <form onSubmit={handleSaveProfile} autoComplete="off">
               <div className="form-sections-row">
                 <div className="section-column">
@@ -138,11 +148,31 @@ export default function AdminSettingsPage() {
                         readOnly={!isEditing} 
                         className="settings-input" 
                       />
+=======
+            <div>
+              {/* PERSONAL & CONTACT INFORMATION */}
+              <div className="form-sections-row">
+                <div className="section-column">
+                  <h3 className="settings-section-heading">PERSONAL INFORMATION</h3>
+                  <div className="settings-fields-group">
+                    <div>
+                      <label className="settings-label">FIRST NAME</label>
+                      <input type="text" defaultValue="Darth" readOnly className="settings-input" />
+                    </div>
+                    <div>
+                      <label className="settings-label">MIDDLE INITIAL</label>
+                      <input type="text" defaultValue="C." readOnly className="settings-input" />
+                    </div>
+                    <div>
+                      <label className="settings-label">LAST NAME</label>
+                      <input type="text" defaultValue="Vader" readOnly className="settings-input" />
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                     </div>
                   </div>
                 </div>
 
                 <div className="section-column">
+<<<<<<< HEAD
                   <h3 className="settings-section-heading">CREDENTIALS & CONTACT</h3>
                   <div className="settings-fields-group">
                     <div>
@@ -180,11 +210,26 @@ export default function AdminSettingsPage() {
                         readOnly={!isEditing} 
                         className="settings-input" 
                       />
+=======
+                  <h3 className="settings-section-heading">CONTACT INFORMATION</h3>
+                  <div className="settings-fields-group">
+                    <div>
+                      <label className="settings-label">CONTACT NUMBER</label>
+                      <div className="phone-input-wrapper">
+                        <span className="phone-prefix">+63</span>
+                        <input type="text" defaultValue="977 543 1769" readOnly className="settings-input flex-1" />
+                      </div>
+                    </div>
+                    <div>
+                      <label className="settings-label">EMAIL ADDRESS</label>
+                      <input type="text" defaultValue="IAmYourFather@gmail.com" readOnly className="settings-input" />
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                     </div>
                   </div>
                 </div>
               </div>
 
+<<<<<<< HEAD
               <div className="settings-sub-section">
                 <h3 className="settings-section-heading">SYSTEM METADATA</h3>
                 <div className="address-grid-top">
@@ -229,10 +274,45 @@ export default function AdminSettingsPage() {
             </form>
           ) : (
             <div className="privacy-container" autoComplete="off">
+=======
+              {/* PROPERTY ADDRESS SECTION */}
+              <div className="settings-sub-section">
+                <h3 className="settings-section-heading">PROPERTY ADDRESS</h3>
+                <div className="address-grid-top">
+                  <div>
+                    <label className="settings-label">HOUSE NO.</label>
+                    <input type="text" defaultValue="01" readOnly className="settings-input" />
+                  </div>
+                  <div>
+                    <label className="settings-label">BLOCK</label>
+                    <input type="text" defaultValue="BLK 8" readOnly className="settings-input" />
+                  </div>
+                  <div>
+                    <label className="settings-label">LOT</label>
+                    <input type="text" defaultValue="LOT 61" readOnly className="settings-input" />
+                  </div>
+                </div>
+
+                <div className="address-grid-bottom">
+                  <div className="zone-col">
+                    <label className="settings-label">ZONE</label>
+                    <input type="text" defaultValue="Zone 3" readOnly className="settings-input" />
+                  </div>
+                  <div className="street-col">
+                    <label className="settings-label">STREET</label>
+                    <input type="text" defaultValue="Palico Lane St." readOnly className="settings-input" />
+                  </div>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="privacy-container">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
               <h3 className="settings-section-heading text-center">CHANGE PASSWORD</h3>
               <div className="settings-fields-group">
                 <div>
                   <label className="settings-label">CURRENT PASSWORD</label>
+<<<<<<< HEAD
                   <input type="password" placeholder="Enter current password" className="settings-input" autoComplete="new-password" />
                 </div>
                 <div>
@@ -242,6 +322,17 @@ export default function AdminSettingsPage() {
                 <div>
                   <label className="settings-label">CONFIRM NEW PASSWORD</label>
                   <input type="password" placeholder="Confirm new password" className="settings-input" autoComplete="new-password" />
+=======
+                  <input type="password" placeholder="Enter current password" className="settings-input" />
+                </div>
+                <div>
+                  <label className="settings-label">NEW PASSWORD</label>
+                  <input type="password" placeholder="Enter new password" className="settings-input" />
+                </div>
+                <div>
+                  <label className="settings-label">CONFIRM NEW PASSWORD</label>
+                  <input type="password" placeholder="Confirm new password" className="settings-input" />
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                 </div>
                 <button className="change-password-btn">Update Password</button>
               </div>
@@ -254,6 +345,7 @@ export default function AdminSettingsPage() {
           <div className="profile-avatar-circle">
             {Icons.userOutline}
           </div>
+<<<<<<< HEAD
           <p className="profile-display-email">{formData.email}</p>
           
           <button 
@@ -262,6 +354,12 @@ export default function AdminSettingsPage() {
             onClick={() => setIsEditing(!isEditing)}
           >
             {isEditing ? 'cancel' : 'edit profile'} {Icons.pencil}
+=======
+          <p className="profile-display-email">IAmYourFather@gmail.com</p>
+          
+          <button className="edit-profile-btn">
+            edit profile {Icons.pencil}
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           </button>
         </div>
       </div>

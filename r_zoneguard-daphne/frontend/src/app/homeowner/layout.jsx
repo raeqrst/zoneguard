@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+<<<<<<< HEAD
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import './layout.css';
@@ -59,12 +60,27 @@ const sidebarItems = [
   { label: 'Dashboard', href: '/homeowner/dashboard', icon: Icons.dashboard },
   { label: 'Payments', href: '/homeowner/payments', icon: Icons.payments },
   { label: 'Complaints', href: '/homeowner/complaints', icon: Icons.complaints },
+=======
+import { useRouter, usePathname } from 'next/navigation';
+import SidebarLayout, { Icons } from '../../components/SidebarLayout';
+import './layout.css'; // <-- ADD THIS LINE HERE
+
+const homeownerItems = [
+  { label: 'Dashboard', href: '/homeowner/dashboard', icon: Icons.dashboard },
+  { label: 'Payments', href: '/homeowner/payments', icon: Icons.payments },
+  { label: 'Complaints', href: '/homeowner/complaints', icon: Icons.escalatedComplaints },
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   { label: 'Tenant Management', href: '/homeowner/tenant_management', icon: Icons.tenant },
 ];
 
 export default function HomeownerLayout({ children }) {
+<<<<<<< HEAD
   const pathname = usePathname();
   const router = useRouter();
+=======
+  const router = useRouter();
+  const pathname = usePathname();
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
   const [currentUser, setCurrentUser] = useState({
     firstName: 'Homeowner',
@@ -81,7 +97,11 @@ export default function HomeownerLayout({ children }) {
       try {
         const token = localStorage.getItem('token');
         const storedUser = localStorage.getItem('zoneguard_user');
+<<<<<<< HEAD
         const loggedInUserId = localStorage.getItem('userId'); // Extract the saved ID
+=======
+        const loggedInUserId = localStorage.getItem('userId');
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
         if (storedUser) {
           const parsed = JSON.parse(storedUser);
@@ -96,7 +116,10 @@ export default function HomeownerLayout({ children }) {
           });
         }
 
+<<<<<<< HEAD
         // Send the request to port 5000 and pass the userId
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
         const response = await fetch(`http://localhost:5000/api/homeowner/properties?userId=${loggedInUserId}`, {
           headers: { Authorization: `Bearer ${token}` }
         });
@@ -105,7 +128,10 @@ export default function HomeownerLayout({ children }) {
           const data = await response.json();
           let fetchedProps = data.properties || [];
 
+<<<<<<< HEAD
           // Sort the properties so that 'Primary Residence' always appears first
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           fetchedProps.sort((a, b) => {
             const aIsPrimary = a.name.toLowerCase().includes('primary');
             const bIsPrimary = b.name.toLowerCase().includes('primary');
@@ -116,12 +142,18 @@ export default function HomeownerLayout({ children }) {
 
           setProperties(fetchedProps);
 
+<<<<<<< HEAD
           // Get URL parameter and stored ID to determine what should be selected
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           const urlParams = new URLSearchParams(window.location.search);
           const urlPropId = urlParams.get('propertyId');
           const storedId = localStorage.getItem('active_property_id');
 
+<<<<<<< HEAD
           // Prioritize URL > Valid Stored ID > First Item (which is now guaranteed to be Primary if it exists)
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           if (urlPropId && fetchedProps.some(p => String(p.id) === String(urlPropId))) {
             setSelectedPropertyId(urlPropId);
             localStorage.setItem('active_property_id', urlPropId);
@@ -131,6 +163,7 @@ export default function HomeownerLayout({ children }) {
             setSelectedPropertyId(fetchedProps[0].id);
             localStorage.setItem('active_property_id', fetchedProps[0].id);
           }
+<<<<<<< HEAD
 
         } else {
           setProperties([
@@ -139,6 +172,8 @@ export default function HomeownerLayout({ children }) {
             { id: 3, name: 'Property 2 (NIA Village Subd.)' }
           ]);
           setSelectedPropertyId(1);
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
         }
       } catch (error) {
         console.error("Error loading session:", error);
@@ -151,6 +186,7 @@ export default function HomeownerLayout({ children }) {
   const handlePropertySwitch = (propertyId) => {
     setSelectedPropertyId(propertyId);
     localStorage.setItem('active_property_id', propertyId);
+<<<<<<< HEAD
     
     // Notify open pages that active property changed
     window.dispatchEvent(new Event('propertyChanged'));
@@ -240,5 +276,45 @@ export default function HomeownerLayout({ children }) {
         </main>
       </div>
     </div>
+=======
+    window.dispatchEvent(new Event('propertyChanged'));
+    router.push(`${pathname}?propertyId=${propertyId}`);
+  };
+
+  const topbarContent = (
+    <>
+      <div className="property-tabs">
+        {properties.map((prop) => (
+          <button
+            key={prop.id}
+            className={`prop-tab ${String(selectedPropertyId) === String(prop.id) ? 'active' : ''}`}
+            onClick={() => handlePropertySwitch(prop.id)}
+          >
+            {prop.name}
+          </button>
+        ))}
+      </div>
+
+      <div className="user-profile">
+        <div className="user-info">
+          <span className="user-name">
+            {currentUser.firstName} {currentUser.lastName ? `${currentUser.lastName.charAt(0)}.` : ''}
+          </span>
+          <span className="user-role">{currentUser.role}</span>
+        </div>
+        <div className="user-avatar">{currentUser.initials}</div>
+      </div>
+    </>
+  );
+
+  return (
+    <SidebarLayout 
+      menuItems={homeownerItems} 
+      settingsPath="/homeowner/settings"
+      topbarContent={topbarContent}
+    >
+      {children}
+    </SidebarLayout>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   );
 }

@@ -8,19 +8,38 @@ export default function CollectorPaymentsPage() {
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedPayment, setSelectedPayment] = useState(null);
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
 
   // Fetch pending payments connected to backend Prisma API
+=======
+  
+  // Pagination State
+  const [currentPage, setCurrentPage] = useState(1);
+  const ITEMS_PER_PAGE = 8;
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   useEffect(() => {
     async function loadPayments() {
       setLoading(true);
       try {
         const res = await fetch(`/api/collector/payments?search=${encodeURIComponent(searchTerm)}`);
+<<<<<<< HEAD
         const result = await res.json();
         if (result.success) {
           setPayments(result.data);
         }
       } catch (err) {
         console.error("Failed fetching payments:", err);
+=======
+        if (res.ok) {
+          const result = await res.json();
+          if (result.success && result.data) {
+            setPayments(result.data);
+          }
+        }
+      } catch (err) {
+        console.error("Failed fetching payments from backend:", err);
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       } finally {
         setLoading(false);
       }
@@ -33,6 +52,7 @@ export default function CollectorPaymentsPage() {
     return () => clearTimeout(delayDebounce);
   }, [searchTerm]);
 
+<<<<<<< HEAD
   // Handle Accepting or Declining a payment
   const handleUpdateStatus = async (paymentId, status) => {
     try {
@@ -40,6 +60,19 @@ export default function CollectorPaymentsPage() {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ paymentId, status }),
+=======
+  // Reset to page 1 whenever the user types in the search box
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchTerm]);
+
+  const handleUpdateStatus = async (paymentId, status) => {
+    try {
+      const res = await fetch(`/api/collector/payments/${paymentId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status }),
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       });
 
       if (res.ok) {
@@ -47,6 +80,7 @@ export default function CollectorPaymentsPage() {
         if (selectedPayment?.id === paymentId) {
           setSelectedPayment(null);
         }
+<<<<<<< HEAD
       }
     } catch (err) {
       console.error("Failed to update payment status:", err);
@@ -56,6 +90,35 @@ export default function CollectorPaymentsPage() {
   return (
     <div className="payments-page">
       {/* Title Header */}
+=======
+        
+        // Handle edge case: if approving the last item on a page, go back one page
+        if (paginatedPayments.length === 1 && currentPage > 1) {
+          setCurrentPage((prev) => prev - 1);
+        }
+      }
+    } catch (err) {
+      console.error("Failed to update status:", err);
+    }
+  };
+
+  // 1. Filter the payments based on search
+  const filteredPayments = payments.filter(p => 
+    (p.name && p.name.toLowerCase().includes(searchTerm.toLowerCase())) ||
+    (p.address && p.address.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
+  // 2. Calculate pagination boundaries
+  const totalPages = Math.ceil(filteredPayments.length / ITEMS_PER_PAGE);
+  const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+  const endIndex = startIndex + ITEMS_PER_PAGE;
+  
+  // 3. Slice the array to only show 8 items per page
+  const paginatedPayments = filteredPayments.slice(startIndex, endIndex);
+
+  return (
+    <div className="payments-page">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       <div className="page-title-section">
         <div className="title-content">
           <h1>Digital Payment Management</h1>
@@ -63,7 +126,10 @@ export default function CollectorPaymentsPage() {
         </div>
       </div>
 
+<<<<<<< HEAD
       {/* Toolbar */}
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       <div className="toolbar-section">
         <div className="search-box">
           <svg className="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -87,7 +153,10 @@ export default function CollectorPaymentsPage() {
         </button>
       </div>
 
+<<<<<<< HEAD
       {/* Table */}
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       <div className="table-container">
         <table>
           <thead>
@@ -106,8 +175,14 @@ export default function CollectorPaymentsPage() {
                   Loading digital payments...
                 </td>
               </tr>
+<<<<<<< HEAD
             ) : payments.length > 0 ? (
               payments.map((row) => (
+=======
+            ) : paginatedPayments.length > 0 ? (
+              // Use paginatedPayments instead of filteredPayments here
+              paginatedPayments.map((row) => (
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                 <tr key={row.id}>
                   <td>
                     <div className="resident-cell">
@@ -153,6 +228,7 @@ export default function CollectorPaymentsPage() {
           </tbody>
         </table>
 
+<<<<<<< HEAD
         {/* Footer */}
         <div className="table-footer">
           <span>Showing 1 to {payments.length} of {payments.length} pending digital transactions</span>
@@ -166,6 +242,49 @@ export default function CollectorPaymentsPage() {
       </div>
 
       {/* Proof of Payment Detail View Modal */}
+=======
+        <div className="table-footer">
+          <span>
+            Showing {filteredPayments.length > 0 ? startIndex + 1 : 0} to {Math.min(endIndex, filteredPayments.length)} of {filteredPayments.length} pending digital transactions
+          </span>
+          
+          {/* Conditionally render pagination ONLY if there is more than 1 page */}
+          {totalPages > 1 && (
+            <div className="pagination">
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                style={{ opacity: currentPage === 1 ? 0.5 : 1, cursor: currentPage === 1 ? 'not-allowed' : 'pointer' }}
+              >
+                {'<'}
+              </button>
+              
+              {/* Generate dynamic page numbers based on totalPages */}
+              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                <button 
+                  key={page} 
+                  className={`page-btn ${currentPage === page ? 'active' : ''}`}
+                  onClick={() => setCurrentPage(page)}
+                >
+                  {page}
+                </button>
+              ))}
+
+              <button 
+                className="page-btn" 
+                onClick={() => setCurrentPage((prev) => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                style={{ opacity: currentPage === totalPages ? 0.5 : 1, cursor: currentPage === totalPages ? 'not-allowed' : 'pointer' }}
+              >
+                {'>'}
+              </button>
+            </div>
+          )}
+        </div>
+      </div>
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       {selectedPayment && (
         <div className="modal-overlay">
           <div className="modal-card">

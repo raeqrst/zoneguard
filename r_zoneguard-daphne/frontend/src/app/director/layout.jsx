@@ -1,5 +1,6 @@
 'use client';
 
+<<<<<<< HEAD
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -53,12 +54,18 @@ const Icons = {
 };
 
 
+=======
+import SidebarLayout, { Icons } from '../../components/SidebarLayout';
+import './layout.css';
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 const menuItems = [
   { label: 'Dashboard', href: '/director/dashboard', icon: Icons.dashboard },
   { label: 'Escalated Complaints', href: '/director/escalated_complaints', icon: Icons.escalatedComplaints },
   { label: 'Executive Reports', href: '/director/executive_reports', icon: Icons.executiveReports },
 ];
 
+<<<<<<< HEAD
 
 export default function DirectorLayout({ children }) {
   const pathname = usePathname();
@@ -133,3 +140,15 @@ export default function DirectorLayout({ children }) {
   );
 }
 
+=======
+export default function DirectorLayout({ children }) {
+  return (
+    <SidebarLayout 
+      menuItems={menuItems} 
+      settingsPath="/director/settings"
+    >
+      {children}
+    </SidebarLayout>
+  );
+}
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f

@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import dynamic from 'next/dynamic';
 
+<<<<<<< HEAD
 const ComplaintStatusMap = dynamic(() => import('../../components/ComplaintStatusMap'), {
    ssr: false,
    loading: () => <p>Loading map...</p>,
@@ -11,6 +12,16 @@ const ComplaintStatusMap = dynamic(() => import('../../components/ComplaintStatu
 const ComplaintHeatmapMap = dynamic(() => import('../../components/ComplaintHeatmapMap'), {
    ssr: false,
    loading: () => <p>Loading map...</p>,
+=======
+const ComplaintStatusMap = dynamic(() => import('../../../components/ComplaintStatusMap'), {
+  ssr: false,
+  loading: () => <p>Loading map...</p>,
+});
+
+const ComplaintHeatmapMap = dynamic(() => import('../../../components/ComplaintHeatmapMap'), {
+  ssr: false,
+  loading: () => <p>Loading map...</p>,
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 });
 
 const Icons = {

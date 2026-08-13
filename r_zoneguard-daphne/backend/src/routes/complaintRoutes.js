@@ -1,4 +1,5 @@
 const express = require('express');
+<<<<<<< HEAD
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const { Pool } = require('pg');
@@ -269,5 +270,19 @@ router.patch('/:id/escalate', async (req, res) => {
     return res.status(500).json({ error: error.message });
   }
 });
+=======
+const complaintController = require('../controllers/complaintController');
+
+const router = express.Router();
+
+// GET /api/complaints
+router.get('/', complaintController.getAllComplaints);
+
+// POST /api/complaints
+router.post('/', complaintController.createComplaint);
+
+// PATCH /api/complaints/:id/status
+router.patch('/:id/status', complaintController.updateComplaintStatus);
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
 module.exports = router;

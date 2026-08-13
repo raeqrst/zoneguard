@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const prisma = require('../config/db');
 
 exports.getResidents = async (req, res) => {
@@ -10,11 +11,37 @@ exports.getResidents = async (req, res) => {
     const skip = (page - 1) * limit;
 
     const where = {
+=======
+const { PrismaClient } = require('@prisma/client');
+const { Pool } = require('pg');
+const { PrismaPg } = require('@prisma/adapter-pg');
+
+const pool = new Pool({
+  connectionString: process.env.DATABASE_URL,
+});
+
+const adapter = new PrismaPg(pool);
+
+const prisma = new PrismaClient({
+  adapter,
+});
+
+exports.getResidents = async (req, res) => {
+  try {
+
+    const type = req.query.type || "All Residents";
+    const zone = req.query.zone || "";
+    const search = req.query.search || "";
+
+    const where = {
+      accountStatus: "ACTIVE",
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       systemRole: {
         in: ["HOMEOWNER", "TENANT"],
       },
     };
 
+<<<<<<< HEAD
     if (type === "Tenants") {
       where.systemRole = "TENANT";
     } else if (type === "Homeowners") {
@@ -26,22 +53,52 @@ exports.getResidents = async (req, res) => {
       where.zone = {
         name: {
           contains: cleanZone,
+=======
+    if (type === "Tenants")
+      where.systemRole = "TENANT";
+
+    if (type === "Homeowners")
+      where.systemRole = "HOMEOWNER";
+
+    if (zone) {
+      where.zone = {
+        name: {
+          equals: zone,
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           mode: "insensitive",
         },
       };
     }
 
+<<<<<<< HEAD
     // Global Search (Handles top search bar and table search inputs)
     if (search) {
       where.OR = [
         { firstName: { contains: search, mode: "insensitive" } },
         { lastName: { contains: search, mode: "insensitive" } },
         { email: { contains: search, mode: "insensitive" } },
+=======
+    if (search) {
+      where.OR = [
+        {
+          firstName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+        {
+          lastName: {
+            contains: search,
+            mode: "insensitive",
+          },
+        },
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       ];
     }
 
     const users = await prisma.user.findMany({
       where,
+<<<<<<< HEAD
       include: {
         zone: true,
         tenants: {
@@ -291,4 +348,130 @@ exports.addResident = async (req, res) => {
       error: err.message,
     });
   }
+=======
+
+      include: {
+        zone: true,
+        tenants: {
+          include: {
+            lot: true,
+          },
+        },
+      },
+
+      orderBy: {
+        lastName: "asc",
+      },
+    });
+
+    const totalTenants = await prisma.user.count({
+      where: {
+        systemRole: "TENANT",
+      },
+    });
+
+    const totalHomeowners = await prisma.user.count({
+      where: {
+        systemRole: "HOMEOWNER",
+      },
+    });
+
+    const colors = [
+      "#92400e",
+      "#d97706",
+      "#475569",
+      "#dc2626",
+      "#78350f",
+      "#ea580c",
+      "#b91c1c",
+      "#059669",
+    ];
+
+    const residents = users.map((user, index) => {
+
+      const lot = user.tenants?.[0]?.lot;
+
+      const fullName =
+        `${user.firstName} ${user.middleName ? user.middleName[0] + "." : ""} ${user.lastName}`;
+
+      return {
+
+        id: user.id,
+
+        name: fullName,
+
+        init:
+          `${user.firstName[0]}${user.lastName[0]}`.toUpperCase(),
+
+        bgColor:
+          colors[index % colors.length],
+
+        address:
+          `${user.zone?.name || "Zone"} ${lot?.houseNumber || ""} ${lot?.street || ""}`,
+
+        sticker:
+          lot?.isDelinquent ? "Not Eligible" : "Eligible",
+
+        stickerTone:
+          lot?.isDelinquent ? "red" : "green",
+
+        election:
+          user.systemRole === "HOMEOWNER"
+            ? "Eligible"
+            : "Not Eligible",
+
+        electionTone:
+          user.systemRole === "HOMEOWNER"
+            ? "green"
+            : "red",
+
+        isAtRisk:
+          lot?.isDelinquent || false,
+
+        type:
+          user.systemRole === "TENANT"
+            ? "Tenant"
+            : "Homeowner",
+
+        typeTone:
+          user.systemRole === "TENANT"
+            ? "light-green"
+            : "dark-green",
+      };
+
+    });
+
+    res.json({
+
+      success: true,
+
+      stats: {
+
+        totalTenants,
+
+        totalHomeowners,
+
+      },
+
+      residents,
+
+    });
+
+  }
+
+  catch (err) {
+
+    console.error(err);
+
+    res.status(500).json({
+
+      success: false,
+
+      error: err.message,
+
+    });
+
+  }
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 };

@@ -1,6 +1,7 @@
 'use client';
 
 import Link from 'next/link';
+<<<<<<< HEAD
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import './style.css';
@@ -37,12 +38,28 @@ function MetricCard({ icon, label, value, detail }) {
         <span className="stat-detail">{detail}</span>
       </div>
     </article>
+=======
+import { useEffect, useState } from 'react';
+import './style.css';
+
+function MetricCard({ icon, label, value, detail, tone }) {
+  return (
+    <div className={`stat-card tone-${tone}`}>
+      <div className="stat-icon-wrapper">{icon}</div>
+      <div className="stat-info">
+        <span className="stat-label">{label}</span>
+        <span className="stat-value">{value}</span>
+        <span className="stat-detail">{detail}</span>
+      </div>
+    </div>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   );
 }
 
 function PieChartCard({ issueCategories = [] }) {
   if (!issueCategories || issueCategories.length === 0) return null;
 
+<<<<<<< HEAD
   const mappedCategories = issueCategories.map((item) => {
     const rawKey = (item.label || item.complaintCategory || '').toUpperCase().trim();
     const config = EXACT_CATEGORY_MAP[rawKey] || {
@@ -80,16 +97,36 @@ function PieChartCard({ issueCategories = [] }) {
 
   return (
     <article className="dashboard-card">
+=======
+  const total = issueCategories.reduce((sum, item) => sum + item.value, 0);
+  let cumulative = 0;
+
+  const gradients = issueCategories
+    .map((item) => {
+      const start = cumulative;
+      cumulative += item.value;
+      return `${item.color} ${((start / total) * 100).toFixed(2)}\%${((cumulative / total) * 100).toFixed(2)}%`;
+    })
+    .join(', ');
+
+  return (
+    <div className="dashboard-card">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       <div className="card-header-row">
         <div>
           <h2>Issue Categorization</h2>
           <p>Monthly volume of recorded complaints by category classification.</p>
         </div>
+<<<<<<< HEAD
         <Link href="/admin/analytics" className="engine-pill">
+=======
+        <Link href="/admin/analytics#issue-categorization" className="engine-pill">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           R Analytics
         </Link>
       </div>
 
+<<<<<<< HEAD
       <div style={{ display: 'flex', alignItems: 'center', gap: '28px', marginTop: '16px' }}>
         <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
           <svg width="160" height="160" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
@@ -123,10 +160,20 @@ function PieChartCard({ issueCategories = [] }) {
                 <span style={{ fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>{item.label}</span>
               </div>
               <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>{item.value} ({item.percentage}%)</span>
+=======
+      <div className="ad-pie-layout">
+        <div className="ad-pie-chart" style={{ background: `conic-gradient(${gradients})` }} />
+        <div className="ad-pie-legend">
+          {issueCategories.map((item) => (
+            <div key={item.label} className="ad-legend-row">
+              <span className="ad-legend-swatch" style={{ backgroundColor: item.color }} />
+              <span>{item.label}</span>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
             </div>
           ))}
         </div>
       </div>
+<<<<<<< HEAD
     </article>
   );
 }
@@ -143,10 +190,30 @@ function PaidOverviewCard({ paidOverview = [] }) {
           <p>Number of residents who completed payments per month.</p>
         </div>
         <Link href="/admin/analytics#paid-overview" className="engine-pill">
+=======
+    </div>
+  );
+}
+
+function ComplaintsOverviewCard({ complaintOverview = [] }) {
+  if (!complaintOverview || complaintOverview.length === 0) return null;
+
+  const maxValue = Math.max(...complaintOverview.map((item) => item.value));
+
+  return (
+    <div className="dashboard-card">
+      <div className="card-header-row">
+        <div>
+          <h2>Complaints Overview</h2>
+          <p>Monthly volume complaints by zone classification.</p>
+        </div>
+        <Link href="/admin/analytics#complaints-overview" className="engine-pill">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           R Analytics
         </Link>
       </div>
 
+<<<<<<< HEAD
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>
         {paidOverview.map((item, i) => (
           <div key={item.month || i} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -159,12 +226,29 @@ function PaidOverviewCard({ paidOverview = [] }) {
         ))}
       </div>
     </article>
+=======
+      <div className="ad-overview-bars">
+        {complaintOverview.map((item) => (
+          <div key={item.zone} className="ad-overview-row">
+            <span className="ad-overview-label">{item.zone}</span>
+            <div className="ad-overview-track">
+              <div
+                className="ad-overview-fill"
+                style={{ width: `${(item.value / maxValue) * 100}%` }}
+              />
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   );
 }
 
 function TurnoverCard({ turnoverData = [] }) {
   if (!turnoverData || turnoverData.length === 0) return null;
 
+<<<<<<< HEAD
   const chartMax = 30;
   const yAxisSteps = [30, 25, 20, 15, 10, 5, 0];
 
@@ -173,10 +257,20 @@ function TurnoverCard({ turnoverData = [] }) {
       <div className="card-header-row" style={{ marginBottom: '16px' }}>
         <div>
           <h2 style={{ color: '#064e3b', fontSize: '1.4rem' }}>Tenant Turnover Rate</h2>
+=======
+  const maxValue = Math.max(...turnoverData.map((item) => Math.max(item.moveIn, item.moveOut)));
+
+  return (
+    <div className="dashboard-card full-width-card">
+      <div className="card-header-row">
+        <div>
+          <h2>Tenant Turnover Rate</h2>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           <p>Total moves per month</p>
         </div>
       </div>
 
+<<<<<<< HEAD
       <div style={{ display: 'flex', justifyContent: 'center', gap: '24px', marginBottom: '16px', fontSize: '0.8rem', color: '#4b5563', fontWeight: '500' }}>
         <span style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
             <i style={{ width: '10px', height: '10px', background: '#4285F4', borderRadius: '50%' }} /> Move In
@@ -312,12 +406,63 @@ function DashboardContent() {
   return (
     <div style={{ paddingBottom: '40px' }}>
       <section className="page-header-container">
+=======
+      <div className="ad-turnover-legend">
+        <span><i className="legend movein" /> Move In</span>
+        <span><i className="legend moveout" /> Move Out</span>
+      </div>
+
+      <div className="ad-bar-chart">
+        {turnoverData.map((item) => (
+          <div key={item.month} className="ad-bar-group">
+            <div className="ad-bar-stack">
+              <div className="ad-bar movein" style={{ height: `${(item.moveIn / maxValue) * 100}%` }} />
+              <div className="ad-bar moveout" style={{ height: `${(item.moveOut / maxValue) * 100}%` }} />
+            </div>
+            <span>{item.month}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+export default function AdminDashboardPage() {
+  const [metrics, setMetrics] = useState([]);
+  const [issueCategories, setIssueCategories] = useState([]);
+  const [complaintOverview, setComplaintOverview] = useState([]);
+  const [turnoverData, setTurnoverData] = useState([]);
+
+  // RESTORED BACKEND CONNECTION
+  useEffect(() => {
+    async function loadDashboard() {
+      try {
+        const res = await fetch("http://localhost:5000/api/dashboard");
+        const data = await res.json();
+        
+        setMetrics(data.metrics || []);
+        setIssueCategories(data.issueCategories || []);
+        setComplaintOverview(data.complaintOverview || []);
+        setTurnoverData(data.turnover || []);
+      } catch (err) {
+        console.error('Failed to load dashboard data:', err);
+      }
+    }
+    
+    loadDashboard();
+  }, []);
+
+  return (
+    <>
+      <div className="page-header-container">
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
         <div className="page-title-section">
           <h1>Admin Dashboard</h1>
           <p>Operational overview for approvals, complaints, payments, and resident activity.</p>
         </div>
 
         <div className="action-buttons">
+<<<<<<< HEAD
           <button 
             type="button" 
             className="btn-report" 
@@ -366,5 +511,30 @@ export default function AdminDashboardPage() {
     <Suspense fallback={<div>Loading dashboard...</div>}>
       <DashboardContent />
     </Suspense>
+=======
+          <button type="button" className="btn-filter">Filter</button>
+          <button type="button" className="btn-report">Generate Report</button>
+        </div>
+      </div>
+
+      {/* DYNAMIC METRICS FROM BACKEND */}
+      <section className="stats-cards">
+        {metrics.map((metric) => (
+          <MetricCard key={metric.label} {...metric} />
+        ))}
+      </section>
+
+      {/* DYNAMIC CHARTS FROM BACKEND */}
+      <div className="dashboard-grid">
+        <PieChartCard issueCategories={issueCategories} />
+        <ComplaintsOverviewCard complaintOverview={complaintOverview} />
+      </div>
+
+      {/* DYNAMIC TURNOVER BAR CHART */}
+      <div className="turnover-row">
+        <TurnoverCard turnoverData={turnoverData} />
+      </div>
+    </>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   );
 }

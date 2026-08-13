@@ -45,12 +45,15 @@ const Icons = {
       <polyline points="16 17 21 12 16 7" />
       <line x1="21" y1="12" x2="9" y2="12" />
     </svg>
+<<<<<<< HEAD
   ),
   search: (
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="11" cy="11" r="8"></circle>
       <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
     </svg>
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   )
 };
 
@@ -64,6 +67,7 @@ export default function CollectorLayout({ children }) {
   const pathname = usePathname();
   const router = useRouter();
 
+<<<<<<< HEAD
   // 1. Dynamic User State (Populated from Backend/Session API)
   const [user, setUser] = useState({
     name: 'Collector Name',
@@ -97,16 +101,51 @@ export default function CollectorLayout({ children }) {
   const handleLogout = async () => {
     try {
       // Call your backend logout endpoint to destroy session/cookies
+=======
+  const [user, setUser] = useState({
+    name: 'Collector Name',
+    role: 'ZONE COLLECTOR',
+    initials: 'CL',
+  });
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('zoneguard_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const fName = parsed.first_name || parsed.firstName || '';
+        const lName = parsed.last_name || parsed.lastName || '';
+        const fullName = fName || lName ? `${fName} ${lName}`.trim() : 'Collector Name';
+        const initials = `${fName ? fName.charAt(0) : 'C'}${lName ? lName.charAt(0) : 'L'}`.toUpperCase();
+
+        setUser({
+          name: fullName,
+          role: parsed.role ? parsed.role.replace('_', ' ').toUpperCase() : 'ZONE COLLECTOR',
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error("Error loading collector session from localStorage:", error);
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       await fetch('/api/auth/logout', { method: 'POST' });
     } catch (error) {
       console.error('Logout error:', error);
     } finally {
+<<<<<<< HEAD
       // Clear local storage/cookies if necessary and navigate to login page
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       localStorage.clear();
       router.push('/login');
     }
   };
 
+<<<<<<< HEAD
   // 3. Handle Search Action
   const handleSearchSubmit = (e) => {
     if (e.key === 'Enter' && searchQuery.trim()) {
@@ -114,6 +153,8 @@ export default function CollectorLayout({ children }) {
     }
   };
 
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   return (
     <div className="layout-wrapper">
       <div className="main-container">
@@ -169,6 +210,7 @@ export default function CollectorLayout({ children }) {
 
         {/* CONTENT AREA */}
         <main className="content-area">
+<<<<<<< HEAD
           <header className="topbar">
             <div className="search-bar-large">
               <span className="search-icon">{Icons.search}</span>
@@ -181,6 +223,9 @@ export default function CollectorLayout({ children }) {
               />
             </div>
 
+=======
+          <header className="topbar" style={{ justifyContent: 'flex-end' }}>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
             <div className="user-profile">
               <div className="user-info">
                 <span className="user-name">{user.name}</span>

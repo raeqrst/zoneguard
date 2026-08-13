@@ -50,7 +50,11 @@ function HomeownerPaymentsContent() {
 
   const [selectedYear, setSelectedYear] = useState('2026');
   const [searchQuery, setSearchQuery] = useState('');
+<<<<<<< HEAD
   
+=======
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   // Payment Modal states
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [activeRow, setActiveRow] = useState(null);
@@ -79,9 +83,26 @@ function HomeownerPaymentsContent() {
       const loggedInUserId = typeof window !== 'undefined' ? localStorage.getItem('userId') : null;
       const url = new URL('http://localhost:5000/api/homeowner/payments');
       if (propId) url.searchParams.append('propertyId', propId);
+<<<<<<< HEAD
       if (loggedInUserId) url.searchParams.append('userId', loggedInUserId); 
 
       const res = await fetch(url.toString());
+=======
+      if (loggedInUserId) url.searchParams.append('userId', loggedInUserId);
+      
+      // 🌟 NEW: Add a timestamp to permanently break browser caching
+      url.searchParams.append('_t', new Date().getTime());
+
+      // 🌟 NEW: Force 'no-store' to ensure we grab the updated DB values
+      const res = await fetch(url.toString(), {
+        cache: 'no-store',
+        headers: {
+          'Cache-Control': 'no-cache',
+          'Pragma': 'no-cache'
+        }
+      });
+      
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       const data = await res.json();
       
       if (res.ok) {
@@ -140,10 +161,17 @@ function HomeownerPaymentsContent() {
         const res = await fetch(`http://localhost:5000/api/homeowner/transactions/${row.id}`);
         if (res.ok) {
           const txData = await res.json();
+<<<<<<< HEAD
           setActiveDisputeRecord({ 
             ...row, 
             homeownerClaim: `Reference Number: ${txData.referenceNo || 'N/A'}`, 
             evidenceUrl: txData.paymentMethod ? `Payment Method: ${txData.paymentMethod}` : 'Digital Submission' 
+=======
+          setActiveDisputeRecord({
+            ...row,
+            homeownerClaim: `Reference Number: ${txData.referenceNo || 'N/A'}`,
+            evidenceUrl: txData.paymentMethod ? `Payment Method: ${txData.paymentMethod}` : 'Digital Submission'
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
           });
         }
       } catch (e) {
@@ -354,6 +382,7 @@ function HomeownerPaymentsContent() {
                     <td>{row.amount}</td>
                     <td>
                       <span className={
+<<<<<<< HEAD
                         row.statusType === 'paid' 
                           ? 'zg-status-badge-paid' 
                           : row.statusText === 'PENDING' 
@@ -363,6 +392,17 @@ function HomeownerPaymentsContent() {
                           : row.statusText === 'UNPAID'
                           ? 'zg-status-badge-unpaid'
                           : 'zg-status-badge-arrears'
+=======
+                        row.statusType === 'paid'
+                          ? 'zg-status-badge-paid'
+                          : row.statusText === 'PENDING'
+                            ? 'zg-status-badge-pending'
+                            : row.statusText === 'IN DISPUTE'
+                              ? 'zg-status-badge-dispute'
+                              : row.statusText === 'UNPAID'
+                                ? 'zg-status-badge-unpaid'
+                                : 'zg-status-badge-arrears'
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                       }>
                         {row.statusText}
                       </span>
@@ -377,8 +417,13 @@ function HomeownerPaymentsContent() {
                               action === 'Pay Now'
                                 ? 'zg-btn-pay'
                                 : action === 'Dispute' || action === 'Status'
+<<<<<<< HEAD
                                 ? 'zg-btn-dispute'
                                 : 'zg-btn-generic'
+=======
+                                  ? 'zg-btn-dispute'
+                                  : 'zg-btn-generic'
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                             }
                             onClick={() => handleActionClick(action, row)}
                           >
@@ -508,7 +553,11 @@ function HomeownerPaymentsContent() {
               <div className="zg-details-box">
                 <h4>Dispute Details</h4>
                 <p className="zg-subtext">Detail your reason for dispute and provide evidence below.</p>
+<<<<<<< HEAD
                 
+=======
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
                 <label className="zg-modal-label">REASON FOR DISPUTE:</label>
                 <textarea
                   className="zg-dispute-textarea"
@@ -555,6 +604,7 @@ function HomeownerPaymentsContent() {
               </button>
             </div>
 
+<<<<<<< HEAD
             <div className="zg-stepper-container">
               <div className="zg-step active">
                 <div className="zg-step-icon">✓</div>
@@ -571,6 +621,53 @@ function HomeownerPaymentsContent() {
                 <span>Approved</span>
               </div>
             </div>
+=======
+            {(() => {
+              // Extract the actual backend status
+              const currentStatus = (activeDisputeRecord?.dispute_status || activeDisputeRecord?.status || activeDisputeRecord?.statusText || '').toUpperCase();
+
+              // Determine current progress
+              const isResolved = currentStatus === 'RESOLVED' || currentStatus === 'PAID';
+              const isRejected = currentStatus === 'REJECTED';
+
+              return (
+                <div className="zg-stepper-container">
+                  {/* Step 1: Submitted */}
+                  <div className="zg-step active">
+                    <div className="zg-step-icon">✓</div>
+                    <span>Submitted</span>
+                  </div>
+
+                  <div className="zg-step-line active"></div>
+
+                  {/* Step 2: Investigating / Reviewing */}
+                  <div className="zg-step active">
+                    <div className="zg-step-icon">✓</div>
+                    <span>{activeDisputeRecord?.statusText === 'VALIDATING' ? 'Collector Review' : 'Investigating'}</span>
+                  </div>
+
+                  {/* Step 3 Line (Dynamic Color) */}
+                  <div
+                    className={`zg-step-line ${isResolved || isRejected ? 'active' : ''}`}
+                    style={isRejected ? { backgroundColor: '#dc2626' } : {}}
+                  ></div>
+
+                  {/* Step 3: Final Decision (Dynamic Text & Color) */}
+                  <div className={`zg-step ${isResolved || isRejected ? 'active' : ''}`}>
+                    <div
+                      className="zg-step-icon"
+                      style={isRejected ? { backgroundColor: '#dc2626', borderColor: '#dc2626' } : {}}
+                    >
+                      {isResolved ? '✓' : isRejected ? '✕' : '✓'}
+                    </div>
+                    <span style={isRejected ? { color: '#dc2626' } : {}}>
+                      {isRejected ? 'Rejected' : 'Approved'}
+                    </span>
+                  </div>
+                </div>
+              );
+            })()}
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
             <div className="zg-review-details-box">
               <label className="zg-modal-label">
@@ -579,7 +676,11 @@ function HomeownerPaymentsContent() {
               <p className="zg-review-text">
                 {activeDisputeRecord?.homeownerClaim || activeDisputeRecord?.disputeInfo?.reason || 'Awaiting collector validation of submitted proof.'}
               </p>
+<<<<<<< HEAD
               
+=======
+
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
               <label className="zg-modal-label">
                 {activeDisputeRecord?.statusText === 'VALIDATING' ? 'SUBMISSION METHOD' : 'ATTACHED EVIDENCE'}
               </label>
@@ -588,7 +689,20 @@ function HomeownerPaymentsContent() {
               </div>
             </div>
 
+<<<<<<< HEAD
             <button className="zg-close-summary-btn" onClick={() => setIsSummaryModalOpen(false)}>
+=======
+            {/* UPDATE THIS BUTTON */}
+            <button
+              className="zg-close-summary-btn"
+              onClick={() => {
+                setIsSummaryModalOpen(false);
+                // Refresh the ledger automatically when the modal closes
+                // This forces the "IN DISPUTE" badge to revert to "WITH ARREARS" or "UNPAID"
+                fetchPaymentsData(propertyId);
+              }}
+            >
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
               Close Summary
             </button>
           </div>

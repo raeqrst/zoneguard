@@ -1,4 +1,5 @@
 library(jsonlite)
+<<<<<<< HEAD
 library(rpart)
 
 args <- commandArgs(trailingOnly = TRUE)
@@ -20,10 +21,27 @@ lots_df <- if (!is.null(raw_data$lots) && length(raw_data$lots) > 0) {
   as.data.frame(raw_data$lots)
 } else {
   data.frame(isDelinquent = c(0, 0, 0, 1))
+=======
+
+# 1. Read exported operational data from Express or environment arguments
+csv_file <- "input_operational.csv"
+
+if (file.exists(csv_file)) {
+  df <- read.csv(csv_file)
+} else {
+  # Fallback sample dataset if database input is missing
+  df <- data.frame(
+    category = c("Infrastructure", "Monthly Dues", "Security"),
+    avg_resolve_mins = c(252, NA, 15),       # 252 mins = 4.2 Hours
+    delinquency_rate = c(NA, 0.183, NA),     # 18.3% outstanding
+    trend_slope = c(0.15, 0.05, -0.12)       # positive = increasing, negative = decreasing
+  )
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 }
 
 operational_results <- list()
 
+<<<<<<< HEAD
 # --- 1. INFRASTRUCTURE SLA MODEL (Generalized Linear Model: glm) ---
 infra_rows <- complaints_df[grepl("INFRA|MAINTENANCE", complaints_df$category, ignore.case = TRUE), ]
 valid_infra <- infra_rows[!is.na(infra_rows$durationMins), ]
@@ -102,4 +120,69 @@ operational_results[[3]] <- list(
   statusTone = sec_tone
 )
 
+=======
+for (i in 1:nrow(df)) {
+  cat_name <- df$category[i]
+  
+  # Initialize variables to avoid scope warnings
+  status <- "Stable"
+  tone <- "green"
+  metric_str <- ""
+  insight <- ""
+  
+  if (cat_name == "Infrastructure") {
+    hrs <- round(df$avg_resolve_mins[i] / 60, 1)
+    metric_str <- paste0(hrs, " Hours")
+    
+    # Statistical insight based on slope/trend
+    if (!is.na(df$trend_slope[i]) && df$trend_slope[i] > 0.1) {
+      status <- "At-Risk"
+      tone <- "red"
+      insight <- "Predicted volume spike in 3 days"
+    } else {
+      status <- "Stable"
+      tone <- "green"
+      insight <- "Resolution rate within optimal bounds"
+    }
+    
+  } else if (cat_name == "Monthly Dues") {
+    rate <- df$delinquency_rate[i]
+    metric_str <- paste0(round((1 - rate) * 100, 1), "% Paid")
+    
+    if (rate > 0.15) {
+      status <- "At-Risk"
+      tone <- "red"
+      insight <- paste0("High delinquency probability (", round(rate * 100, 1), "% uncollected)")
+    } else {
+      status <- "Optimal"
+      tone <- "green"
+      insight <- "Collection target achieved"
+    }
+    
+  } else if (cat_name == "Security") {
+    mins <- round(df$avg_resolve_mins[i], 0)
+    metric_str <- paste0(mins, " Minutes")
+    
+    if (!is.na(df$trend_slope[i]) && df$trend_slope[i] < 0) {
+      status <- "Optimal"
+      tone <- "green"
+      insight <- paste0("Decreasing incident trend (", abs(round(df$trend_slope[i] * 100, 1)), "%/wk)")
+    } else {
+      status <- "At-Risk"
+      tone <- "red"
+      insight <- "Slight rise in incident response times"
+    }
+  }
+  
+  operational_results[[i]] <- list(
+    category = cat_name,
+    status = status,
+    metric = metric_str,
+    insight = insight,
+    statusTone = tone
+  )
+}
+
+# 2. Print JSON directly to stdout so Node.js child_process can catch it instantly
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 cat(toJSON(operational_results, auto_unbox = TRUE, pretty = TRUE))

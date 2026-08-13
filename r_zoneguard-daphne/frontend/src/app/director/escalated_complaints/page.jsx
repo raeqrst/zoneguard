@@ -73,6 +73,35 @@ export default function EscalatedComplaintsPage() {
   const [activeFilter, setActiveFilter] = useState('All Pending');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedComplaint, setSelectedComplaint] = useState(null);
+<<<<<<< HEAD
+=======
+  const [currentDirector, setCurrentDirector] = useState({
+    name: 'Dir. Del Rosario',
+    role: 'ZONE 3 DIRECTOR',
+    initials: 'DR'
+  });
+
+  useEffect(() => {
+    try {
+      const storedUser = localStorage.getItem('zoneguard_user');
+      if (storedUser) {
+        const parsed = JSON.parse(storedUser);
+        const fName = parsed.first_name || parsed.firstName || '';
+        const lName = parsed.last_name || parsed.lastName || 'Del Rosario';
+        const formattedName = fName ? `${fName.charAt(0)}. ${lName}` : `Dir. ${lName}`;
+        const initials = `${fName ? fName.charAt(0) : 'D'}${lName.charAt(0)}`.toUpperCase();
+
+        setCurrentDirector({
+          name: formattedName,
+          role: parsed.role ? parsed.role.replace('_', ' ') : 'ZONE 3 DIRECTOR',
+          initials: initials
+        });
+      }
+    } catch (error) {
+      console.error("Error loading director session:", error);
+    }
+  }, []);
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
   const fetchComplaints = async () => {
     setIsLoading(true);
@@ -117,7 +146,10 @@ export default function EscalatedComplaintsPage() {
     fetchComplaints();
   }, []);
 
+<<<<<<< HEAD
   // Strict check: Only status === 'escalated' counts as pending for Director triage
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   const pendingList = complaintsData.filter(item => normalize(item.status) === 'escalated');
   const resolvedList = complaintsData.filter(item => normalize(item.status) === 'resolved');
 
@@ -138,7 +170,10 @@ export default function EscalatedComplaintsPage() {
     { label: `Resolved History (${resolvedList.length})`, key: 'Resolved History' }
   ];
 
+<<<<<<< HEAD
   // Matches the CSS classes defined in your style.css (.badge-financial, .badge-infra, etc.)
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
   const getCategoryBadgeClass = (category) => {
     const val = normalize(category);
     if (val.includes('financial')) return 'badge-financial';
@@ -160,7 +195,10 @@ export default function EscalatedComplaintsPage() {
     } else if (activeFilter === 'Resolved History') {
       matchesStatus = statusVal === 'resolved';
     } else {
+<<<<<<< HEAD
       // Robust comparison ignoring underscores, spacing, and casing
+=======
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
       const cleanActive = activeFilter.replace(/\s+/g, '_').toUpperCase();
       const cleanItemCat = categoryVal.replace(/\s+/g, '_').toUpperCase();
       matchesStatus = statusVal === 'escalated' && cleanItemCat === cleanActive;
@@ -181,7 +219,11 @@ export default function EscalatedComplaintsPage() {
   const handleResolve = async (ticketId, dbId) => {
     try {
       const targetId = dbId || ticketId;
+<<<<<<< HEAD
       const response = await fetch(`${API_BASE}/complaints/${targetId}/status`, { // <-- Add /status here
+=======
+      const response = await fetch(`${API_BASE}/complaints/${targetId}/status`, {
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: 'RESOLVED' })
@@ -244,6 +286,7 @@ export default function EscalatedComplaintsPage() {
 
   return (
     <div className="main-content">
+<<<<<<< HEAD
       <header className="top-header">
         <div className="search-bar">
           <span className="search-icon">{Icons.search}</span>
@@ -263,6 +306,18 @@ export default function EscalatedComplaintsPage() {
           <div className="avatar">DR</div>
         </div>
       </header>
+=======
+      {/* Absolute Top-Right Floating Profile Widget */}
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '-24px', marginRight: '-12px', marginBottom: '8px' }}>
+        <div className="user-profile">
+          <div className="user-info">
+            <span className="user-name">{currentDirector.name}</span>
+            <span className="user-role">{currentDirector.role}</span>
+          </div>
+          <div className="user-avatar">{currentDirector.initials}</div>
+        </div>
+      </div>
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
       <div className="page-header">
         <div>

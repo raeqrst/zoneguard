@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 const express = require('express');
 const router = express.Router();
 // Use shared Prisma instance to prevent initialization/driver crashes
@@ -194,5 +195,14 @@ router.get('/', async (req, res) => {
     res.status(500).json({ success: false, error: error.message });
   }
 });
+=======
+const express = require("express");
+
+const router = express.Router();
+
+const dashboardController = require("../controllers/dashboardController");
+
+router.get("/", dashboardController.getDashboard);
+>>>>>>> 01836c54ddcfe91b7f8a90884af277b3524fb35f
 
 module.exports = router;
