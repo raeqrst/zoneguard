@@ -1,22 +1,13 @@
 .dg-shell {
   width: 100%;
-  min-height: 100vh;
-  display: block;
-  background: transparent;
-  border: none;
-  border-radius: 0;
-  box-shadow: none;
-  overflow: visible;
-  margin: 0;
-  padding: 0;
+  min-height: calc(100vh - 24px);
+  display: block; 
+  background: rgba(255, 255, 255, 0.74);
+  border: 1px solid #dfe7e2;
+  border-radius: 18px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
 }
-
-
-.dg-main {
-  padding: 0; /* Removes the side spacing completely */
-  width: 100%;
-}
-
 
 .dg-sidebar {
   background: linear-gradient(180deg, #f8fbf9 0%, #edf4f0 100%);
@@ -26,14 +17,12 @@
   flex-direction: column;
 }
 
-
 .dg-brand {
   display: flex;
   align-items: center;
   gap: 10px;
   margin-bottom: 22px;
 }
-
 
 .dg-brand-mark {
   width: 40px;
@@ -46,12 +35,10 @@
   font: 800 0.82rem/1 var(--font-display);
 }
 
-
 .dg-brand strong {
   font-family: var(--font-display);
   font-size: 0.95rem;
 }
-
 
 .dg-brand p {
   margin: 2px 0 0;
@@ -60,12 +47,10 @@
   letter-spacing: 0.09em;
 }
 
-
 .dg-nav {
   display: grid;
   gap: 8px;
 }
-
 
 .dg-nav-item {
   border: 0;
@@ -78,17 +63,14 @@
   cursor: pointer;
 }
 
-
 .dg-nav-item.is-active {
   background: #e4f1ea;
   box-shadow: inset -3px 0 0 #0f7050;
 }
 
-
 .dg-nav-item:hover {
   background: #edf5f1;
 }
-
 
 .dg-sidebar-footer {
   margin-top: auto;
@@ -98,11 +80,9 @@
   gap: 8px;
 }
 
-
 .dg-main {
   padding: 18px;
 }
-
 
 .dg-topbar {
   display: flex;
@@ -112,13 +92,11 @@
   margin-bottom: 14px;
 }
 
-
 .dg-topbar h1 {
   margin: 0;
   font: 700 1.9rem/1.1 var(--font-display);
   color: #124b39;
 }
-
 
 .dg-zone-pill {
   display: inline-block;
@@ -132,13 +110,11 @@
   letter-spacing: 0.04em;
 }
 
-
 .dg-topbar-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 
 .dg-search {
   width: 215px;
@@ -152,12 +128,10 @@
   gap: 8px;
 }
 
-
 .dg-search span {
   color: #7f9088;
   font-size: 0.95rem;
 }
-
 
 .dg-search input {
   border: 0;
@@ -167,11 +141,9 @@
   color: #325043;
 }
 
-
 .dg-search input::placeholder {
   color: #99a8a2;
 }
-
 
 .dg-user {
   display: flex;
@@ -179,13 +151,11 @@
   gap: 10px;
 }
 
-
 .dg-user strong {
   display: block;
   text-align: right;
   font-size: 0.86rem;
 }
-
 
 .dg-user p {
   margin: 0;
@@ -194,7 +164,6 @@
   font-size: 0.66rem;
   letter-spacing: 0.08em;
 }
-
 
 .dg-user span {
   width: 34px;
@@ -208,14 +177,12 @@
   font-weight: 800;
 }
 
-
 .dg-metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
   margin-bottom: 14px;
 }
-
 
 .dg-metric-card {
   background: var(--surface);
@@ -228,7 +195,6 @@
   align-items: flex-start;
 }
 
-
 .dg-metric-icon {
   width: 36px;
   height: 36px;
@@ -238,12 +204,10 @@
   font-weight: 800;
 }
 
-
 .tone-green .dg-metric-icon { background: #def2e4; color: #16714e; }
 .tone-blue .dg-metric-icon { background: #dceff8; color: #2076a6; }
 .tone-amber .dg-metric-icon { background: #f7edd1; color: #9a6a0f; }
 .tone-purple .dg-metric-icon { background: #ece4f7; color: #7b4aae; }
-
 
 .dg-metric-card p {
   margin: 0 0 2px;
@@ -251,13 +215,11 @@
   font-size: 0.74rem;
 }
 
-
 .dg-metric-card strong {
   display: block;
   font: 800 1.45rem/1.1 var(--font-display);
   color: #163f31;
 }
-
 
 .dg-metric-card span {
   display: inline-block;
@@ -265,19 +227,16 @@
   font-size: 0.72rem;
 }
 
-
 .tone-green span { color: #3f9a68; }
 .tone-blue span { color: #2779b5; }
 .tone-amber span { color: #9d6b09; }
 .tone-purple span { color: #7d58a4; }
-
 
 .dg-content-grid {
   display: grid;
   grid-template-columns: minmax(0, 1fr) 332px;
   gap: 14px;
 }
-
 
 .dg-primary-column,
 .dg-side-column {
@@ -286,7 +245,6 @@
   align-content: start;
 }
 
-
 .dg-card {
   background: var(--surface);
   border: 1px solid var(--line);
@@ -294,11 +252,9 @@
   box-shadow: 0 6px 18px rgba(37, 61, 50, 0.08);
 }
 
-
 .dg-chart-card {
   padding: 14px;
 }
-
 
 .dg-card-heading h2 {
   margin: 0;
@@ -306,13 +262,11 @@
   color: #203d32;
 }
 
-
 .dg-card-heading p {
   margin: 3px 0 0;
   color: #71837b;
   font-size: 0.76rem;
 }
-
 
 .dg-chart-wrap {
   margin-top: 8px;
@@ -322,18 +276,15 @@
   padding: 10px 10px 6px;
 }
 
-
 .dg-chart-wrap svg {
   width: 100%;
   height: auto;
 }
 
-
 .dg-gridlines line {
   stroke: #e7ece9;
   stroke-width: 1;
 }
-
 
 .dg-chart-legend {
   display: flex;
@@ -344,13 +295,11 @@
   font-size: 0.74rem;
 }
 
-
 .dg-chart-legend span {
   display: inline-flex;
   align-items: center;
   gap: 6px;
 }
-
 
 .dg-chart-legend i {
   width: 14px;
@@ -359,15 +308,12 @@
   display: inline-block;
 }
 
-
 .legend.collections { background: #6ca07b; }
 .legend.arrears { background: #ec7d7d; }
-
 
 .dg-category-card {
   padding: 14px;
 }
-
 
 .dg-pie-layout {
   margin-top: 12px;
@@ -376,7 +322,6 @@
   gap: 14px;
   align-items: center;
 }
-
 
 .dg-pie-chart {
   width: min(100%, 310px);
@@ -387,7 +332,6 @@
   box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.03);
 }
 
-
 .dg-pie-chart::after {
   content: '';
   position: absolute;
@@ -396,12 +340,10 @@
   background: #fff;
 }
 
-
 .dg-pie-legend {
   display: grid;
   gap: 8px;
 }
-
 
 .dg-pie-legend-row {
   display: flex;
@@ -411,7 +353,6 @@
   font-size: 0.8rem;
 }
 
-
 .dg-pie-swatch {
   width: 8px;
   height: 8px;
@@ -419,18 +360,15 @@
   flex: 0 0 auto;
 }
 
-
 .dg-card-heading.compact p {
   max-width: 760px;
 }
-
 
 .dg-category-list {
   margin-top: 12px;
   display: grid;
   gap: 10px;
 }
-
 
 .dg-category-head {
   display: flex;
@@ -439,18 +377,15 @@
   margin-bottom: 4px;
 }
 
-
 .dg-category-head span {
   color: #52645d;
   font-size: 0.82rem;
 }
 
-
 .dg-category-head strong {
   color: #446256;
   font-size: 0.75rem;
 }
-
 
 .dg-category-track {
   height: 12px;
@@ -459,22 +394,18 @@
   overflow: hidden;
 }
 
-
 .dg-category-fill {
   height: 100%;
   border-radius: inherit;
 }
 
-
 .dg-financial-overview {
   padding: 14px;
 }
 
-
 .dg-activity-card {
   padding: 14px;
 }
-
 
 .dg-side-card-header {
   display: flex;
@@ -484,12 +415,10 @@
   margin-bottom: 10px;
 }
 
-
 .dg-side-card-header h3 {
   margin: 0;
   font: 700 1rem/1.1 var(--font-display);
 }
-
 
 .dg-locked-pill {
   display: inline-flex;
@@ -503,19 +432,16 @@
   font-weight: 800;
 }
 
-
 .dg-budget-line {
   margin-top: 10px;
   padding: 10px 0;
 }
-
 
 .dg-budget-line span {
   display: block;
   color: #71857d;
   font-size: 0.74rem;
 }
-
 
 .dg-budget-line strong {
   display: block;
@@ -524,24 +450,20 @@
   font-size: 1rem;
 }
 
-
 .dg-budget-line.muted {
   border-top: 1px solid #edf1ee;
 }
-
 
 .dg-activity-list {
   display: grid;
   gap: 12px;
 }
 
-
 .dg-activity-item {
   display: flex;
   gap: 10px;
   align-items: flex-start;
 }
-
 
 .dg-activity-badge {
   width: 22px;
@@ -556,14 +478,12 @@
   flex: 0 0 auto;
 }
 
-
 .dg-activity-item p {
   margin: 0;
   color: #364d43;
   font-size: 0.83rem;
   line-height: 1.35;
 }
-
 
 .dg-activity-item span {
   display: block;
@@ -572,19 +492,16 @@
   font-size: 0.7rem;
 }
 
-
 .dg-activity-item.tone-danger .dg-activity-badge {
   background: #ffe7e4;
   color: #d25548;
 }
-
 
 .dg-ghost-button {
   margin-top: 12px;
   background: #eef4f1;
   color: #446256;
 }
-
 
 .dg-primary-button,
 .dg-ghost-button {
@@ -596,41 +513,34 @@
   font-weight: 800;
 }
 
-
 .dg-primary-button {
   margin-top: 10px;
   background: linear-gradient(145deg, #0f7050, #0c5a40);
   color: #f8fff9;
 }
 
-
 @media (max-width: 1200px) {
   .dg-shell {
     grid-template-columns: 1fr;
   }
-
 
   .dg-sidebar {
     border-right: 0;
     border-bottom: 1px solid var(--line);
   }
 
-
   .dg-metrics-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
 
   .dg-content-grid {
     grid-template-columns: 1fr;
   }
 
-
   .dg-pie-layout {
     grid-template-columns: 1fr;
   }
 }
-
 
 @media (max-width: 760px) {
   .dg-shell {
@@ -639,16 +549,13 @@
     border-radius: 14px;
   }
 
-
   .dg-main {
     padding: 14px;
   }
 
-
   .dg-topbar {
     flex-direction: column;
   }
-
 
   .dg-topbar-right {
     width: 100%;
@@ -656,26 +563,19 @@
     align-items: stretch;
   }
 
-
   .dg-search {
     width: 100%;
   }
-
 
   .dg-user {
     align-self: flex-end;
   }
 
-
   .dg-metrics-grid {
     grid-template-columns: 1fr;
   }
-
 
   .dg-pie-layout {
     grid-template-columns: 1fr;
   }
 }
-
-
-

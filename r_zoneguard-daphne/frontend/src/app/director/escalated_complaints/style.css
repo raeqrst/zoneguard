@@ -1,58 +1,19 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-
-/* Target potential overarching dashboard shells, wrappers, or layout cards */
-html, body, #root, .app, .wrapper, .main-layout, .dashboard-wrapper, div[class*="layout"], div[class*="wrapper"] {
-  background-color: #ffffff !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-
-/* GLOBAL LAYOUT FIXES FOR OUTER FRAMES/BORDERS */
-.dashboard-container,
-.main-layout,
-.app-container {
-  border: none !important;
-  box-shadow: none !important;
-  background-color: #ffffff !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
-
-/* MAIN CONTENT CANVAS - Isolated strictly to Escalated Complaints page */
-.escalated-complaints-view .main-content,
-body:has(.escalated-complaints-container) .main-content,
+/* MAIN CONTENT CANVAS - Fluid layout constrained inside the Dashboard flex container */
 .main-content {
   flex: 1 1 0%;
   min-width: 0;
   width: 100%;
   max-width: 100%;
-  min-height: 100vh;
-  padding: 32px 40px !important;
-  background-color: #ffffff !important;
+  padding: 32px 40px;
+  background-color: #ffffff;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   overflow-x: hidden;
   position: relative;
-  margin-left: 0 !important;
 }
-
-
-/* Force the parent container wrappers to have zero margin, border, or padding */
-.escalated-complaints-view,
-.escalated-complaints-container {
-  background-color: #ffffff !important;
-  border: none !important;
-  box-shadow: none !important;
-  padding: 0 !important;
-  margin: 0 !important;
-}
-
 
 /* TOP HEADER (SEARCH & USER PROFILE) */
 .top-header {
@@ -62,7 +23,6 @@ body:has(.escalated-complaints-container) .main-content,
   margin-bottom: 28px;
   width: 100%;
 }
-
 
 .search-bar {
   display: flex;
@@ -75,13 +35,11 @@ body:has(.escalated-complaints-container) .main-content,
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.03);
 }
 
-
 .search-icon {
   color: #9ca3af;
   margin-right: 10px;
   display: flex;
 }
-
 
 .search-bar input {
   border: none;
@@ -91,18 +49,15 @@ body:has(.escalated-complaints-container) .main-content,
   color: #111827;
 }
 
-
 .user-profile {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-
 .user-info {
   text-align: right;
 }
-
 
 .user-name {
   font-weight: 700;
@@ -110,14 +65,12 @@ body:has(.escalated-complaints-container) .main-content,
   font-size: 0.9rem;
 }
 
-
 .user-role {
   font-size: 0.65rem;
   color: #6b7280;
   letter-spacing: 0.05em;
   font-weight: 600;
 }
-
 
 .avatar {
   background-color: #1e1b4b;
@@ -132,7 +85,6 @@ body:has(.escalated-complaints-container) .main-content,
   font-size: 0.85rem;
 }
 
-
 /* PAGE HEADER */
 .page-header {
   display: flex;
@@ -142,7 +94,6 @@ body:has(.escalated-complaints-container) .main-content,
   width: 100%;
 }
 
-
 .page-header h1 {
   font-size: 2.25rem;
   color: #064e3b;
@@ -151,12 +102,10 @@ body:has(.escalated-complaints-container) .main-content,
   margin-bottom: 4px;
 }
 
-
 .page-subtitle {
   color: #6b7280;
   font-size: 0.9rem;
 }
-
 
 .export-btn {
   display: inline-flex;
@@ -174,11 +123,9 @@ body:has(.escalated-complaints-container) .main-content,
   transition: background-color 0.2s ease;
 }
 
-
 .export-btn:hover {
   background-color: #f9fafb;
 }
-
 
 /* TOP SECTION GRID (Filters + Protocol Card) */
 .top-section-grid {
@@ -190,20 +137,17 @@ body:has(.escalated-complaints-container) .main-content,
   width: 100%;
 }
 
-
 .filters-container {
   display: flex;
   flex-direction: column;
   gap: 12px;
 }
 
-
 .pill-group {
   display: flex;
   flex-wrap: wrap;
   gap: 8px;
 }
-
 
 .pill-btn {
   padding: 6px 14px;
@@ -217,23 +161,19 @@ body:has(.escalated-complaints-container) .main-content,
   transition: all 0.2s ease;
 }
 
-
 .pill-btn:hover {
   background-color: #d1fae5;
 }
-
 
 .pill-btn.active {
   background-color: #064e3b;
   color: #ffffff;
 }
 
-
 .info-text {
   font-size: 0.8rem;
   color: #6b7280;
 }
-
 
 /* PROTOCOL CARD */
 .protocol-card {
@@ -242,7 +182,6 @@ body:has(.escalated-complaints-container) .main-content,
   border-radius: 8px;
   padding: 16px;
 }
-
 
 .protocol-title {
   display: flex;
@@ -254,12 +193,10 @@ body:has(.escalated-complaints-container) .main-content,
   margin-bottom: 10px;
 }
 
-
 .protocol-icon {
   color: #065f46;
   display: flex;
 }
-
 
 .protocol-list {
   list-style: none;
@@ -267,7 +204,6 @@ body:has(.escalated-complaints-container) .main-content,
   flex-direction: column;
   gap: 8px;
 }
-
 
 .protocol-list li {
   display: flex;
@@ -278,12 +214,10 @@ body:has(.escalated-complaints-container) .main-content,
   line-height: 1.4;
 }
 
-
 .check-icon {
   color: #059669;
   font-weight: 700;
 }
-
 
 /* COMPLAINTS TABLE CONTAINER */
 .table-card {
@@ -296,13 +230,11 @@ body:has(.escalated-complaints-container) .main-content,
   width: 100%;
 }
 
-
 .complaints-table {
   width: 100%;
   border-collapse: collapse;
   min-width: 700px;
 }
-
 
 .complaints-table th {
   background-color: #f9fafb;
@@ -315,11 +247,9 @@ body:has(.escalated-complaints-container) .main-content,
   letter-spacing: 0.05em;
 }
 
-
 .complaints-table th.align-right {
   text-align: center;
 }
-
 
 .complaints-table td {
   padding: 14px 16px;
@@ -328,19 +258,16 @@ body:has(.escalated-complaints-container) .main-content,
   vertical-align: middle;
 }
 
-
 .ticket-cell {
   font-weight: 700;
   color: #111827;
 }
-
 
 .resident-cell {
   display: flex;
   align-items: center;
   gap: 12px;
 }
-
 
 .res-avatar {
   width: 36px;
@@ -355,18 +282,15 @@ body:has(.escalated-complaints-container) .main-content,
   flex-shrink: 0;
 }
 
-
 .res-name {
   font-weight: 700;
   color: #111827;
 }
 
-
 .res-address {
   font-size: 0.725rem;
   color: #6b7280;
 }
-
 
 /* CATEGORY BADGES */
 .cat-badge {
@@ -378,14 +302,12 @@ body:has(.escalated-complaints-container) .main-content,
   letter-spacing: 0.03em;
 }
 
-
 .badge-financial { background-color: #fef08a; color: #854d0e; }
-.badge-infrastructure { background-color: #bbf7d0; color: #166534; }
+.badge-infra { background-color: #bbf7d0; color: #166534; }
 .badge-beautification { background-color: #e9d5ff; color: #6b21a8; }
 .badge-pr { background-color: #bae6fd; color: #075985; }
 .badge-grievance { background-color: #fecdd3; color: #9f1239; }
-.badge-sport { background-color: #fbcfe8; color: #9d174d; } 
-
+.badge-sport { background-color: #f9b0d8; color: #643643; }
 
 /* STATUS */
 .status-dot {
@@ -397,19 +319,16 @@ body:has(.escalated-complaints-container) .main-content,
   margin-right: 6px;
 }
 
-
 .status-text {
   font-weight: 600;
   font-size: 0.825rem;
   color: #1d4ed8;
 }
 
-
 .subject-cell {
   font-weight: 600;
   color: #065f46;
 }
-
 
 /* ACTIONS */
 .actions-cell {
@@ -418,7 +337,6 @@ body:has(.escalated-complaints-container) .main-content,
   justify-content: center;
   gap: 6px;
 }
-
 
 .view-btn {
   background: transparent;
@@ -432,7 +350,6 @@ body:has(.escalated-complaints-container) .main-content,
   justify-content: center;
 }
 
-
 .action-btn {
   border: none;
   border-radius: 6px;
@@ -444,20 +361,17 @@ body:has(.escalated-complaints-container) .main-content,
   justify-content: center;
 }
 
-
 .resolve-btn {
   background-color: #064e3b;
   color: #ffffff;
   padding: 6px 14px;
 }
 
-
 .icon-btn {
   background-color: #d1fae5;
   color: #064e3b;
   padding: 6px;
 }
-
 
 /* TABLE FOOTER */
 .table-footer {
@@ -469,19 +383,16 @@ body:has(.escalated-complaints-container) .main-content,
   border-top: 1px solid #e5e7eb;
 }
 
-
 .footer-info {
   font-size: 0.8rem;
   color: #6b7280;
 }
-
 
 .pagination {
   display: flex;
   align-items: center;
   gap: 6px;
 }
-
 
 .page-nav,
 .page-num {
@@ -499,13 +410,11 @@ body:has(.escalated-complaints-container) .main-content,
   cursor: pointer;
 }
 
-
 .page-num.active {
   background-color: #064e3b;
   color: #ffffff;
   border-color: #064e3b;
 }
-
 
 /* MODAL POPUP STYLES */
 .modal-overlay {
@@ -522,7 +431,6 @@ body:has(.escalated-complaints-container) .main-content,
   padding: 20px;
 }
 
-
 .modal-container {
   background: #ffffff;
   width: 100%;
@@ -535,7 +443,6 @@ body:has(.escalated-complaints-container) .main-content,
   overflow: hidden;
   box-sizing: border-box;
 }
-
 
 .modal-close-btn {
   position: absolute;
@@ -551,14 +458,12 @@ body:has(.escalated-complaints-container) .main-content,
   z-index: 10;
 }
 
-
 .modal-left {
   padding: 36px;
   display: flex;
   flex-direction: column;
   gap: 24px;
 }
-
 
 .modal-section-label {
   font-size: 0.7rem;
@@ -569,14 +474,12 @@ body:has(.escalated-complaints-container) .main-content,
   margin-bottom: 6px;
 }
 
-
 .modal-subject-section h2 {
   font-size: 1.5rem;
   font-weight: 700;
   color: #111827;
   margin: 0;
 }
-
 
 .modal-desc-section p {
   font-size: 0.9rem;
@@ -585,13 +488,11 @@ body:has(.escalated-complaints-container) .main-content,
   margin: 0;
 }
 
-
 .evidence-boxes {
   display: flex;
   gap: 12px;
   margin-top: 8px;
 }
-
 
 .evidence-box-placeholder {
   width: 120px;
@@ -599,7 +500,6 @@ body:has(.escalated-complaints-container) .main-content,
   background-color: #e5e7eb;
   border-radius: 8px;
 }
-
 
 .modal-right {
   background-color: #064e3b;
@@ -611,14 +511,12 @@ body:has(.escalated-complaints-container) .main-content,
   position: relative;
 }
 
-
 .modal-right-header h3 {
   font-size: 1.1rem;
   font-weight: 700;
   color: #ffffff;
   margin: 0 0 12px 0;
 }
-
 
 .modal-card-box {
   background: rgba(255, 255, 255, 0.05);
@@ -627,20 +525,17 @@ body:has(.escalated-complaints-container) .main-content,
   padding: 14px;
 }
 
-
 .box-label {
   font-size: 0.7rem;
   color: #9ca3af;
   display: block;
 }
 
-
 .box-val {
   font-size: 0.85rem;
   color: #ffffff;
   margin-top: 2px;
 }
-
 
 .modal-info-tile {
   background: rgba(255, 255, 255, 0.05);
@@ -652,13 +547,11 @@ body:has(.escalated-complaints-container) .main-content,
   gap: 12px;
 }
 
-
 .tile-icon {
   color: #34d399;
   display: flex;
   align-items: center;
 }
-
 
 .tile-title {
   font-size: 0.65rem;
@@ -667,13 +560,11 @@ body:has(.escalated-complaints-container) .main-content,
   letter-spacing: 0.05em;
 }
 
-
 .tile-sub {
   font-size: 0.8rem;
   color: #ffffff;
   margin-top: 1px;
 }
-
 
 .modal-download-btn {
   background-color: rgba(255, 255, 255, 0.1);
@@ -688,11 +579,9 @@ body:has(.escalated-complaints-container) .main-content,
   margin-top: auto;
 }
 
-
 .modal-download-btn:hover {
   background-color: rgba(255, 255, 255, 0.2);
 }
-
 
 .modal-resolve-btn {
   background-color: #ffffff;
@@ -706,18 +595,15 @@ body:has(.escalated-complaints-container) .main-content,
   transition: background-color 0.2s ease;
 }
 
-
 .modal-resolve-btn:hover {
   background-color: #f3f4f6;
 }
-
 
 /* UTILITY CLASS TO HIRE/REMOVE ITEM ON LIST WHEN RESOLVED */
 .complaint-row.resolved,
 .table-card tr.resolved {
   display: none !important;
 }
-
 
 /* CONSOLIDATED VISIBLE CLOSE BUTTON FOR RIGHT PANEL */
 .modal-close-btn,
@@ -738,12 +624,10 @@ body:has(.escalated-complaints-container) .main-content,
   transition: background-color 0.2s ease !important;
 }
 
-
 .modal-close-btn:hover,
 .modal-right-close-btn:hover {
   background: rgba(255, 255, 255, 0.35) !important;
 }
-
 
 .modal-close-btn svg,
 .modal-close-btn svg *,
@@ -761,8 +645,13 @@ body:has(.escalated-complaints-container) .main-content,
   stroke-width: 2.5px !important;
 }
 
-
 .actions-cell .icon-btn {
   display: none !important;
 }
 
+.cat-financial { background-color: #fef08a; color: #854d0e; }
+.cat-infrastructure { background-color: #bbf7d0; color: #166534; }
+.cat-beautification { background-color: #e9d5ff; color: #6b21a8; }
+.cat-pr { background-color: #bae6fd; color: #075985; }
+.cat-grievance { background-color: #fecdd3; color: #9f1239; }
+.cat-sport { background-color: #fbcfe8; color: #9d174d; } /* Pink for sports */

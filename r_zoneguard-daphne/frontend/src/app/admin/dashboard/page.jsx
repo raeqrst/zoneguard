@@ -1,6 +1,5 @@
 'use client';
 
-import Link from 'next/link';
 import { useEffect, useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import './style.css';
@@ -85,14 +84,11 @@ function PieChartCard({ issueCategories = [] }) {
           <h2>Issue Categorization</h2>
           <p>Monthly volume of recorded complaints by category classification.</p>
         </div>
-        <Link href="/admin/analytics" className="engine-pill">
-          R Analytics
-        </Link>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '28px', marginTop: '16px' }}>
-        <div style={{ position: 'relative', width: '160px', height: '160px', flexShrink: 0 }}>
-          <svg width="160" height="160" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '24px', marginTop: '16px' }}>
+        <div style={{ position: 'relative', width: '220px', height: '220px', flexShrink: 0 }}>
+          <svg width="220" height="220" viewBox="0 0 100 100" style={{ transform: 'rotate(-90deg)', overflow: 'visible' }}>
             {slices.map((item, i) => (
               <circle
                 key={item.label || i}
@@ -110,19 +106,19 @@ function PieChartCard({ issueCategories = [] }) {
             ))}
           </svg>
           <div style={{ position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', textAlign: 'center', pointerEvents: 'none' }}>
-            <span style={{ fontSize: '0.65rem', color: '#888', display: 'block', lineHeight: '1' }}>Total</span>
-            <strong style={{ fontSize: '1.1rem', color: '#111', fontWeight: '700' }}>{total}</strong>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', display: 'block', lineHeight: '1', fontWeight: '500' }}>Total</span>
+            <strong style={{ fontSize: '1.5rem', color: '#111827', fontWeight: '800', marginTop: '2px', display: 'block' }}>{total}</strong>
           </div>
         </div>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', flexGrow: 1 }}>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', flexGrow: 1 }}>
           {slices.map((item, i) => (
             <div key={item.label || i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ backgroundColor: item.color, width: '10px', height: '10px', borderRadius: '2px', flexShrink: 0 }} />
-                <span style={{ fontSize: '0.8rem', fontWeight: '500', color: '#374151' }}>{item.label}</span>
+                <span style={{ backgroundColor: item.color, width: '12px', height: '12px', borderRadius: '3px', flexShrink: 0 }} />
+                <span style={{ fontSize: '0.85rem', fontWeight: '500', color: '#374151' }}>{item.label}</span>
               </div>
-              <span style={{ fontSize: '0.8rem', color: '#6b7280', fontWeight: '600' }}>{item.value} ({item.percentage}%)</span>
+              <span style={{ fontSize: '0.85rem', color: '#6b7280', fontWeight: '600' }}>{item.value} ({item.percentage}%)</span>
             </div>
           ))}
         </div>
@@ -142,9 +138,6 @@ function PaidOverviewCard({ paidOverview = [] }) {
           <h2>Paid Overview</h2>
           <p>Number of residents who completed payments per month.</p>
         </div>
-        <Link href="/admin/analytics#paid-overview" className="engine-pill">
-          R Analytics
-        </Link>
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '16px' }}>

@@ -91,40 +91,52 @@ enum DelegationStatus {
   REVOKED
 }
 
+enum VehicleType {
+  PRIVATE
+  COMMERCIAL
+}
+
+enum VehicleStatus {
+  ACTIVE
+  PENDING
+  REJECTED
+  EXPIRED
+}
+
 // ==========================================
 // MODELS
 // ==========================================
 
 model Zone {
-  id        String     @id @default(uuid()) @map("zone_id")
-  name      String     @map("zone_name")
-  status    ZoneStatus @default(ACTIVE) @map("zone_status")
-  createdAt DateTime   @default(now()) @map("created_at")
-  updatedAt DateTime   @updatedAt @map("updated_at")
+  id         String     @id @default(uuid()) @map("zone_id")
+  name       String     @map("zone_name")
+  status     ZoneStatus @default(ACTIVE) @map("zone_status")
+  createdAt  DateTime   @default(now()) @map("created_at")
+  updatedAt  DateTime   @updatedAt @map("updated_at")
 
   // Relationships
-  users               User[]
-  lots                Lot[]
-  monthlyAllocations  MonthlyAllocation[]
-  transactions        Transaction[]
+  users              User[]
+  lots               Lot[]
+  monthlyAllocations MonthlyAllocation[]
+  transactions       Transaction[]
 
   @@map("zones")
 }
 
 model User {
-  id            String         @id @default(uuid()) @map("user_id")
-  zoneId        String?        @map("zone_id")
-  firstName     String         @map("first_name")
-  lastName      String         @map("last_name")
-  middleName    String?        @map("middle_name")
-  email         String?        @unique
-  phoneNumber   String?        @map("phone_number")
-  dateOfBirth   DateTime?      @map("date_of_birth")
-  passwordHash  String         @map("password_hash")
-  systemRole    Role           @default(HOMEOWNER) @map("system_role")
-  accountStatus AccountStatus  @default(ACTIVE) @map("account_status")
-  createdAt     DateTime       @default(now()) @map("created_at")
-  updatedAt     DateTime       @updatedAt @map("updated_at")
+  id            String        @id @default(uuid()) @map("user_id")
+  zoneId        String?       @map("zone_id")
+  firstName     String        @map("first_name")
+  lastName      String        @map("last_name")
+  middleName    String?       @map("middle_name")
+  email         String?       @unique
+  phoneNumber   String?       @map("phone_number")
+  dateOfBirth   DateTime?     @map("date_of_birth")
+  passwordHash  String        @map("password_hash")
+  systemRole    Role          @default(HOMEOWNER) @map("system_role")
+  accountStatus AccountStatus @default(ACTIVE) @map("account_status")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  updatedAt     DateTime      @updatedAt @map("updated_at")
 
   // Relationships
   zone               Zone?               @relation(fields: [zoneId], references: [id], onDelete: SetNull)
@@ -132,11 +144,12 @@ model User {
   tenants            Tenant[]            @relation("TenantUser")
   approvedTenants    Tenant[]            @relation("TenantApprover")
   complaints         Complaint[]
-  auditLogs AuditLog[]
+  auditLogs          AuditLog[]
   processedTxns      Transaction[]       @relation("ProcessedBy")
   createdAllocations MonthlyAllocation[] @relation("CreatedByDirector")
-  collectorDisputes PaymentDispute[] @relation("CollectorDisputes")
-  
+  collectorDisputes  PaymentDispute[]    @relation("CollectorDisputes")
+  vehicles           Vehicle[]
+  transactions       Transaction[]       @relation("UserTransactions")
 
   @@map("users")
 }
@@ -183,7 +196,7 @@ model Homeowner {
 }
 
 model Tenant {
-  id                String           @map("tenant_id") // <-- Remove @id here
+  id                String           @map("tenant_id")
   lotId             String           @map("lot_id")
   userId            String?          @map("user_id")
   permitUrl         String?          @map("permit_url")
@@ -201,7 +214,7 @@ model Tenant {
   user       User? @relation("TenantUser", fields: [userId], references: [id], onDelete: SetNull)
   approvedBy User? @relation("TenantApprover", fields: [approvedById], references: [id], onDelete: SetNull)
 
-  @@id([id, lotId]) // <-- Compound Primary Key!
+  @@id([id, lotId])
   @@map("tenants")
 }
 
@@ -225,25 +238,29 @@ model Complaint {
 }
 
 model Transaction {
-  id                 String        @id @default(uuid()) @map("transaction_id")
-  billingId          String?       @map("billing_id")
-  zoneId             String?       @map("zone_id")
-  amount             Decimal       @db.Decimal(10, 2)
-  paymentCategory    String        @map("payment_category")
-  productionShare    Decimal?      @map("production_share") @db.Decimal(10, 2)
-  hoaShare           Decimal?      @map("hoa_share") @db.Decimal(10, 2)
-  collectorIncentive Decimal?      @map("collector_incentive") @db.Decimal(10, 2)
-  paymentMethod      PaymentMethod @default(DIGITAL) @map("payment_method")
-  paymentStatus      PaymentStatus @default(VERIFIED) @map("payment_status")
-  paymentProof       String?       @map("payment_proof")
-  processedById      String?       @map("processed_by")
-  transactionDate    DateTime      @default(now()) @map("transaction_date")
-  userId             String?       @map("user_id")
-  referenceNo        String?       @map("reference_no")
+  id                 String          @id @default(uuid()) @map("transaction_id")
+  billingId          String?         @map("billing_id")
+  zoneId             String?         @map("zone_id")
+  amount             Decimal         @db.Decimal(10, 2)
+  paymentCategory    String          @map("payment_category")
+  productionShare    Decimal?        @map("production_share") @db.Decimal(10, 2)
+  hoaShare           Decimal?        @map("hoa_share") @db.Decimal(10, 2)
+  collectorIncentive Decimal?        @map("collector_incentive") @db.Decimal(10, 2)
+  paymentMethod      PaymentMethod   @default(DIGITAL) @map("payment_method")
+  paymentStatus      PaymentStatus   @default(VERIFIED) @map("payment_status")
+  paymentProof       String?         @map("payment_proof")
+  processedById      String?         @map("processed_by")
+  transactionDate    DateTime        @default(now()) @map("transaction_date")
+  userId             String?         @map("user_id")
+  vehicleId          String?         @map("vehicle_id")
+  referenceNo        String?         @map("reference_no")
 
   // Relationships
-  zone            Zone?              @relation(fields: [zoneId], references: [id], onDelete: SetNull)
-  processedBy     User?              @relation("ProcessedBy", fields: [processedById], references: [id], onDelete: SetNull)
+  zone        Zone?     @relation(fields: [zoneId], references: [id], onDelete: SetNull)
+  user        User?     @relation("UserTransactions", fields: [userId], references: [id], onDelete: Cascade)
+  processedBy User?     @relation("ProcessedBy", fields: [processedById], references: [id], onDelete: SetNull)
+  vehicle     Vehicle?  @relation(fields: [vehicleId], references: [id], onDelete: SetNull)
+
   @@map("transactions")
 }
 
@@ -332,4 +349,23 @@ model AuditLog {
   user User? @relation(fields: [userId], references: [id], onDelete: SetNull)
 
   @@map("audit_logs")
+}
+
+model Vehicle {
+  id             String   @id @map("vehicle_id")
+  userId         String   @map("user_id")
+  plateNumber    String   @map("plate_number")
+  vehicleType    String   @default("PRIVATE") @map("vehicle_type")
+  vehicleModel   String   @default("Unknown") @map("vehicle_model")
+  vehicleColor   String   @default("Unknown") @map("vehicle_color")
+  orImg          String   @default("") @map("or_img")
+  crImg          String   @default("") @map("cr_img")
+  vehicleStatus  String   @default("PENDING") @map("vehicle_status")
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  transactions Transaction[] // <--- ADD THIS OPPOSITE RELATION FIELD
+
+  @@map("vehicles")
 }

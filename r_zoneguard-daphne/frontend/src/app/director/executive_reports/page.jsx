@@ -31,6 +31,7 @@ const formatCurrency = (amount) => {
   return isNegative ? `-₱${formatted}` : `₱${formatted}`;
 };
 
+// Strict actual records only (no future estimates)
 const financialDataByRange = {
   Q1: {
     title: "Q1 2026 (January - March)",
@@ -161,7 +162,6 @@ export default function ExecutiveReportsPage() {
 
   return (
     <div className="main-content">
-      {/* Top Header */}
       <header className="top-header">
         <div className="search-bar">
           <span className="search-icon">{Icons.search}</span>
@@ -182,7 +182,6 @@ export default function ExecutiveReportsPage() {
         </div>
       </header>
 
-      {/* Page Title Header */}
       <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1>Executive Reports</h1>
@@ -249,14 +248,13 @@ export default function ExecutiveReportsPage() {
         </div>
       </div>
 
-      {/* Table Section 1: Consolidated Financials */}
       <div className="table-card" style={{ marginBottom: '32px', backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', color: '#064e3b', fontWeight: '700' }}>
             Consolidated Financials ({activeRange === 'FULL_YEAR_YTD' ? 'Full Year YTD' : `${activeRange} 2026`})
           </h3>
         </div>
-        <table className="reports-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="complaints-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ textAlign: 'left', fontSize: '0.75rem', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>
               <th style={{ padding: '16px 24px' }}>BILLING CYCLE</th>
@@ -293,12 +291,11 @@ export default function ExecutiveReportsPage() {
         </table>
       </div>
 
-      {/* Table Section 2: Escalated Issues by Category */}
       <div className="table-card" style={{ backgroundColor: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
         <div style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', backgroundColor: '#f8fafc' }}>
           <h3 style={{ margin: 0, fontSize: '1rem', color: '#064e3b', fontWeight: '700' }}>Escalated Issues by Category</h3>
         </div>
-        <table className="reports-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
+        <table className="complaints-table" style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
             <tr style={{ textAlign: 'left', fontSize: '0.75rem', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>
               <th style={{ padding: '16px 24px' }}>COMPLAINT CATEGORY</th>

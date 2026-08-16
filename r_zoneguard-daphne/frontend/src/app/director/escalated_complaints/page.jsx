@@ -78,33 +78,8 @@ export default function EscalatedComplaintsPage() {
     setIsLoading(true);
     try {
       const response = await fetch(`${API_BASE}/complaints`);
-      const result = await response.json();
-      
-      const rawData = Array.isArray(result) ? result : (result.complaints || []);
-      
-      const formatted = rawData.map(item => {
-        const fullName = item.user 
-          ? `${item.user.firstName || ''} ${item.user.lastName || ''}`.trim() 
-          : (item.name || 'Anonymous Resident');
-
-        return {
-          id: item.id || item.ticket_id,
-          ticket: item.id || item.ticket_id,
-          name: fullName,
-          address: item.user?.zoneId ? `Zone ${item.user.zoneId}` : (item.address || 'Zone 3 NIA Village'),
-          categoryRaw: item.category || item.complaintCategory || 'GENERAL',
-          category: (item.category || item.complaintCategory || 'General').replace(/_/g, ' '),
-          status: item.status || 'ACTIVE',
-          subject: item.subject || item.complaintSubject || 'No Subject',
-          description: item.description || item.complaintDesc || 'No description provided.',
-          escalationReason: item.escalationReason || item.escalationRemarks || 'Standard administrative review.',
-          evidenceImg: item.evidenceImg || item.evidence_img || null,
-          createdAt: item.createdAt || item.created_at,
-          bgColor: item.bgColor || '#064e3b'
-        };
-      });
-
-      setComplaintsData(formatted);
+      const data = await response.json();
+      setComplaintsData(data.complaints || []);
     } catch (error) {
       console.error('Failed to load complaints from backend:', error);
       setComplaintsData([]);
@@ -117,7 +92,6 @@ export default function EscalatedComplaintsPage() {
     fetchComplaints();
   }, []);
 
-  // Strict check: Only status === 'escalated' counts as pending for Director triage
   const pendingList = complaintsData.filter(item => normalize(item.status) === 'escalated');
   const resolvedList = complaintsData.filter(item => normalize(item.status) === 'resolved');
 
@@ -132,22 +106,21 @@ export default function EscalatedComplaintsPage() {
   const dynamicCategoryFilters = [
     { label: `All Pending (${pendingList.length})`, key: 'All Pending' },
     ...Object.entries(categoryCounts).map(([catKey, count]) => ({
-      label: `${catKey.charAt(0) + catKey.slice(1).toLowerCase().replace(/_/g, ' ')} (${count})`,
+      label: `${catKey.charAt(0) + catKey.slice(1).toLowerCase()} (${count})`,
       key: catKey
     })),
     { label: `Resolved History (${resolvedList.length})`, key: 'Resolved History' }
   ];
 
-  // Matches the CSS classes defined in your style.css (.badge-financial, .badge-infra, etc.)
   const getCategoryBadgeClass = (category) => {
     const val = normalize(category);
-    if (val.includes('financial')) return 'badge-financial';
-    if (val.includes('infra')) return 'badge-infra';
-    if (val.includes('beautification')) return 'badge-beautification';
-    if (val.includes('public') || val.includes('pr')) return 'badge-pr';
-    if (val.includes('griev')) return 'badge-grievance';
-    if (val.includes('sport')) return 'badge-sport';
-    return 'badge-infra'; 
+    if (val.includes('financial')) return 'cat-financial';
+    if (val.includes('infra')) return 'cat-infrastructure';
+    if (val.includes('beautification')) return 'cat-beautification';
+    if (val.includes('public') || val.includes('pr')) return 'cat-pr';
+    if (val.includes('grievance')) return 'cat-grievance';
+    if (val.includes('sport')) return 'cat-sport';
+    return 'cat-infrastructure'; 
   };
 
   const filteredData = complaintsData.filter((item) => {
@@ -160,10 +133,7 @@ export default function EscalatedComplaintsPage() {
     } else if (activeFilter === 'Resolved History') {
       matchesStatus = statusVal === 'resolved';
     } else {
-      // Robust comparison ignoring underscores, spacing, and casing
-      const cleanActive = activeFilter.replace(/\s+/g, '_').toUpperCase();
-      const cleanItemCat = categoryVal.replace(/\s+/g, '_').toUpperCase();
-      matchesStatus = statusVal === 'escalated' && cleanItemCat === cleanActive;
+      matchesStatus = statusVal === 'escalated' && categoryVal === activeFilter;
     }
 
     const searchStr = normalize(searchQuery);
@@ -181,10 +151,13 @@ export default function EscalatedComplaintsPage() {
   const handleResolve = async (ticketId, dbId) => {
     try {
       const targetId = dbId || ticketId;
-      const response = await fetch(`${API_BASE}/complaints/${targetId}/status`, { // <-- Add /status here
+      const response = await fetch(`${API_BASE}/complaints/${targetId}/status`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status: 'RESOLVED' })
+        body: JSON.stringify({
+          status: 'RESOLVED',
+          description: 'Marked as resolved via executive triage overview.'
+        })
       });
 
       if (!response.ok) throw new Error('Failed to update status');
@@ -200,7 +173,11 @@ export default function EscalatedComplaintsPage() {
     }
   };
 
+  // ==========================================
+  // DYNAMIC CSV DOWNLOAD LOGIC
+  // ==========================================
   const downloadCSV = (type) => {
+    // Determine which dataset to export based on the button clicked
     const dataToExport = type === 'pending' ? pendingList : resolvedList;
 
     if (!dataToExport || dataToExport.length === 0) {
@@ -212,7 +189,7 @@ export default function EscalatedComplaintsPage() {
     const escapeCSV = (str) => `"${(str || '').toString().replace(/"/g, '""')}"`;
 
     const csvRows = dataToExport.map(item => {
-      const dateFiled = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : 'N/A';
+      const dateFiled = item.createdAt ? new Date(item.createdAt).toLocaleDateString() : (item.dateFiled || 'N/A');
       return [
         escapeCSV(item.ticket),
         escapeCSV(item.name),
@@ -221,7 +198,7 @@ export default function EscalatedComplaintsPage() {
         escapeCSV(item.status),
         escapeCSV(item.subject),
         escapeCSV(dateFiled),
-        escapeCSV(item.escalationReason)
+        escapeCSV(item.escalationReason || item.escalationRemarks || 'Standard administrative review.')
       ].join(',');
     });
 
@@ -231,7 +208,7 @@ export default function EscalatedComplaintsPage() {
     
     const currentDate = new Date().toISOString().split('T')[0];
     const filename = type === 'pending' 
-      ? `Pending_Complaints_${currentDate}.csv` 
+      ? `Pending_Escalated_Complaints_${currentDate}.csv` 
       : `Resolved_Complaints_History_${currentDate}.csv`;
     
     const link = document.createElement("a");
@@ -272,6 +249,7 @@ export default function EscalatedComplaintsPage() {
           </p>
         </div>
         
+        {/* REPLACED SINGLE EXPORT BUTTON WITH DUAL EXPORT OPTIONS */}
         <div style={{ display: 'flex', gap: '12px' }}>
           <button 
             className="export-btn" 
@@ -350,7 +328,7 @@ export default function EscalatedComplaintsPage() {
             ) : filteredData.length === 0 ? (
               <tr>
                 <td colSpan="6" style={{ textAlign: 'center', padding: '30px', color: '#666' }}>
-                  No complaints found for this category.
+                  No matching complaints found in the database.
                 </td>
               </tr>
             ) : (
@@ -359,8 +337,8 @@ export default function EscalatedComplaintsPage() {
                   <td className="ticket-cell">{row.ticket}</td>
                   <td>
                     <div className="resident-cell">
-                      <div className="res-avatar" style={{ backgroundColor: row.bgColor }}>
-                        {row.name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
+                      <div className="res-avatar" style={{ backgroundColor: row.bgColor || '#064e3b' }}>
+                        {row.init || 'RS'}
                       </div>
                       <div>
                         <div className="res-name">{row.name}</div>
@@ -420,7 +398,7 @@ export default function EscalatedComplaintsPage() {
             <button className="modal-close-btn" onClick={() => setSelectedComplaint(null)}>
               {Icons.close}
             </button>
-           
+            
             <div className="modal-left">
               <div className="modal-subject-section">
                 <span className="modal-section-label">SUBJECT</span>
@@ -428,7 +406,7 @@ export default function EscalatedComplaintsPage() {
               </div>
               <div className="modal-desc-section">
                 <span className="modal-section-label">DESCRIPTION</span>
-                <p>{selectedComplaint.description}</p>
+                <p>{selectedComplaint.description || selectedComplaint.complaintDesc || 'No description provided.'}</p>
               </div>
               <div className="modal-evidence-section">
                 <span className="modal-section-label">PHOTO EVIDENCE</span>
@@ -453,7 +431,7 @@ export default function EscalatedComplaintsPage() {
               <div className="modal-right-header">
                 <h3>CASE # {selectedComplaint.ticket}</h3>
               </div>
-             
+              
               <div className="modal-card-box">
                 <span className="box-label">Uploaded by:</span>
                 <div className="box-val font-semibold">{selectedComplaint.name}</div>
@@ -466,7 +444,7 @@ export default function EscalatedComplaintsPage() {
                 <div>
                   <div className="tile-title">DATE FILED</div>
                   <div className="tile-sub">
-                    {selectedComplaint.createdAt ? new Date(selectedComplaint.createdAt).toLocaleDateString() : 'N/A'}
+                    {selectedComplaint.createdAt ? new Date(selectedComplaint.createdAt).toLocaleDateString() : (selectedComplaint.dateFiled || 'N/A')}
                   </div>
                 </div>
               </div>
@@ -475,7 +453,7 @@ export default function EscalatedComplaintsPage() {
                 <span className="tile-icon">{Icons.trendingUp}</span>
                 <div>
                   <div className="tile-title">ESCALATION REASON</div>
-                  <div className="tile-sub">{selectedComplaint.escalationReason}</div>
+                  <div className="tile-sub">{selectedComplaint.escalationReason || selectedComplaint.escalationRemarks || 'Standard administrative review.'}</div>
                 </div>
               </div>
 
@@ -484,7 +462,7 @@ export default function EscalatedComplaintsPage() {
                 <div>
                   <div className="tile-title">CATEGORY</div>
                   <div className="tile-sub" style={{ textTransform: 'capitalize' }}>
-                    {selectedComplaint.category}
+                    {(selectedComplaint.category || 'General').toLowerCase()}
                   </div>
                 </div>
               </div>

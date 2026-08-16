@@ -1,9 +1,7 @@
 'use client';
 
-
 import React, { useState } from 'react';
 import Link from 'next/link';
-
 
 const Icons = {
   pencil: (
@@ -19,17 +17,15 @@ const Icons = {
   )
 };
 
-
 export default function DirectorSettingsPage() {
   const [activeTab, setActiveTab] = useState('profile');
 
-
   return (
     <div className="settings-outer-wrapper" style={{ display: 'block', height: '100vh', overflow: 'hidden', backgroundColor: '#f8fafc', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-     
+      
       {/* SCROLLABLE MAIN CONTENT (Sidebar completely removed) */}
       <main className="settings-main" style={{ height: '100vh', overflowY: 'auto', padding: '32px 48px', boxSizing: 'border-box' }}>
-       
+        
         {/* TOPBAR */}
         <header className="settings-topbar" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginBottom: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -41,11 +37,10 @@ export default function DirectorSettingsPage() {
           </div>
         </header>
 
-
         {/* PAGE HEADER & TABS */}
         <div className="settings-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <h1 className="settings-title" style={{ color: '#064e3b', fontSize: '2.2rem', fontWeight: '900', margin: 0, letterSpacing: '-0.5px' }}>Account Settings</h1>
-         
+          
           <div className="tab-pill-group" style={{ display: 'flex', backgroundColor: '#e2e8f0', padding: '4px', borderRadius: '24px', gap: '4px' }}>
             <button
               onClick={() => setActiveTab('profile')}
@@ -64,10 +59,9 @@ export default function DirectorSettingsPage() {
           </div>
         </div>
 
-
         {/* CONTENT GRID */}
         <div className="settings-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 320px', gap: '32px', alignItems: 'start', maxWidth: '1200px', margin: '0 auto' }}>
-         
+          
           {/* FORM CARD */}
           <div className="settings-form-card" style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '36px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)' }}>
             {activeTab === 'profile' ? (
@@ -89,7 +83,6 @@ export default function DirectorSettingsPage() {
                   </div>
                 </div>
 
-
                 {/* SECTION 2 */}
                 <h3 className="settings-section-heading" style={{ color: '#064e3b', fontSize: '0.85rem', fontWeight: '800', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '20px' }}>Contact Information</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '32px' }}>
@@ -105,7 +98,6 @@ export default function DirectorSettingsPage() {
                     <input type="text" defaultValue="delrosario.zone3@zoneguard.ph" readOnly className="settings-input" style={{ width: '100%', padding: '10px 14px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '0.9rem', fontWeight: '600', color: '#0f172a', backgroundColor: '#f8fafc', boxSizing: 'border-box' }} />
                   </div>
                 </div>
-
 
                 {/* SECTION 3 */}
                 <div className="settings-sub-section" style={{ borderTop: '1px solid #f1f5f9', paddingTop: '28px' }}>
@@ -144,7 +136,6 @@ export default function DirectorSettingsPage() {
             )}
           </div>
 
-
           {/* PROFILE SUMMARY CARD */}
           <div className="profile-display-card settings-form-card" style={{ backgroundColor: '#ffffff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '32px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.02)' }}>
             <div className="profile-avatar-circle" style={{ width: '100px', height: '100px', borderRadius: '50%', backgroundColor: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '16px', border: '2px solid #e2e8f0' }}>
@@ -152,16 +143,14 @@ export default function DirectorSettingsPage() {
             </div>
             <h2 className="profile-display-name" style={{ fontSize: '1.1rem', fontWeight: '800', color: '#0f172a', margin: '0 0 4px 0' }}>Dir. Del Rosario</h2>
             <p style={{ fontSize: '0.75rem', color: '#64748b', fontWeight: '700', margin: '0 0 20px 0' }}>ZONE 3 DIRECTOR</p>
-           
+            
             <button className="edit-profile-btn" style={{ background: '#f8fafc', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '8px', color: '#475569', fontSize: '0.8rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', fontWeight: '700' }}>
               Edit Profile {Icons.pencil}
             </button>
           </div>
-
 
         </div>
       </main>
     </div>
   );
 }
-

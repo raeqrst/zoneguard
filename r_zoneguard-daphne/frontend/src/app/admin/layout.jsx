@@ -20,13 +20,6 @@ const Icons = {
       <rect x="3" y="14" width="7" height="7"></rect>
     </svg>
   ),
-  analytics: (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="18" y1="20" x2="18" y2="10"></line>
-      <line x1="12" y1="20" x2="12" y2="4"></line>
-      <line x1="6" y1="20" x2="6" y2="14"></line>
-    </svg>
-  ),
   map: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
@@ -55,6 +48,14 @@ const Icons = {
       <polyline points="9 22 9 12 15 12 15 22"></polyline>
     </svg>
   ),
+  vehicle: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="18.5" cy="17.5" r="3.5"/>
+      <circle cx="5.5" cy="17.5" r="3.5"/>
+      <circle cx="15" cy="5" r="1"/>
+      <path d="M12 17.5V14l-3-3 4-3 2 3h2"/>
+    </svg>
+  ),
   settings: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <circle cx="12" cy="12" r="3"></circle>
@@ -78,11 +79,11 @@ const Icons = {
 
 const menuItems = [
   { label: 'Dashboard', href: '/admin/dashboard', icon: Icons.dashboard },
-  { label: 'Analytics', href: '/admin/analytics', icon: Icons.analytics },
   { label: 'Map', href: '/admin/map', icon: Icons.map },
   { label: 'Complaints', href: '/admin/complaints', icon: Icons.complaints },
   { label: 'Residents', href: '/admin/residents', icon: Icons.residents },
   { label: 'Tenant Management', href: '/admin/tenant_management', icon: Icons.tenant },
+  { label: 'Registered Vehicle', href: '/admin/registered_vehicle', icon: Icons.vehicle },
 ];
 
 function TopSearchBar() {
