@@ -1,7 +1,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
 
-/* GLOBAL RESET & PERMANENT SCROLLBAR FIX */
+/* GLOBAL RESET & OUTER WINDOW SCROLLBAR */
 *, *::before, *::after {
   box-sizing: border-box;
   margin: 0;
@@ -13,20 +13,21 @@ html, body {
   background-color: #ffffff !important;
   font-family: 'Inter', sans-serif !important;
   width: 100% !important;
-  height: 100% !important;
+  height: auto !important;
   overflow-x: hidden !important;
-  overflow-y: scroll !important; /* Forces scrollbar to stay present and prevents layout jumping */
+  overflow-y: auto !important; /* Enables the standard outer browser scrollbar */
   zoom: 1 !important;
   -webkit-text-size-adjust: 100% !important;
 }
 
 
-/* APP SHELL / ROOT CONTAINER LOCK */
+/* APP SHELL / ROOT CONTAINER */
 #root, .App, .app-container {
   display: flex !important;
   width: 100vw !important;
-  height: 100vh !important;
-  overflow: hidden !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  overflow: visible !important;
 }
 
 
@@ -38,9 +39,10 @@ html, body {
   margin-left: 260px !important;
   padding: 32px 48px !important;
   background-color: #ffffff !important;
-  height: 100vh !important;
-  max-height: 100vh !important;
-  overflow-y: auto !important;
+  min-height: 100vh !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow-y: visible !important; /* Disables the inner content scrollbar */
   width: calc(100vw - 260px) !important;
   max-width: calc(100vw - 260px) !important;
   box-sizing: border-box !important;
@@ -692,4 +694,3 @@ html, body {
     padding: 24px !important;
   }
 }
-

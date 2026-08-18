@@ -28,6 +28,13 @@ const Icons = {
       <path d="M6 12h.01M18 12h.01"></path>
     </svg>
   ),
+  vehicleSticker: (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M19 17h2c.6 0 1-.4 1-1v-3c0-.9-.7-1.7-1.5-1.9C18.7 10.6 16 10 16 10s-1.3-1.4-2.2-2.3c-.5-.4-1.1-.7-1.8-.7H5c-.6 0-1.1.4-1.4.9l-1.9 3.4C1.4 11.8 1 12.6 1 13.5V16c0 .6.4 1 1 1h2"></path>
+      <circle cx="7" cy="17" r="2"></circle>
+      <circle cx="17" cy="17" r="2"></circle>
+    </svg>
+  ),
   complaints: (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
@@ -54,6 +61,7 @@ const Icons = {
 const menuItems = [
   { label: 'Dashboard', href: '/tenant/dashboard', icon: Icons.dashboard },
   { label: 'Payments', href: '/tenant/payments', icon: Icons.payments },
+  { label: 'Vehicle Sticker', href: '/tenant/sticker', icon: Icons.vehicleSticker },
   { label: 'Complaints', href: '/tenant/complaints', icon: Icons.complaints },
 ];
 
@@ -132,4 +140,3 @@ export default function TenantLayout({ children }) {
     </div>
   );
 }
-
